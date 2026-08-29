@@ -1057,7 +1057,7 @@ sub _me_created_value
 
 sub _current_ids_rs
 {   my $self = shift;
-    $self->_current_rs->get_column('me.id');
+    $self->_current_rs(@_)->get_column('me.id');
 }
 
 sub _current_rs
@@ -1159,7 +1159,7 @@ sub _resultset_search
     # therefore performance (Pg at least) has been shown to be better if we run
     # the ID subquery first and only pass the IDs in to the main query
     $search{'me.id'} = $options{is_group}
-        ? { -in => $self->_current_ids_rs->as_query }
+        ? { -in => $self->_current_ids_rs(%options)->as_query }
         : $self->current_ids;
 
     # Rewind clause added only if needed
@@ -2225,8 +2225,6 @@ sub order_by
         ? @{$self->_sorts_limit}
         : @{$self->_sorts};
 
-    my $group_cols = delete $options{group_cols};
-
     my @order_by; my %has_time;
     foreach my $s (@sorts)
     {
@@ -2297,18 +2295,11 @@ sub order_by
                 my $query;
                 if ($options{group})
                 {
-                    # Assume that if the column is appearing in the group_by
-                    # that it will already have been added as a grouped column
-                    # and therefore there is no need to add the is_grouped flag
-                    # here. This relies on calling this order_by function after
-                    # the grouped columns have been added.
-                    my $agg = $self->add_aggregate($col_sort, 'max',
-                        parent     => $column_parent,
-                        group_cols => $group_cols,
-                        sort       => 1,
-                        %options,
-                    );
-                    $query = { $type => $agg->{as} };
+                    $self->add_aggregate($col_sort, 'max', sort => 1, parent => $column_parent);
+                    $self->add_aggregate($col_sort->link_parent, 'max', sort => 1, linked => 1, parent => $column_parent)
+                        if $column->link_parent;
+                    my $aggname = $self->aggregate_name($col_sort, $column_parent);
+                    $query = { $type => $aggname };
                 }
                 else {
                     $query = { $type => $sort_name };
@@ -3247,40 +3238,64 @@ sub _build_aggregate_results
 sub _build_group_results
 {   my ($self, %options) = @_;
 
-    # Build the full query first, to ensure that all join numbers etc are
-    # calculated correctly
-    my $search_query    = $self->search_query(search => 1, sort => 1);
-
     # Work out the field name to select, and the appropriate aggregate function
     my @select_fields;
     my @cols;
     my $view = $self->view;
 
-    # During building grouped results an aggregate field can be added via
-    # sorting or as a selected column. This needs to be cleared each time, as
-    # group results can require different aggregate functions
-    $self->clear_aggregate_fields;
-
     my $is_table_group = !$self->isa('GADS::RecordsGraph') && !$self->isa('GADS::RecordsGlobe');
 
+    # Initial pass of all the columns to retrieve in the grouped sql query
     if ($options{columns})
     {
+        # Supplied by the calling function
         @cols = @{$options{columns}};
     }
     elsif ($view && $view->is_group && $is_table_group)
     {
-        my %view_group_cols = map { $_->layout_id => $_->parent_id } @{$view->groups};
-        @cols = map {
-            +{
-                id        => $_->id,
-                column    => $_,
-                operator  => $_->numeric ? 'sum' : exists $view_group_cols{$_->id} ? 'max' : 'distinct',
-                group     => exists $view_group_cols{$_->id},
-                parent_id => $view_group_cols{$_->id},
+        # Columns configured by a view.
+        # Construct a hash of all the group cols, along with any parents if
+        # applicable.
+        my %view_group_cols;
+        foreach my $group_col (@{$view->groups})
+        {
+            $view_group_cols{$group_col->layout_id} ||= [];
+            push @{$view_group_cols{$group_col->layout_id}}, $group_col->parent_id;
+        }
+        # Convert all the columns in the view, into a format usable by this
+        # function
+        foreach my $col (@{$self->columns_selected}, @{$self->columns_recalc_extra})
+        {
+            my %c = (
+                id     => $col->id,
+                column => $col,
+            );
+            # Is the selected column a grouped-by column?
+            if (my $parents = $view_group_cols{$col->id})
+            {
+                # Add it with its parent (if applicable), flagged as a group
+                # column
+                foreach my $parent_id (@$parents)
+                {
+                    push @cols, {
+                        %c,
+                        operator  => $col->numeric ? 'sum' : 'max',
+                        group     => 1,
+                        parent_id => $parent_id, # May be undef
+                    };
+                }
             }
-        } @{$self->columns_selected}, @{$self->columns_recalc_extra};
+            else {
+                # Otherwise push on as normal
+                push @cols, {
+                    %c,
+                    operator => $col->numeric ? 'sum' : 'distinct',
+                };
+            }
+        }
     }
     else {
+        # Configured in the creation of the object
         @cols = @{$self->columns};
     }
 
@@ -3397,18 +3412,25 @@ sub _build_group_results
 
         next if $options{aggregate} && $column->aggregate && $column->aggregate eq 'recalc';
 
-        $self->add_aggregate($column, $op,
+        my %common = (
+            prefetch   => 1,
             search     => 0,
             parent     => $parent,
-            group_cols => \@group_cols,
             is_grouped => $col->{group} || $col->{drcol},
         );
+        $self->add_aggregate($column, $op, %common);
+        $self->add_aggregate($column->link_parent, $op, %common, linked => 1)
+            if $column->link_parent;
     }
 
     push @select_fields, {
         count => \1,
         -as   => 'id_count',
     };
+
+    # Build the full query first, to ensure that all join numbers etc are
+    # calculated correctly
+    my $search_query    = $self->search_query(search => 1, sort => 1);
 
     # If we want to aggregate by month, we need to do some tricky conditional
     # summing. We can't do this with the abstraction layer, so need to resort
@@ -3585,7 +3607,7 @@ sub _build_group_results
                 else {
                     $self->add_group($col);
                 }
-                push @g, $self->fqvalue($col, group => 1, search => 0, prefetch => 1, retain_join_order => 1, parent => $_->{parent});
+                push @g, $self->fqvalue($col, group => 1, search => 0, prefetch => 0, retain_join_order => 1, parent => $_->{parent}, aggregate => 1);
             }
         }
     };
@@ -3607,26 +3629,25 @@ sub _build_group_results
     # The "multivalue" parameter below removes any multi-value columns.
     my %common = (
         group                => 1,
-        prefetch             => 1,
         # Search not needed as performed with subquery
         search               => 0,
         sort                 => 1,
         drcol                => $drcol,
         current_version_only => $self->cvo_values,
+        linked               => 0,
+        rewind               => $self->rewind_values,
     );
 
     my @jp_fetch = $self->jpfetch(%common,
-        multivalue        => 0,
-        linked            => 0,
         retain_join_order => 1,
-        aggregate         => $options{aggregate},
+        aggregate         => 1,
     );
-    my $order_by = $self->order_by(%common, group_cols => \@group_cols, retain_join_order => 1);
-    push @select_fields, map $_->{select}, @{$self->aggregate_fields};
+    my $order_by = $self->order_by(%common, linked => 1, retain_join_order => 1);
+    push @select_fields, map $_->{select}, $self->aggregate_fields(rewind => $self->rewind_values, group_cols => \@group_cols);
     my $select = {
         select => [@select_fields],
         join     => [
-            $self->linked_hash(%common, retain_join_order => 1, aggregate => $options{aggregate}),
+            $self->linked_hash(%common, prefetch => 1, retain_join_order => 1, aggregate => $options{aggregate}),
             {
                 $self->cvo_values
                 ? ('current_version' => \@jp_fetch)
@@ -3661,6 +3682,7 @@ sub _build_group_results
         push @all, GADS::Record->new(
             schema                  => $self->schema,
             record                  => $rec,
+            records                 => $self,
             # is_group affects what key is used by GADS::Record for the result
             # (e.g. _sum). This is a bit messy and should be defined better. We
             # force is_group to be 1 if calculating total aggregates, which
