@@ -42,8 +42,6 @@ sub as_strings
           ? ''
           : ref $value eq 'DateTime'
           ? $self->date_as_string($value, $format)
-          : $self->column->return_type eq 'daterange'
-          ? $self->daterange_as_string($value, $format)
           : $self->column->return_type eq 'numeric'
           ? ( ($dc //= $self->column->decimal_places // 0)
             ? sprintf("%.${dc}f", $value)
@@ -61,8 +59,14 @@ sub as_string
 }
 
 sub _parse_date
-{   $_[1] or return;
-    $_[0]->schema->storage->datetime_parser->parse_date($_[1]);
+{   my ($self, $val) = @_;
+    $val or return;
+    if($val =~ / /) {
+        return $self->schema->storage->datetime_parser->parse_datetime($val);
+    }
+    else {
+        return $self->schema->storage->datetime_parser->parse_date($val);
+    }
 }
 
 sub _convert_date
@@ -113,6 +117,11 @@ sub convert_value
             # Database only stores date part, so ensure local value reflects
             # that
             $val->truncate(to => 'day') if $val;
+            push @return, $val || undef;
+        }
+        elsif ($column->return_type eq "datetime")
+        {
+            $val = $self->_convert_date($val);
             push @return, $val || undef;
         }
         elsif ($column->return_type eq "daterange") # Currently always has time element
@@ -206,7 +215,7 @@ sub equal
             $a2 += 0; $b2 += 0; # Remove trailing zeros
             return 0 if $a2 != $b2;
         }
-        elsif ($rt eq 'date')
+        elsif ($rt eq 'date' || $rt eq 'datetime')
         {
             # Type might have changed and old value be string
             ref $a2 eq 'DateTime' && ref $b2 eq 'DateTime' or return 0;
@@ -240,7 +249,7 @@ sub _build_for_code
     my @return;
     foreach my $val (@{$self->value})
     {
-        if ($rt eq 'date')
+        if ($rt eq 'date' || $rt eq 'datetime')
         {
             push @return, $self->date_for_code($val);
         }

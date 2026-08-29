@@ -97,6 +97,8 @@ after build_values => sub {
 # Convert return format to database column field
 sub _format_to_field
 {   my $return_type = shift;
+    $return_type eq 'datetime' ?
+    'value_datetime' :
     $return_type eq 'date'
     ? 'value_date'
     : $return_type eq 'daterange'
@@ -220,7 +222,7 @@ sub validate_search
 
 sub validate
 {   my ($self, $value) = @_;
-    if ($self->return_type eq 'date')
+    if ($self->return_type eq 'date' || $self->return_type eq 'datetime')
     {
         return $self->parse_date($value);
     }
