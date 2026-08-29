@@ -55,4 +55,8 @@ export default class SubmitRecordButton {
             this.disableButton && $button.prop("disabled", this.requiredHiddenRecordDependentFieldsCleared);
         });
     }
+    public setDisabled(isDisabled: boolean) {
+        this.disableButton = isDisabled;
+        this.el.prop("disabled", isDisabled);
+    }
 }
