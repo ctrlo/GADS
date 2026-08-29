@@ -1934,6 +1934,21 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
         : $action eq 'purgehistory'
         ? $record->find_deleted_recordid($id)
         : $record->find_current_id($id);
+        # If it's a historical version, check that the user has access to the
+        # current version. This prevents the scenario whereby a user has a view
+        # limit on a particular condition, which potentially allows them access
+        # to the historical values of the record but not the current version.
+        # For the purposes of consistency, require that they always need access
+        # to the current version
+        if ($action eq 'history')
+        {
+            my $current = GADS::Record->new(
+                user   => $user,
+                schema => schema,
+            );
+            # Will bork if no access
+            $current->find_current_id($record->current_id);
+        }
     };
 
     if ($@)
