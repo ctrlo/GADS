@@ -379,11 +379,19 @@ sub _build_view_limits_with_blank
 # Whether this user has a view limit on a particular table
 sub has_view_limit
 {   my ($self, $instance_id) = @_;
-    !! $self->view_limits->search({
+    # Yes if they have a limited view on their user account
+    return 1 if $self->view_limits->search({
         'view.instance_id' => $instance_id,
     }, {
         join => 'view',
     })->next;
+    # Yes if there is an overall one on the table
+    return 1 if $self->result_source->schema->resultset('Layout')->search({
+        instance_id   => $instance_id,
+        view_limit_id => { '!=' => undef },
+    })->next;
+    # Otherwise no
+    return 0;
 }
 
 sub set_view_limits

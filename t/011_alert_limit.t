@@ -35,152 +35,190 @@ my $data = [
     },
 ];
 
-my $sheet = Test::GADS::DataSheet->new(
-    data                     => $data,
-    user_permission_override => 0,
-);
+# Test for the limited view being on both the overall table and directly on the
+# user itself
+foreach my $type (qw/table user/)
+{
+    my $sheet = Test::GADS::DataSheet->new(
+        data                     => $data,
+        user_permission_override => 0,
+    );
 
-my $layout  = $sheet->layout;
-my $columns = $sheet->columns;
-my $schema  = $sheet->schema;
-$sheet->create_records;
+    my $layout  = $sheet->layout;
+    my $columns = $sheet->columns;
+    my $schema  = $sheet->schema;
+    $sheet->create_records;
 
-# Create view for limit user's records
-my $rules = GADS::Filter->new(
-    as_hash => {
-        rules     => [{
-            id       => $columns->{string1}->id,
-            type     => 'string',
-            value    => 'Foo',
+    # Create view for limit user's records
+    my $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{string1}->id,
+                type     => 'string',
+                value    => 'Foo',
+                operator => 'equal',
+            }],
+        },
+    );
+
+    my $view_limit = GADS::View->new(
+        name        => 'Limit to view',
+        filter      => $rules,
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+        is_admin    => 1,
+    );
+    $view_limit->write;
+
+    my $user = $sheet->user_normal1;
+    if ($type eq 'table') # Overall table
+    {
+        # Table itself
+        $layout->view_limit_id($view_limit->id);
+        $layout->write;
+        # For the whole table test, apply an override to the limited view for
+        # the second user, so that they can see everything (to duplicate the
+        # test for just the user limited view)
+        my $user_rules = GADS::Filter->new(
+            as_hash => {
+                rules     => [{
+                    id       => $layout->column_id->id,
+                    type     => 'string',
+                    value    => '0',
+                    operator => 'greater',
+                }],
+            },
+        );
+        my $user_view = GADS::View->new(
+            name        => 'Limit view for all records',
+            filter      => $user_rules,
+            instance_id => $layout->instance_id,
+            layout      => $layout,
+            schema      => $schema,
+            user        => $sheet->user,
+            is_admin    => 1,
+        );
+        $user_view->write;
+        $sheet->user_normal2->set_view_limits([$user_view->id]);
+    }
+    else {
+        # Just the user
+        $user->set_view_limits([$view_limit->id]);
+    }
+
+    # Check view limit is working
+    my $records = GADS::Records->new(
+        user    => $user,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    is ($records->count, 1, 'Correct number of results when limiting to a view');
+
+    $rules = {
+        rules => [{
+            id       => $columns->{date1}->id,
+            type     => 'date',
+            value    => '2014-10-10',
             operator => 'equal',
         }],
-    },
-);
+    };
 
-my $view_limit = GADS::View->new(
-    name        => 'Limit to view',
-    filter      => $rules,
-    instance_id => $layout->instance_id,
-    layout      => $layout,
-    schema      => $schema,
-    user        => $sheet->user,
-    is_admin    => 1,
-);
-$view_limit->write;
+    my $view = GADS::View->new(
+        name        => 'View with alerts',
+        filter      => encode_json($rules),
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        columns     => [$columns->{string1}->id],
+    );
+    $view->write;
 
-my $user = $sheet->user_normal1;
-$user->set_view_limits([$view_limit->id]);
+    my $alert = GADS::Alert->new(
+        user      => $sheet->user_normal2,
+        layout    => $layout,
+        schema    => $schema,
+        frequency => 24,
+        view_id   => $view->id,
+    );
+    $alert->write;
 
-# Check view limit is working
-my $records = GADS::Records->new(
-    user    => $user,
-    layout  => $layout,
-    schema  => $schema,
-);
+    is($schema->resultset('AlertCache')->count, 2, "Correct alert cache");
+    is($schema->resultset('AlertSend')->count, 0, "Correct alert send");
 
-is ($records->count, 1, 'Correct number of results when limiting to a view');
+    my $record = GADS::Record->new(
+        user   => $user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->initialise;
+    $record->fields->{$columns->{string1}->id}->set_value("Foo2");
+    $record->fields->{$columns->{date1}->id}->set_value("2014-10-10");
+    $record->write;
 
-$rules = {
-    rules => [{
-        id       => $columns->{date1}->id,
-        type     => 'date',
-        value    => '2014-10-10',
-        operator => 'equal',
-    }],
-};
+    is($schema->resultset('AlertCache')->count, 3, "Correct alert cache");
+    is($schema->resultset('AlertSend')->count, 1, "Correct alert send");
 
-my $view = GADS::View->new(
-    name        => 'View with alerts',
-    filter      => encode_json($rules),
-    instance_id => $layout->instance_id,
-    layout      => $layout,
-    schema      => $schema,
-    columns     => [$columns->{string1}->id],
-);
-$view->write;
+    # Now test that the user with a limited view does not receive alerts for
+    # records not in the limited view
+    # Remove previous alert
+    $alert->frequency('');
+    $alert->write;
+    is($schema->resultset('AlertCache')->count, 0, "Alert cache removed");
+    is($schema->resultset('AlertSend')->count, 0, "Alert send removed");
+    $view = GADS::View->new(
+        name        => 'Limited user view with alerts',
+        # Same filter as before, but will result in fewer records (due to view
+        # limit)
+        filter      => encode_json($rules),
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        columns     => [$columns->{string1}->id],
+    );
+    $view->write;
 
-my $alert = GADS::Alert->new(
-    user      => $sheet->user_normal2,
-    layout    => $layout,
-    schema    => $schema,
-    frequency => 24,
-    view_id   => $view->id,
-);
-$alert->write;
+    $alert = GADS::Alert->new(
+        user      => $sheet->user_normal1,
+        layout    => $layout,
+        schema    => $schema,
+        frequency => 24,
+        view_id   => $view->id,
+    );
+    $alert->write;
 
-is($schema->resultset('AlertCache')->count, 2, "Correct alert cache");
-is($schema->resultset('AlertSend')->count, 0, "Correct alert send");
+    is($schema->resultset('AlertCache')->count, 1, "Correct alert cache for view limit user");
+    is($schema->resultset('AlertSend')->count, 0, "Correct alert send");
 
-my $record = GADS::Record->new(
-    user   => $user,
-    layout => $layout,
-    schema => $schema,
-);
-$record->initialise;
-$record->fields->{$columns->{string1}->id}->set_value("Foo2");
-$record->fields->{$columns->{date1}->id}->set_value("2014-10-10");
-$record->write;
+    # Create a record that will not appear to the view limit user
+    $record = GADS::Record->new(
+        user   => $user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->initialise;
+    $record->fields->{$columns->{string1}->id}->set_value("Foo3");
+    $record->fields->{$columns->{date1}->id}->set_value("2014-10-10");
+    $record->write;
 
-is($schema->resultset('AlertCache')->count, 3, "Correct alert cache");
-is($schema->resultset('AlertSend')->count, 1, "Correct alert send");
+    is($schema->resultset('AlertCache')->count, 1, "Correct alert cache");
+    is($schema->resultset('AlertSend')->count, 0, "Correct alert send");
 
-# Now test that the user with a limited view does not receive alerts for
-# records not in the limited view
-# Remove previous alert
-$alert->frequency('');
-$alert->write;
-is($schema->resultset('AlertCache')->count, 0, "Alert cache removed");
-is($schema->resultset('AlertSend')->count, 0, "Alert send removed");
-$view = GADS::View->new(
-    name        => 'Limited user view with alerts',
-    # Same filter as before, but will result in fewer records (due to view
-    # limit)
-    filter      => encode_json($rules),
-    instance_id => $layout->instance_id,
-    layout      => $layout,
-    schema      => $schema,
-    columns     => [$columns->{string1}->id],
-);
-$view->write;
+    # And now a record that will appear
+    $record = GADS::Record->new(
+        user   => $user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->initialise;
+    $record->fields->{$columns->{string1}->id}->set_value("Foo");
+    $record->fields->{$columns->{date1}->id}->set_value("2014-10-10");
+    $record->write;
 
-$alert = GADS::Alert->new(
-    user      => $sheet->user_normal1,
-    layout    => $layout,
-    schema    => $schema,
-    frequency => 24,
-    view_id   => $view->id,
-);
-$alert->write;
-
-is($schema->resultset('AlertCache')->count, 1, "Correct alert cache for view limit user");
-is($schema->resultset('AlertSend')->count, 0, "Correct alert send");
-
-# Create a record that will not appear to the view limit user
-$record = GADS::Record->new(
-    user   => $user,
-    layout => $layout,
-    schema => $schema,
-);
-$record->initialise;
-$record->fields->{$columns->{string1}->id}->set_value("Foo3");
-$record->fields->{$columns->{date1}->id}->set_value("2014-10-10");
-$record->write;
-
-is($schema->resultset('AlertCache')->count, 1, "Correct alert cache");
-is($schema->resultset('AlertSend')->count, 0, "Correct alert send");
-
-# And now a record that will appear
-$record = GADS::Record->new(
-    user   => $user,
-    layout => $layout,
-    schema => $schema,
-);
-$record->initialise;
-$record->fields->{$columns->{string1}->id}->set_value("Foo");
-$record->fields->{$columns->{date1}->id}->set_value("2014-10-10");
-$record->write;
-
-is($schema->resultset('AlertCache')->count, 2, "Correct alert cache");
-is($schema->resultset('AlertSend')->count, 1, "Correct alert send");
+    is($schema->resultset('AlertCache')->count, 2, "Correct alert cache");
+    is($schema->resultset('AlertSend')->count, 1, "Correct alert send");
+}
 
 done_testing();
