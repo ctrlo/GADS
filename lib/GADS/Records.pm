@@ -201,6 +201,24 @@ sub _build__view_limit_extra
     return;
 }
 
+has _view_limit_override => (
+    is => 'lazy',
+);
+
+sub _build__view_limit_override
+{   my $self = shift;
+    my $override_id = $self->view_limit_override_id
+        or return;
+    my $view_override = $self->schema->resultset('View')->find($override_id);
+    return GADS::View->new(
+        id          => $view_override->id,
+        schema      => $self->schema,
+        layout      => $self->layout,
+        instance_id => $self->layout->instance_id,
+    ) if $view_override->instance_id == $self->layout->instance_id
+        && $view_override->is_limit_override;
+}
+
 # Any extra view limits in addition to those applied per-user
 has view_limit_extra_id => (
     is  => 'lazy',
@@ -212,6 +230,13 @@ sub _build_view_limit_extra_id
     $self->layout->default_view_limit_extra_id;
 }
 
+has view_limit_override_id => (
+    is     => 'ro',
+    isa    => Maybe[Int],
+    # Allow empty string from query params
+    coerce => sub { $_[0] || undef },
+);
+
 has no_view_limits => (
     is => 'ro',
     isa => Bool,
@@ -221,18 +246,21 @@ sub _view_limits_search
 {   my ($self, %options) = @_;
     my @search;
     return [] if $self->no_view_limits;
-    foreach my $view (@{$self->_view_limits})
+    if (!$self->_view_limit_override)
     {
-        if (my $filter = $view->filter)
+        foreach my $view (@{$self->_view_limits})
         {
-            my $decoded = $filter->as_hash;
-            if (keys %$decoded)
+            if (my $filter = $view->filter)
             {
-                # Get the user search criteria.
-                # Ignore any permissions on this view, as otherwise an
-                # administrator-defined limited view of records may not take
-                # effect
-                push @search, $self->_search_construct($decoded, %options, ignore_perms => 1);
+                my $decoded = $filter->as_hash;
+                if (keys %$decoded)
+                {
+                    # Get the user search criteria.
+                    # Ignore any permissions on this view, as otherwise an
+                    # administrator-defined limited view of records may not take
+                    # effect
+                    push @search, $self->_search_construct($decoded, %options, ignore_perms => 1);
+                }
             }
         }
     }
@@ -800,8 +828,12 @@ sub _build__search_all_fields
     );
 
     my @columns_can_view;
+    my $override = $self->_view_limit_override;
     foreach my $col ($self->layout->all(user_can_read => 1))
     {
+        # If in override mode (showing all records) then do not allow a search
+        # on fields not contained in the override view
+        next if $override && !$override->has_column_id($col->id);
         push @columns_can_view, $col->id;
         push @columns_can_view, @{$col->curval_field_ids}
             if ($col->type eq 'curval'); # Curval type needs all its columns from other layout
@@ -1933,6 +1965,14 @@ sub _build_columns_render
 {   my $self = shift;
 
     my @cols = grep $_->user_can('read'), @{$self->columns_selected};
+
+    # If an override view is selected, then need to only allow those columns to
+    # be viewed
+    if (my $override = $self->_view_limit_override)
+    {
+        @cols = grep $override->has_column_id($_->id), @cols;
+    }
+
     if ($self->view && !@{$self->additional_filters})
     {
         # If in the normal grouped view, then move the grouped columns first in
@@ -2456,6 +2496,9 @@ sub rule_to_condition
     }
     $column
         or return;
+
+    my $override = $self->_view_limit_override;
+    return if $override && !$override->has_column_id($column->id);
 
     if ($filter->{operator} eq 'changed_after')
     {
