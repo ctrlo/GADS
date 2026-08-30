@@ -168,13 +168,32 @@ sub _process_instance
         my @foundin;
         foreach my $view (@views)
         {
-            my $records = GADS::Records->new(
-                columns => [], # Otherwise all columns retrieved during search construct
-                schema  => $self->schema,
-                layout  => $layout,
-                user    => undef, # Alerts should not be affected by current user
-            );
-            push @foundin, $records->search_view($current_ids, $view);
+            # See if we need user-specific view searches. This is if the view
+            # has a CURSER filter or if the alert's user has a restricted view.
+            my $has_unrestricted_user;
+            my @users;
+            foreach my $alert (@{$view->all_alerts})
+            {
+                if ($alert->user->has_view_limit($layout->instance_id) || $view->has_curuser)
+                {
+                    push @users, $alert->user;
+                }
+                else {
+                    # Alerts should not be affected by current user
+                    $has_unrestricted_user = 1;
+                }
+            }
+            push @users, undef if $has_unrestricted_user;
+            foreach my $user (@users)
+            {
+                my $records = GADS::Records->new(
+                    columns => [], # Otherwise all columns retrieved during search construct
+                    schema  => $self->schema,
+                    layout  => $layout,
+                    user    => $user,
+                );
+                push @foundin, $records->search_view($current_ids, $view);
+            }
         }
         foreach my $now_in (@foundin)
         {
