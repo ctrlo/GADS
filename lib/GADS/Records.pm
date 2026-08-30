@@ -3663,10 +3663,8 @@ sub _build_group_results
     my $result = $self->schema->resultset('Current')->search(
         # Outer search query so needs to match values being retrieved
         $self->_resultset_search(
-            sort                 => 0,
-            is_group             => 1,
-            prefetch             => 1,
-            current_version_only => $self->cvo_values,
+            %common,
+            aggregate => 1,
         ), $select
     );
 

@@ -290,6 +290,7 @@ sub _count_version_joins
                     ($options{search} && $_->{search} && $_->{parent} && !$is_curcommon) # Search in child of curval
                     || ($options{sort} && $_->{sort}) # sort is all children
                     || ($options{group} && $_->{group} && $_->{parent} && !$is_curcommon)
+                    || ($options{aggregate} && $_->{aggregate} && $_->{parent} && !$is_curcommon)
                     || ($options{drcol} && $_->{drcol})
                     # prefetch is all children, but not when the curval has no fields
                     || ($options{prefetch} && $_->{prefetch} && !$_->{parent} && @{$_->{children}})
