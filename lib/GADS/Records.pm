@@ -3664,6 +3664,7 @@ sub _build_group_results
         # Outer search query so needs to match values being retrieved
         $self->_resultset_search(
             %common,
+            is_group  => 1,
             aggregate => 1,
         ), $select
     );
