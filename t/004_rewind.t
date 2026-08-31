@@ -72,6 +72,9 @@ foreach my $multivalue (0..3)
     my $integer1 = $sheet->columns->{integer1};
     my $curval1  = $sheet->columns->{curval1};
 
+    $integer1->aggregate('sum');
+    $integer1->write;
+
     my $records = GADS::Records->new(
         user    => $sheet->user,
         layout  => $layout,
@@ -136,6 +139,9 @@ foreach my $multivalue (0..3)
     is($record->fields->{$string1->id}->as_string, 'Foo1', "Correct old value for first record (2014)");
     is($record->fields->{$curval1->id}->as_string, 'Bar1', "Correct old value for first record (2014)");
 
+    my $aggregate = $records->aggregate_results;
+    is($aggregate->fields->{$integer1->id}->as_string, 10, "Correct aggregate value 2014");
+
     # Go back to second set (2015)
     $previous->add(years => 1);
     $records = GADS::Records->new(
@@ -149,6 +155,9 @@ foreach my $multivalue (0..3)
     is($record->fields->{$string1->id}->as_string, 'Foo2', "Correct old value for first record (2015)");
     is($record->fields->{$curval1->id}->as_string, 'Bar2', "Correct old value for first record (2015)");
 
+    $aggregate = $records->aggregate_results;
+    is($aggregate->fields->{$integer1->id}->as_string, 20, "Correct aggregate value 2015");
+
     # And back to today
     $records = GADS::Records->new(
         user    => $sheet->user,
@@ -159,6 +168,9 @@ foreach my $multivalue (0..3)
     $record = $records->single;
     is($record->fields->{$string1->id}->as_string, 'Foo3', "Correct value for first record current date");
     is($record->fields->{$curval1->id}->as_string, 'Bar3', "Correct value for first record current date");
+
+    $aggregate = $records->aggregate_results;
+    is($aggregate->fields->{$integer1->id}->as_string, 130, "Correct aggregate value 2015");
 
     # Retrieve single record
     $record = GADS::Record->new(

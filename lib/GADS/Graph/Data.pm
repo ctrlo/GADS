@@ -717,7 +717,8 @@ sub _records_to_results
         my @for = $self->x_axis_range && $self->x_axis_col->type eq 'date' ? $self->x_axis_col : @$x;
         foreach my $x (@for)
         {
-            my $col     = $x_daterange ? $x->epoch : $x->field;
+            my $col     = $x_daterange ? $x->epoch
+                : $self->records->aggregate_name($x, $self->records->layout->column($self->x_axis_link), 'max');
             my $x_value = $line->get_column($col);
             $x_value ||= $line->get_column("${col}_link")
                 if !$x_daterange && $x->link_parent;
@@ -752,7 +753,7 @@ sub _records_to_results
                       ? $x->field
                       : $self->y_axis_stack eq 'count'
                       ? 'id_count' # Don't use field count as NULLs are not counted
-                      : $self->y_axis_col->field."_".$self->y_axis_stack;
+                      : $self->records->aggregate_name($self->y_axis_col, $self->y_axis_link_col, $self->y_axis_stack);
             my $val = $line->get_column($fname);
 
             # Add on the linked column from another datasheet, if applicable
@@ -803,7 +804,9 @@ sub _group_date
 sub _format_curcommon
 {   my ($self, $column, $line) = @_;
     $line->get_column($column->field) or return;
-    $column->format_value(map { $line->get_column($_->field) } @{$column->curval_fields});
+    $column->format_value(map {
+        $line->get_column($self->records->aggregate_name($_, $column, 'max'))
+    } @{$column->curval_fields});
 }
 
 sub _to_percent

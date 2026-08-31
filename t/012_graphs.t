@@ -174,7 +174,7 @@ foreach my $multivalue (0..1)
             x_axis       => $columns->{string1}->id,
             y_axis       => $calc2->id, #$columns->{calc2}->id,
             y_axis_stack => 'sum',
-            data         => [[ 72, 26 ]],
+            data         => [[ 72, 39 ]],
             xlabels      => [qw/Bar FooBar/],
             rules => [
                 {
