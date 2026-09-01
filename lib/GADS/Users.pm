@@ -82,6 +82,11 @@ has register_requests => (
     isa => ArrayRef,
 );
 
+has providers => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
 sub user_rs
 {   my $self = shift;
     $self->schema->resultset('User')->active;
@@ -174,6 +179,12 @@ sub _build_register_requests
     \@users;
 }
 
+sub _build_providers
+{   my $self = shift;
+    my @providers = $self->schema->resultset('Authentication')->ordered->all;
+    [map {+{label_plain => $_->name, value => $_->id}} @providers];
+}
+
 sub title_new
 {   my ($self, $params) = @_;
     $self->schema->resultset('Title')->create({ name => $params->{name} });
@@ -192,6 +203,11 @@ sub department_new
 sub team_new
 {   my ($self, $params) = @_;
     $self->schema->resultset('Team')->create({ name => $params->{name} });
+}
+
+sub provider_new
+{   my ($self, $params) = @_;
+    $self->schema->resultset('Authentication')->create({ name => $params->{name} });
 }
 
 sub register
@@ -223,6 +239,7 @@ sub register
     $new{organisation} or delete $new{organisation};
     $new{department_id} or delete $new{department_id};
     $new{team_id} or delete $new{team_id};
+    $new{provider} or delete $new{provider};
 
     my $user;
     try { $user = $self->schema->resultset('User')->create(\%new) };
@@ -242,6 +259,7 @@ sub register
     $text .= "surname: $new{surname}, ";
     $text .= "email: $new{email}, ";
     $text .= "title: ".$user->title->name.", " if $user && $user->title;
+    $text .= "provider: ".$user->provider->name.", " if $user && $user->provider;
     $text .= $site->register_freetext1_name.": $new{freetext1}, " if $new{freetext1};
     $text .= $site->register_freetext2_name.": $new{freetext2}, " if $new{freetext2};
     $text .= $site->register_organisation_name.": ".$user->organisation->name.", " if $user && $user->organisation;
@@ -319,6 +337,7 @@ sub _produce_csv
     push @columns, $site->team_name if $site->register_show_team;
     push @columns, $site->register_freetext1_name if $site->register_freetext1_name;
     push @columns, $site->register_freetext2_name if $site->register_freetext2_name;
+    push @columns, 'Authentication Provider' if $site->register_show_provider;
     push @columns, 'Notes', 'Permissions', 'Groups';
     push @columns, 'Page hits last month';
     push @columns, 'Last hit to table "'.$_->name.'"' foreach @{$instances->all};
@@ -387,6 +406,10 @@ sub _produce_csv
             max => 'account_request_notes',
             -as => 'account_request_notes_max',
         },
+        {
+            max => 'provider.name',
+            -as => 'provider_max',
+        },
     );
 
     my @select_columns2 = (
@@ -425,7 +448,7 @@ sub _produce_csv
         },{
             select => [@common_columns, @select_columns],
             join   => [
-                'organisation', 'department', 'team', 'title',
+                'organisation', 'department', 'team', 'title', 'authentication',
             ],
             order_by => ['surname_max', 'id_max'],
             group_by => 'me.id',
@@ -475,6 +498,7 @@ sub _produce_csv
         push @csv, $user->get_column('team_max') if $site->register_show_team;
         push @csv, $user->get_column('freetext1_max') if $site->register_freetext1_name;
         push @csv, $user->get_column('freetext2_max') if $site->register_freetext2_name;
+        push @csv, $user->get_column('provider_max') if $site->register_show_provider;
         push @csv, $user->get_column('account_request_notes_max');
         push @csv, join '; ', map { $_->permission->description } @{$user_permissions{$id}};
         push @csv, join '; ', map { $_->group->name } @{$user_groups{$id}};

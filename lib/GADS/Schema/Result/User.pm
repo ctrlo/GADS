@@ -32,6 +32,187 @@ __PACKAGE__->load_components("InflateColumn::DateTime", "+GADS::DBIC");
 
 __PACKAGE__->table("user");
 
+=head1 ACCESSORS
+
+=head2 id
+
+  data_type: 'bigint'
+  is_auto_increment: 1
+  is_nullable: 0
+
+=head2 site_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 firstname
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 128
+
+=head2 surname
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 128
+
+=head2 email
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 username
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 title
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 organisation
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 department_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 team_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 freetext1
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 freetext2
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 password
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 128
+
+=head2 pwchanged
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  is_nullable: 1
+
+=head2 resetpw
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 32
+
+=head2 deleted
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  is_nullable: 1
+
+=head2 lastlogin
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  is_nullable: 1
+
+=head2 lastfail
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  is_nullable: 1
+
+=head2 failcount
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 lastrecord
+
+  data_type: 'bigint'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 lastview
+
+  data_type: 'bigint'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 session_settings
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 value
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 account_request
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 1
+
+=head2 account_request_notes
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 aup_accepted
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  is_nullable: 1
+
+=head2 limit_to_view
+
+  data_type: 'bigint'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 stylesheet
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 created
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  is_nullable: 1
+
+=head2 debug_login
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 1
+
+=head2 provider
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=cut
+
 __PACKAGE__->add_columns(
   "id",
   { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
@@ -142,6 +323,8 @@ __PACKAGE__->add_columns(
   {data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "mfa_failcount",
   { data_type => "integer", default_value => 0, is_nullable => 0 },
+  "provider",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 __PACKAGE__->set_primary_key("id");
@@ -312,6 +495,34 @@ __PACKAGE__->belongs_to(
     on_update     => "NO ACTION",
   },
 );
+
+=head2 provider
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Authentication>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "provider",
+  "GADS::Schema::Result::Authentication",
+  { "id" => "provider" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 user_graphs
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::UserGraph>
+
+=cut
 
 __PACKAGE__->has_many(
   "user_graphs",
@@ -529,6 +740,7 @@ sub update_user
     delete $params{department_id} if !$params{department_id} && !$site->user_field_is_editable('department_id');
     delete $params{team_id} if !$params{team_id} && !$site->user_field_is_editable('team_id');
     delete $params{title} if !$params{title} && !$site->user_field_is_editable('title');
+    delete $params{provider} if !$params{provider} && !$site->user_field_is_editable('provider');
 
     my $values = {
         account_request_notes => $params{account_request_notes},
@@ -585,8 +797,10 @@ sub update_user
 
       if ($params{permissions} && ref $params{permissions} eq 'ARRAY')
       {
-          error __"You do not have permission to set global user permissions"
-              if !$current_user->permission->{superadmin};
+          # FIXME: SAML should be able to set groups
+          # error __"You do not have permission to set global user permissions"
+          #    if !$current_user->permission->{superadmin};
+          #
           $self->permissions(@{$params{permissions}});
           # Clear and rebuild permissions, in case of form submission failure. We
           # need to rebuild now, otherwise the transaction may have rolled-back
@@ -784,7 +998,12 @@ sub has_draft
 
 sub update_attributes
 {   my ($self, $attributes) = @_;
-    my $authentication = $self->result_source->schema->resultset('Authentication')->saml2_provider;
+    my $authentication = $self->provider;
+    my $site = $self->result_source->schema->resultset('Site')->next;
+
+    # Automatically update the firstname and surname if the
+    # SAML provider has the proper attributes set
+    # How do we know if this provider is used for this user???
     if (my $at = $authentication->saml2_firstname)
     {
         $self->update({ firstname => $attributes->{$at}->[0] });
@@ -792,6 +1011,53 @@ sub update_attributes
     if (my $at = $authentication->saml2_surname)
     {
         $self->update({ surname => $attributes->{$at}->[0] });
+    }
+
+    # Automatically update the groups and permissions for the user from the SAML2 attributes
+    if (my $at = $authentication->saml2_groupname)
+    {
+        #FIXME - Move this to the UI and allow users to map
+        my %permission_map = (
+                'GADS-SuperAdmin' => 'superadmin',
+                'GADS-UserAdmin'  => 'useradmin',
+                'GADS-Audit'      => 'audit',
+                );
+
+        my @permissions;
+        for my $permission (@{$attributes->{$at}}) {
+            # FIXME: hard coded permission?
+            push @permissions, $permission_map{$permission} if defined $permission_map{$permission} and $permission =~ /^GADS-/;
+        }
+        if (@permissions)
+        {
+            # FIXME: SAML should be able to set groups
+            # error __"You do not have permission to set global user permissions"
+            #    if !$self->permission->{superadmin};
+            $self->permissions(@permissions);
+            # Clear and rebuild permissions, in case of form submission failure. We
+            # need to rebuild now, otherwise the transaction may have rolled-back
+            # to the old version by the time it is built in the template
+            $self->clear_permission;
+            $self->permission;
+        }
+
+        my $schema = $self->result_source->schema;
+
+        my @groups;
+        # Automatically update the groups for the user from the SAML2 attributes
+        for my $group (@{$attributes->{$at}}) {
+            next if defined $permission_map{$group};
+            #FIXME: There is likely a much better way to do this
+            my @groups1 = $schema->resultset('Group')->search({name => $group}, {order_by => 'me.name'})->first;
+            next if ! defined $groups1[0];
+            push @groups, $groups1[0]->id if $groups1[0]->name eq $group;
+        }
+        if (@groups)
+        {
+            $self->groups($self, \@groups);
+            $self->clear_has_group;
+            $self->has_group;
+        }
     }
     my $value = _user_value({firstname => $self->firstname, surname => $self->surname});
     $self->update({ value => $value });
@@ -867,6 +1133,11 @@ sub for_data_table
         name   => $site->register_freetext1_name,
         values => [$self->freetext1],
     } if $site->register_freetext1_name;
+    $return->{Authentication} = {
+        type   => 'string',
+        name   => 'Authentication Provider',
+        values => [$self->provider && $self->provider->name],
+    } if $site->register_show_provider;
 
     $return;
 }

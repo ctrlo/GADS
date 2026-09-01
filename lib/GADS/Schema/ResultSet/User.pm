@@ -119,6 +119,7 @@ sub create_user
         resetpw               => $code,
         created               => DateTime->now,
         account_request_notes => $params{notes},
+        provider              => $params{provider},
     });
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $params{current_user});
@@ -128,6 +129,11 @@ sub create_user
             id => $user->id, username => $params{username}
     );
 
+    # FIXME - If you ever add after_create in GADS::Schema::Result::User
+    # this will break the functionality.  The above create will create the record
+    # after_create will fire and properly update the database.
+    # then update_user will pass the original parameter which will undo any
+    # changes the after_insert did for values in %params
     $user->update_user(%params);
 
     # Delete account request user if this is a new account request
@@ -205,6 +211,7 @@ sub upload
     my %organisations = map { lc $_->name => $_->id } $schema->resultset('Organisation')->ordered->all;
     my %departments   = map { lc $_->name => $_->id } $schema->resultset('Department')->ordered->all;
     my %teams         = map { lc $_->name => $_->id } $schema->resultset('Team')->ordered->all;
+    my %providers     = map { lc $_->name => $_->id } $schema->resultset('Authentication')->ordered->all;
 
     $count = 0; my @errors;
     my @welcome_emails;
@@ -250,6 +257,16 @@ sub upload
                 error => qq(Title "$name" not found),
             } if !$title_id;
         }
+        my $provider_id;
+        if (defined $user_mapping{provider})
+        {
+            my $name  = $row->[$user_mapping{provider}];
+            $provider_id = $providers{lc $name};
+            push @errors, {
+                row   => join (',', @$row),
+                error => qq(Authentication provider "$name" not found),
+            } if !$provider_id;
+        }
         my %values = (
             firstname             => defined $user_mapping{forename} ? $row->[$user_mapping{forename}] : '',
             surname               => defined $user_mapping{surname} ? $row->[$user_mapping{surname}] : '',
@@ -263,6 +280,7 @@ sub upload
             view_limits           => $options{view_limits},
             groups                => $options{groups},
             permissions           => $options{permissions},
+	    provider              => $provider_id,
         );
         $values{value} = _user_value(\%values);
 

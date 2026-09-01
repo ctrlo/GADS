@@ -46,6 +46,7 @@ import HelpView from "components/help-view";
 import PeopleFilterComponent from "components/form-group/people-filter";
 import handleActions from "util/actionsHandler";
 import FieldLengthComponent from "components/form-group/field-length";
+import ProviderModalComponent from 'components/modal/modals/provider'
 
 // Register them
 registerComponent(AddTableModalComponent);
@@ -86,6 +87,7 @@ registerComponent(HelpView);
 registerComponent(PeopleFilterComponent);
 registerComponent(AutosaveComponent);
 registerComponent(FieldLengthComponent);
+registerComponent(ProviderModalComponent);
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body);
