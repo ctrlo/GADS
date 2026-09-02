@@ -1,4 +1,4 @@
-import { Uploader } from 'util/upload/UploadControl';
+import { Uploader } from "util/upload/UploadControl";
 
 /**
  * Upload a message to the server. It creates an instance of MessageUploader with a new Uploader and calls the uploadMessage method.
@@ -31,7 +31,7 @@ class MessageUploader {
      */
     static get instance(): MessageUploader {
         if (!this._instance) {
-            this._instance = new MessageUploader(new Uploader('/api/script_error', 'POST'));
+            this._instance = new MessageUploader(new Uploader("/api/script_error", "POST"));
         }
         return this._instance;
     }
@@ -51,7 +51,7 @@ class MessageUploader {
         try {
             return await this.uploader.upload(body);
         } catch (err) {
-            console.error('Failed to upload message:', err);
+            console.error("Failed to upload message:", err);
         }
     }
 }

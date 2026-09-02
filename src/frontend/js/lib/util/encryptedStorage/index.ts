@@ -1,1 +1,1 @@
-export { EncryptedStorage } from './lib/encryptedStorage';
+export { EncryptedStorage } from "./lib/encryptedStorage";

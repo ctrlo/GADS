@@ -1,10 +1,10 @@
-import { Component } from 'component';
+import { Component } from "component";
 
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './react/App';
-import ApiClient from './react/api';
-import { ReactGridLayoutProps } from 'react-grid-layout';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./react/App";
+import ApiClient from "./react/api";
+import { ReactGridLayoutProps } from "react-grid-layout";
 
 /**
  * DashboardComponent class that initializes the dashboard and renders the App component.
@@ -35,28 +35,28 @@ export default class DashboardComponent extends Component {
      * Initialize the dashboard by rendering the App component with widgets and configurations.
      */
     initDashboard() {
-        this.element.className = '';
-        const widgetsEls = Array.prototype.slice.call(document.querySelectorAll('#ld-app > div'));
+        this.element.className = "";
+        const widgetsEls = Array.prototype.slice.call(document.querySelectorAll("#ld-app > div"));
         const widgets = widgetsEls.map((el: HTMLElement) => ({
             html: el.innerHTML,
-            config: JSON.parse(el.getAttribute('data-grid'))
+            config: JSON.parse(el.getAttribute("data-grid"))
         }));
-        const api = new ApiClient(this.element.getAttribute('data-dashboard-endpoint') || '');
+        const api = new ApiClient(this.element.getAttribute("data-dashboard-endpoint") || "");
 
         const root = ReactDOM.createRoot(this.element);
 
         root.render(
             <App
                 widgets={widgets}
-                dashboardId={this.element.getAttribute('data-dashboard-id')}
-                currentDashboard={JSON.parse(this.element.getAttribute('data-current-dashboard') || '{}')}
-                readOnly={this.element.getAttribute('data-dashboard-read-only') === 'true'}
-                hideMenu={this.element.getAttribute('data-dashboard-hide-menu') === 'true'}
-                includeH1={this.element.getAttribute('data-dashboard-include-h1') === 'true'}
-                noDownload={this.element.getAttribute('data-dashboard-no-download') === 'true'}
+                dashboardId={this.element.getAttribute("data-dashboard-id")}
+                currentDashboard={JSON.parse(this.element.getAttribute("data-current-dashboard") || "{}")}
+                readOnly={this.element.getAttribute("data-dashboard-read-only") === "true"}
+                hideMenu={this.element.getAttribute("data-dashboard-hide-menu") === "true"}
+                includeH1={this.element.getAttribute("data-dashboard-include-h1") === "true"}
+                noDownload={this.element.getAttribute("data-dashboard-no-download") === "true"}
                 api={api}
-                widgetTypes={JSON.parse(this.element.getAttribute('data-widget-types') || '[]')}
-                dashboards={JSON.parse(this.element.getAttribute('data-dashboards') || '[]')}
+                widgetTypes={JSON.parse(this.element.getAttribute("data-widget-types") || "[]")}
+                dashboards={JSON.parse(this.element.getAttribute("data-dashboards") || "[]")}
                 gridConfig={this.gridConfig} />
         );
     }

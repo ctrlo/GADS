@@ -1,11 +1,11 @@
-import 'components/button/lib/rename-button';
-import 'util/filedrag';
-import { upload } from 'util/upload/UploadControl';
-import { validateCheckboxGroup } from 'validation';
-import { formdataMapper } from 'util/mapper/formdataMapper';
-import { RenameEvent } from 'components/button/lib/rename-button';
-import { FileDropEvent } from 'util/filedrag';
-import ErrorHandler from 'util/errorHandler';
+import "components/button/lib/rename-button";
+import "util/filedrag";
+import { upload } from "util/upload/UploadControl";
+import { validateCheckboxGroup } from "validation";
+import { formdataMapper } from "util/mapper/formdataMapper";
+import { RenameEvent } from "components/button/lib/rename-button";
+import { FileDropEvent } from "util/filedrag";
+import ErrorHandler from "util/errorHandler";
 
 /**
  * Interface for the file data returned from the server.
@@ -48,7 +48,7 @@ interface RenameResponse {
  * DocumentComponent class for handling document upload functionality.
  */
 class DocumentComponent {
-    readonly type = 'document';
+    readonly type = "document";
     readonly el: JQuery<HTMLElement>;
     readonly fileInput: JQuery<HTMLInputElement>;
     errors!: (string|Error)[];
@@ -60,14 +60,14 @@ class DocumentComponent {
      */
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
         this.el = $(el);
-        this.el.closest('.fieldset').find('.rename')
+        this.el.closest(".fieldset").find(".rename")
             .renameButton()
-            .on('rename', async (ev: RenameEvent) => {
-                if (!ev) throw new Error('e is not a RenameEvent - this shouldn\'t happen!');
+            .on("rename", async (ev: RenameEvent) => {
+                if (!ev) throw new Error("e is not a RenameEvent - this shouldn't happen!");
                 const $target = $(ev.target);
-                await this.renameFile($target.data('field-id'), ev.oldName, ev.newName, $('body').data('csrf'));
+                await this.renameFile($target.data("field-id"), ev.oldName, ev.newName, $("body").data("csrf"));
             });
-        this.fileInput = this.el.find<HTMLInputElement>('.form-control-file');
+        this.fileInput = this.el.find<HTMLInputElement>(".form-control-file");
     }
 
     /**
@@ -75,34 +75,34 @@ class DocumentComponent {
      * @throws {Error} If the file upload element cannot be found.
      */
     init() {
-        const url = this.el.data('fileupload-url');
+        const url = this.el.data("fileupload-url");
 
-        const tokenField = this.el.closest('form').find('input[name="csrf_token"]');
+        const tokenField = this.el.closest("form").find("input[name=\"csrf_token\"]");
         const csrf_token = tokenField.val() as string;
-        const dropTarget = this.el.closest('.file-upload');
+        const dropTarget = this.el.closest(".file-upload");
 
-        const columnId = this.el.closest('.linkspace-field')?.data('column-id') ?? 0;
-        this.handler = new ErrorHandler(this.el.find('.error-messages')[0]);
+        const columnId = this.el.closest(".linkspace-field")?.data("column-id") ?? 0;
+        this.handler = new ErrorHandler(this.el.find(".error-messages")[0]);
 
         if (dropTarget) {
             const dragOptions = { allowMultiple: true };
-            dropTarget.filedrag(dragOptions).on('fileDrop', ({ file }: FileDropEvent) => {
+            dropTarget.filedrag(dragOptions).on("fileDrop", ({ file }: FileDropEvent) => {
                 this.handler.clearErrors();
                 this.handleAjaxUpload(url, csrf_token, file, columnId);
             });
         } else {
-            throw new Error('Could not find file-upload element');
+            throw new Error("Could not find file-upload element");
         }
 
-        this.fileInput.on('change', (ev) => {
+        this.fileInput.on("change", (ev) => {
             if (!(ev.target instanceof HTMLInputElement)) {
-                throw new Error('Could not find file-upload element');
+                throw new Error("Could not find file-upload element");
             }
 
             const file = ev.target.files![0];
             if (!file || file === undefined || !file.name) return;
             const formData = formdataMapper({ file, csrf_token, column_id: columnId });
-            upload<FileData>(url, formData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total)).then((data)=>{
+            upload<FileData>(url, formData, "POST", (loaded, total) => this.showProgress(file.name, loaded, total)).then((data)=>{
                 this.addFileToField({ id: data.id, name: data.filename });
             })
                 .catch((e) => {
@@ -125,14 +125,14 @@ class DocumentComponent {
             // This will occur when there is an error uploading the file or the file is empty
             uploadProgression = 100;
         }
-        let barContainer = this.el?.find('.progress-bar__container[data-file-name="' + file + '"] ');
+        let barContainer = this.el?.find(".progress-bar__container[data-file-name=\"" + file + "\"] ");
         if (!barContainer || barContainer.length < 1) {
             this.createProgressBar(this.el, file);
-            barContainer = this.el.find('.progress-bar__container[data-file-name="' + file + '"]');
+            barContainer = this.el.find(".progress-bar__container[data-file-name=\"" + file + "\"]");
         }
-        barContainer.css('width', undefined);
-        barContainer.find('.progress-bar__percentage').html(uploadProgression === 100 ? 'complete' : `${uploadProgression}%`);
-        barContainer.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
+        barContainer.css("width", undefined);
+        barContainer.find(".progress-bar__percentage").html(uploadProgression === 100 ? "complete" : `${uploadProgression}%`);
+        barContainer.find(".progress-bar__progress").css("width", `${uploadProgression}%`);
     }
 
     /**
@@ -148,7 +148,7 @@ class DocumentComponent {
                 </div>
             </div>
         `);
-        const barContainer = el?.find('.progress-bars');
+        const barContainer = el?.find(".progress-bars");
         barContainer.append(progressBar);
         progressBar.show();
     }
@@ -162,28 +162,28 @@ class DocumentComponent {
      */
     async handleAjaxUpload(uri: string, csrf_token: string, file: File, columnId: number) {
         try {
-            if (!file) this.showException(new Error('No file provided'));
+            if (!file) this.showException(new Error("No file provided"));
 
             const fileData = formdataMapper({ file, csrf_token, column_id: columnId });
 
-            upload<FileData>(uri, fileData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total)).then((data) => {
+            upload<FileData>(uri, fileData, "POST", (loaded, total) => this.showProgress(file.name, loaded, total)).then((data) => {
                 this.addFileToField({ id: data.id, name: data.filename });
             }).then(
                 () => {
-                    $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]'))
+                    $(this.el.find(".progress-bar__container[data-file-name=\"" + file.name + "\"]"))
                         .hide();
                 }
             ).catch((e) => {
                 if(JSON.parse(e as string)?.message)
                     e = JSON.parse(e as string).message;
-                else if (typeof e == 'object' && 'message' in e)
+                else if (typeof e == "object" && "message" in e)
                     e = e.message;
                 this.handler.addError(e);
-                $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]'))
+                $(this.el.find(".progress-bar__container[data-file-name=\"" + file.name + "\"]"))
                     .hide();
             });
         } catch (e) {
-            this.showException(e instanceof Error || 'message' in e ? e.message : e as string ?? e.toString());
+            this.showException(e instanceof Error || "message" in e ? e.message : e as string ?? e.toString());
         }
     }
 
@@ -194,14 +194,14 @@ class DocumentComponent {
      * @param {string} file.name The name of the file.
      */
     addFileToField(file: { id: number | string; name: string }) {
-        const $fieldset = this.el.closest('.fieldset');
-        const $ul = $fieldset.find('.fileupload__files');
+        const $fieldset = this.el.closest(".fieldset");
+        const $ul = $fieldset.find(".fileupload__files");
         const fileId = file.id;
         const fileName = file.name;
-        const field = $fieldset.find('.input--file').data('field');
-        const csrf_token = $('body').data('csrf');
+        const field = $fieldset.find(".input--file").data("field");
+        const csrf_token = $("body").data("csrf");
 
-        if (!this.el || !this.el.length || !this.el.closest('.linkspace-field').data('is-multivalue')) {
+        if (!this.el || !this.el.length || !this.el.closest(".linkspace-field").data("is-multivalue")) {
             $ul.empty();
         }
 
@@ -222,12 +222,12 @@ class DocumentComponent {
         `);
 
         $ul.append($li);
-        $ul.closest('.linkspace-field').trigger('change');
-        validateCheckboxGroup($fieldset.find('.list'));
-        $fieldset.find('input[type="file"]').removeAttr('required');
+        $ul.closest(".linkspace-field").trigger("change");
+        validateCheckboxGroup($fieldset.find(".list"));
+        $fieldset.find("input[type=\"file\"]").removeAttr("required");
         const button = `.rename[data-field-id="${file.id}"]`;
         const $button = $(button);
-        $button.renameButton().on('rename', async (ev: RenameEvent) => {
+        $button.renameButton().on("rename", async (ev: RenameEvent) => {
             await this.renameFile(fileId as number ?? parseInt(fileId.toString()), ev.oldName, ev.newName, csrf_token, true);
         });
     }
@@ -245,11 +245,11 @@ class DocumentComponent {
             const filename = newName;
             const url = `/api/file/${fileId}`;
             const mappedData = formdataMapper({ csrf_token, filename, is_new: is_new ? 1 : 0 });
-            const data = await upload<RenameResponse>(url, mappedData, 'PUT');
+            const data = await upload<RenameResponse>(url, mappedData, "PUT");
             if (is_new) {
                 $(`#current-${fileId}`).text(data.name);
             } else {
-                $(`#current-${fileId}`).closest('li')
+                $(`#current-${fileId}`).closest("li")
                     .remove();
                 const { id, name } = data;
                 this.addFileToField({ id, name });
@@ -258,7 +258,7 @@ class DocumentComponent {
             let e=error;
             if(JSON.parse(error as string)?.message)
                 e = JSON.parse(error as string).message;
-            else if (typeof error == 'object' && 'message' in error)
+            else if (typeof error == "object" && "message" in error)
                 e = e.message;
             this.showException(e);
             const current = $(`#current-${fileId}`);

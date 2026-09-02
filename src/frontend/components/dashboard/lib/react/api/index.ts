@@ -1,10 +1,10 @@
-import { Layout } from 'react-grid-layout';
-import { ApiResponse } from '../types';
+import { Layout } from "react-grid-layout";
+import { ApiResponse } from "../types";
 
 /**
  * Request method types for the API client.
  */
-type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+type RequestMethod = "GET" | "POST" | "PUT" | "DELETE";
 
 /**
  * ApiClient class for making API requests.
@@ -17,7 +17,7 @@ export default class ApiClient {
      * Create an instance of ApiClient.
      * @param {string} [baseUrl = ''] Base URL for the API requests.
      */
-    constructor(private baseUrl: string = '') {
+    constructor(private baseUrl: string = "") {
         this.headers = {};
         // @ts-expect-error "isDev is not valid"
         this.isDev = window.siteConfig && window.siteConfig.isDev;
@@ -33,14 +33,14 @@ export default class ApiClient {
      * @returns {Promise<Response>} A promise that resolves to the response of the fetch request.
      */
     async _fetch<T extends object = object>(route: string, method: RequestMethod, body?: T): Promise<Response> {
-        if (!route) throw new Error('Route is undefined');
+        if (!route) throw new Error("Route is undefined");
 
-        let csrfParam = '';
-        if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-            const body = document.querySelector('body');
-            const csrfToken = body ? body.getAttribute('data-csrf') : null;
+        let csrfParam = "";
+        if (method === "POST" || method === "PUT" || method === "DELETE") {
+            const body = document.querySelector("body");
+            const csrfToken = body ? body.getAttribute("data-csrf") : null;
             if (csrfToken) {
-                csrfParam = route.indexOf('?') > -1 ? `&csrf-token=${csrfToken}` : `?csrf-token=${csrfToken}`;
+                csrfParam = route.indexOf("?") > -1 ? `&csrf-token=${csrfToken}` : `?csrf-token=${csrfToken}`;
             }
         }
 
@@ -49,7 +49,7 @@ export default class ApiClient {
         const opts: any = {
             method,
             headers: Object.assign(this.headers),
-            credentials: 'same-origin' // Needed for older versions of Firefox, otherwise cookies not sent
+            credentials: "same-origin" // Needed for older versions of Firefox, otherwise cookies not sent
         };
         if (body) {
             opts.body = JSON.stringify(body);
@@ -62,7 +62,7 @@ export default class ApiClient {
      * @param {string} route The API route to fetch.
      * @returns {Promise<Response>} A promise that resolves to the response of the fetch request.
      */
-    GET(route: string): Promise<Response> { return this._fetch(route, 'GET'); }
+    GET(route: string): Promise<Response> { return this._fetch(route, "GET"); }
 
     /**
      * Perform a POST request to the API.
@@ -71,7 +71,7 @@ export default class ApiClient {
      * @param {T} body The body of the request
      * @returns {Promise<Response>} A promise that resolves to the response of the fetch request.
      */
-    POST<T extends object = object>(route: string, body: T): Promise<Response> { return this._fetch(route, 'POST', body); }
+    POST<T extends object = object>(route: string, body: T): Promise<Response> { return this._fetch(route, "POST", body); }
 
     /**
      * Perform a PUT request to the API.
@@ -80,14 +80,14 @@ export default class ApiClient {
      * @param {T} body The body of the request
      * @returns {Promise<Response>} A promise that resolves to the response of the fetch request.
      */
-    PUT<T extends object = object>(route: string, body: T): Promise<Response> { return this._fetch(route, 'PUT', body); }
+    PUT<T extends object = object>(route: string, body: T): Promise<Response> { return this._fetch(route, "PUT", body); }
 
     /**
      * Perform a DELETE request to the API.
      * @param {string} route The API route to fetch.
      * @returns {Promise<Response>} A promise that resolves to the response of the fetch request.
      */
-    DELETE(route: string): Promise<Response> { return this._fetch(route, 'DELETE'); }
+    DELETE(route: string): Promise<Response> { return this._fetch(route, "DELETE"); }
 
     /**
      * Save the layout of a dashboard.
@@ -146,7 +146,7 @@ export default class ApiClient {
      * @returns {Promise<ApiResponse>} A promise that resolves to the JSON response of the save widget request.
      */
     saveWidget = async (url: string, params: any): Promise<ApiResponse> => {
-        const result = this.isDev ? await this.GET('/widget/update.json') : await this.PUT(`${url}`, params);
+        const result = this.isDev ? await this.GET("/widget/update.json") : await this.PUT(`${url}`, params);
         return await result.json();
     };
 }

@@ -1,2 +1,2 @@
-export { Renderable } from './lib/Renderable';
-export { Hidable } from './lib/Hidable';
+export { Renderable } from "./lib/Renderable";
+export { Hidable } from "./lib/Hidable";

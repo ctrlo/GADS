@@ -1,6 +1,6 @@
-import { EncryptedStorage } from 'util/encryptedStorage';
-import { AppStorage } from './AppStorage';
-import { logging } from 'logging';
+import { EncryptedStorage } from "util/encryptedStorage";
+import { AppStorage } from "./AppStorage";
+import { logging } from "logging";
 
 /**
  * A storage provider that encrypts data before storing it in the browser.
@@ -17,7 +17,7 @@ export class GadsStorage implements AppStorage {
      * Creates a new GadsStorage instance.
      */
     constructor() {
-        logging.info('Using localStorage');
+        logging.info("Using localStorage");
         this.storage = this.test ? localStorage : EncryptedStorage.instance();
     }
 
@@ -27,13 +27,13 @@ export class GadsStorage implements AppStorage {
      */
     private async getStorageKey(): Promise<void> {
         if (window.test) {
-            this.storageKey = 'test';
+            this.storageKey = "test";
             return;
         }
-        const fetchResult = await fetch('/api/get_key');
+        const fetchResult = await fetch("/api/get_key");
         const data = await fetchResult.json();
         if (data.error !== 0) {
-            throw new Error('Failed to get storage key');
+            throw new Error("Failed to get storage key");
         }
         this.storageKey = data.key;
     }
@@ -43,7 +43,7 @@ export class GadsStorage implements AppStorage {
         // We turn off writing if we're performing a recovery to prevent extra write operations—this is more to prevent
         // the odd curval error with dropdowns. It's felt it's more sensible to do this here, rather than search through
         // all the code and try to work out where to put the check (and repeat it ad infinitum)
-        if (await this.getItem('recovering')) return;
+        if (await this.getItem("recovering")) return;
         if (await this.getItem(key) === value) return;
         if (!this.storageKey) {
             await this.getStorageKey();

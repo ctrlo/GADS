@@ -1,4 +1,4 @@
-import StorageProvider from 'util/storageProvider';
+import StorageProvider from "util/storageProvider";
 
 /**
  * Clear all saved form values for the current record
@@ -15,7 +15,7 @@ export async function clearSavedFormValues() {
  * @returns { number } The layout identifier
  */
 export function layoutId(): number {
-    return $('body').data('layout-identifier');
+    return $("body").data("layout-identifier");
 }
 
 /**
@@ -23,8 +23,8 @@ export function layoutId(): number {
  * @returns { number } The record identifier
  */
 export function recordId(): number {
-    return $('body').find('.form-edit')
-        .data('current-id') || 0;
+    return $("body").find(".form-edit")
+        .data("current-id") || 0;
 }
 
 /**

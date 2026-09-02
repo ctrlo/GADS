@@ -1,4 +1,4 @@
-import { Component } from 'component';
+import { Component } from "component";
 
 /**
  * Component to handle checkbox functionality with reveal elements.
@@ -19,16 +19,16 @@ class CheckboxComponent extends Component {
      * Intializes the checkbox
      */
     initCheckbox() {
-        const inputEl = $(this.el).find('input');
-        const id = $(inputEl).attr('id');
+        const inputEl = $(this.el).find("input");
+        const id = $(inputEl).attr("id");
         const $revealEl = $(`#${id}-reveal`);
 
-        if ($(inputEl).is(':checked')) {
+        if ($(inputEl).is(":checked")) {
             this.showRevealElement($revealEl, true);
         }
 
-        $(inputEl).on('change', () => {
-            if ($(inputEl).is(':checked')) {
+        $(inputEl).on("change", () => {
+            if ($(inputEl).is(":checked")) {
                 this.showRevealElement($revealEl, true);
             } else {
                 this.showRevealElement($revealEl, false);
@@ -42,7 +42,7 @@ class CheckboxComponent extends Component {
      * @param {boolean} bShow True to show the reveal element, false to hide it
      */
     showRevealElement($revealEl, bShow) {
-        const strCheckboxRevealShowClassName = 'checkbox-reveal--show';
+        const strCheckboxRevealShowClassName = "checkbox-reveal--show";
 
         if (bShow) {
             $revealEl.addClass(strCheckboxRevealShowClassName);

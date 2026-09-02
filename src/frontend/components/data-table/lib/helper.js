@@ -15,7 +15,7 @@ const addRow = (rowData, table) => {
  * @param {string} id The ID of the row to update.
  */
 const updateRow = (rowData, table, id) => {
-    const rows = table.find('tbody > tr');
+    const rows = table.find("tbody > tr");
     rows.each((i, row) => {
         if ($(row).has(`button[data-tempid=${id}]`).length) {
             table.DataTable().row(i)

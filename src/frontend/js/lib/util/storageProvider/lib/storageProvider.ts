@@ -1,6 +1,6 @@
-import gadsStorage from 'util/gadsStorage';
-import { AppStorage } from 'util/gadsStorage/lib/AppStorage';
-import { fromJson } from 'util/common';
+import gadsStorage from "util/gadsStorage";
+import { AppStorage } from "util/gadsStorage/lib/AppStorage";
+import { fromJson } from "util/common";
 
 /**
  * Type to represent a map of strings
@@ -32,7 +32,7 @@ class StorageProvider {
      */
     async setItem(key: string, value: string) {
         let item = await this.storage.getItem(this.instance);
-        if (!item) item = '{}';
+        if (!item) item = "{}";
         const map: StringMap = fromJson(item) as StringMap;
         map[key] = value;
         await this.storage.setItem(this.instance, JSON.stringify(map));

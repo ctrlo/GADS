@@ -1,4 +1,4 @@
-import { Component } from 'component';
+import { Component } from "component";
 
 /**
  * CollapsibleComponent class that initializes the collapsible component and handles the toggle functionality for collapsing and expanding content.
@@ -11,9 +11,9 @@ class CollapsibleComponent extends Component {
     constructor(element) {
         super(element);
         this.el = $(this.element);
-        this.button = this.el.find('.btn-collapsible');
-        this.titleCollapsed = this.el.find('.btn__title--collapsed');
-        this.titleExpanded = this.el.find('.btn__title--expanded');
+        this.button = this.el.find(".btn-collapsible");
+        this.titleCollapsed = this.el.find(".btn__title--collapsed");
+        this.titleExpanded = this.el.find(".btn__title--expanded");
 
         this.initCollapsible(this.button);
     }
@@ -27,7 +27,7 @@ class CollapsibleComponent extends Component {
             return;
         }
 
-        this.titleExpanded.addClass('hidden');
+        this.titleExpanded.addClass("hidden");
         button.click(() => { this.handleClick(); });
     }
 
@@ -35,8 +35,8 @@ class CollapsibleComponent extends Component {
      * Handles the click event on the collapsible button.
      */
     handleClick() {
-        this.titleExpanded.toggleClass('hidden');
-        this.titleCollapsed.toggleClass('hidden');
+        this.titleExpanded.toggleClass("hidden");
+        this.titleCollapsed.toggleClass("hidden");
     }
 }
 

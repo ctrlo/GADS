@@ -1,14 +1,14 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 
-import Header from './Header';
-import Footer from './Footer';
-import { sidebarObservable } from 'components/sidebar/lib/sidebarObservable';
-import DashboardView from './Dashboard/DashboardView';
-import EditModal from './EditModal/EditModal';
+import Header from "./Header";
+import Footer from "./Footer";
+import { sidebarObservable } from "components/sidebar/lib/sidebarObservable";
+import DashboardView from "./Dashboard/DashboardView";
+import EditModal from "./EditModal/EditModal";
 
-import { AppProps } from './types';
-import serialize from 'form-serialize';
-import { initializeRegisteredComponents } from 'component';
+import { AppProps } from "./types";
+import serialize from "form-serialize";
+import { initializeRegisteredComponents } from "component";
 
 /**
  * Create the application component
@@ -19,13 +19,13 @@ export default function App(props: AppProps): React.JSX.Element {
     const formRef = useRef<HTMLDivElement>(null);
 
     const [editModalOpen, setEditModalOpen] = React.useState(false);
-    const [editHtml, setEditHtml] = React.useState('');
+    const [editHtml, setEditHtml] = React.useState("");
     const [loadingEditHtml, setLoadingEditHtml] = React.useState(false);
-    const [editError, setEditError] = React.useState('');
+    const [editError, setEditError] = React.useState("");
     const [loading, setLoading] = React.useState(false); // eslint-disable-line @typescript-eslint/no-unused-vars
     const [layout, setLayout] = React.useState(props.widgets.map((widget) => widget.config));
     const [widgets, setWidgets] = React.useState(props.widgets);
-    const [activeItem, setActiveItem] = React.useState('');
+    const [activeItem, setActiveItem] = React.useState("");
 
     useEffect(() => {
         sidebarObservable.addSubscriberFunction(handleSideBarChange);
@@ -85,7 +85,7 @@ export default function App(props: AppProps): React.JSX.Element {
             return;
         }
         setLoadingEditHtml(false);
-        setEditError('');
+        setEditError("");
         setEditHtml(editFormHtml.content);
     };
 
@@ -120,7 +120,7 @@ export default function App(props: AppProps): React.JSX.Element {
      * Delete the active widget
      */
     const deleteActiveWidget = () => {
-        if (!window.confirm('Deleting a widget is permanent! Are you sure?')) return;
+        if (!window.confirm("Deleting a widget is permanent! Are you sure?")) return;
 
         setWidgets(widgets.filter(item => item.config.i !== activeItem));
         setEditModalOpen(false);
@@ -133,14 +133,14 @@ export default function App(props: AppProps): React.JSX.Element {
      */
     const saveActiveWidget = async (event: any) => {
         event.preventDefault();
-        const formEl = formRef.current.querySelector('form');
+        const formEl = formRef.current.querySelector("form");
         if (!formEl) {
-            console.error('No form element was found!');
+            console.error("No form element was found!");
             return;
         }
 
         const form = serialize(formEl, { hash: true });
-        const result = await props.api.saveWidget(formEl.getAttribute('action'), form);
+        const result = await props.api.saveWidget(formEl.getAttribute("action"), form);
         if (result.is_error) {
             setEditError(result.message);
             return;
@@ -215,7 +215,7 @@ export default function App(props: AppProps): React.JSX.Element {
         const newLayout = layout.concat(widgetLayout);
         setWidgets(widgets.concat({
             config: widgetLayout,
-            html: 'Loading...'
+            html: "Loading..."
         }));
         setLayout(newLayout);
         setLoading(false);
@@ -248,7 +248,7 @@ export default function App(props: AppProps): React.JSX.Element {
             const entriesNew = Object.entries(newLayout[i]);
             const isDifferent = entriesNew.some((keypair) => {
                 const [key, value] = keypair;
-                if (key === 'moved' || key === 'static') return false;
+                if (key === "moved" || key === "static") return false;
                 if (value !== prevLayout[i][key]) return true;
                 return false;
             });
@@ -261,18 +261,18 @@ export default function App(props: AppProps): React.JSX.Element {
      * Overwrite the submit event listener for the form
      */
     const overWriteSubmitEventListener = () => { // eslint-disable-line
-        const formContainer = document.getElementById('ld-form-container');
+        const formContainer = document.getElementById("ld-form-container");
         if (!formContainer)
             return;
 
-        const form = formContainer.querySelector('form');
+        const form = formContainer.querySelector("form");
         if (!form)
             return;
 
-        form.addEventListener('submit', saveActiveWidget);
-        const submitButton = document.createElement('input');
-        submitButton.setAttribute('type', 'submit');
-        submitButton.setAttribute('style', 'visibility: hidden');
+        form.addEventListener("submit", saveActiveWidget);
+        const submitButton = document.createElement("input");
+        submitButton.setAttribute("type", "submit");
+        submitButton.setAttribute("style", "visibility: hidden");
         form.appendChild(submitButton);
     };
 
@@ -280,16 +280,16 @@ export default function App(props: AppProps): React.JSX.Element {
      * Handle sidebar changes
      */
     const handleSideBarChange = () => {
-        window.dispatchEvent(new Event('resize'));
+        window.dispatchEvent(new Event("resize"));
     };
 
     /**
      * Initialize the Summernote component if it exists in the form
      */
     const initializeSummernoteComponent = () => {
-        const summernoteEl = formRef.current.querySelector('.summernote');
+        const summernoteEl = formRef.current.querySelector(".summernote");
         if (summernoteEl) {
-            import(/* WebpackChunkName: "summernote" */ '../../../summernote/lib/component')
+            import(/* WebpackChunkName: "summernote" */ "../../../summernote/lib/component")
                 .then(({ default: SummerNoteComponent }) => {
                     new SummerNoteComponent(summernoteEl as HTMLElement);
                 });
@@ -300,8 +300,8 @@ export default function App(props: AppProps): React.JSX.Element {
      * Initialize the Globe components if they exist in the DOM
      */
     const initializeGlobeComponents = () => {
-        const arrGlobe = document.querySelectorAll('.globe');
-        import(/* WebpackChunkName: "globe" */ '../../../globe/lib/component').then(({ default: GlobeComponent }) => {
+        const arrGlobe = document.querySelectorAll(".globe");
+        import(/* WebpackChunkName: "globe" */ "../../../globe/lib/component").then(({ default: GlobeComponent }) => {
             arrGlobe.forEach((globe) => {
                 new GlobeComponent(globe as HTMLElement);
             });

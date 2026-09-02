@@ -1,7 +1,7 @@
-import React from 'react';
-import RGL, { WidthProvider } from 'react-grid-layout'; // Do not go over v1 for now
-import Widget from '../Widget/Widget';
-import { DashboardViewProps } from '../types';
+import React from "react";
+import RGL, { WidthProvider } from "react-grid-layout"; // Do not go over v1 for now
+import Widget from "../Widget/Widget";
+import { DashboardViewProps } from "../types";
 
 const ReactGridLayout = WidthProvider(RGL);
 
@@ -13,7 +13,7 @@ const ReactGridLayout = WidthProvider(RGL);
 export default function DashboardView({ readOnly, layout, onLayoutChange, gridConfig, widgets, onEditClick }: DashboardViewProps): React.JSX.Element {
     return (<div className="content-block__main">
         <ReactGridLayout
-            className={`content-block__main-content ${readOnly ? '' : 'react-grid-layout--editable'}`}
+            className={`content-block__main-content ${readOnly ? "" : "react-grid-layout--editable"}`}
             isDraggable={!readOnly}
             isResizable={!readOnly}
             draggableHandle=".ld-draggable-handle"
@@ -23,7 +23,7 @@ export default function DashboardView({ readOnly, layout, onLayoutChange, gridCo
             {...gridConfig}
         >
             {widgets.map(widget => (
-                <div key={widget.config.i} className={`ld-widget-container ${readOnly || widget.config.static ? '' : 'ld-widget-container--editable'}`}>
+                <div key={widget.config.i} className={`ld-widget-container ${readOnly || widget.config.static ? "" : "ld-widget-container--editable"}`}>
                     <Widget key={widget.config.i} html={widget.html} readOnly={readOnly || widget.config.static} onEditClick={onEditClick(widget.config.i)} />
                 </div>
             ))}

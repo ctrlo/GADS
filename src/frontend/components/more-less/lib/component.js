@@ -1,6 +1,6 @@
-import { Component } from 'component';
-import { setupDisclosureWidgets } from './disclosure-widgets';
-import { moreLess } from './more-less';
+import { Component } from "component";
+import { setupDisclosureWidgets } from "./disclosure-widgets";
+import { moreLess } from "./more-less";
 
 const MAX_HEIGHT = 50;
 
@@ -25,9 +25,9 @@ class MoreLessComponent extends Component {
      * @deprecated Please use crypto.randomUUID() instead.
      */
     uuid() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
             const r = (Math.random() * 16) | 0,
-                v = c == 'x' ? r : (r & 0x3) | 0x8;
+                v = c == "x" ? r : (r & 0x3) | 0x8;
             return v.toString(16);
         });
     }
@@ -44,7 +44,7 @@ class MoreLessComponent extends Component {
         if (!$parent || !$parent.length) {
             return undefined;
         }
-        if ($elem.css('display') == 'none') {
+        if ($elem.css("display") == "none") {
             return $elem;
         }
         return this.parentHidden($parent);
@@ -58,9 +58,9 @@ class MoreLessComponent extends Component {
      * @see https://github.com/dreamerslab/jquery.actual
      */
     getActualHeight($elem) {
-        if ($elem.attr('data-actual-height')) {
+        if ($elem.attr("data-actual-height")) {
             // cached heights from previous runs
-            return $elem.attr('data-actual-height');
+            return $elem.attr("data-actual-height");
         }
 
         // If the element is blank then it will have 0 height
@@ -83,35 +83,35 @@ class MoreLessComponent extends Component {
         // Add a unique identifier to each more-less class, before cloning. Once we
         // measure the height on the cloned elements, we can apply the height as a
         // data value to its real equivalent element using this unique class.
-        $parent.find('.more-less').each(function () {
+        $parent.find(".more-less").each(function () {
             const $e = $(this);
-            $e.addClass('more-less-id-' + crypto.randomUUID());
+            $e.addClass("more-less-id-" + crypto.randomUUID());
         });
 
         // Clone the element and show it to find out its height
         const $clone = $parent
             .clone()
-            .attr('id', false)
-            .css({ visibility: 'hidden', display: 'block', position: 'absolute' });
-        $('body').append($clone);
+            .attr("id", false)
+            .css({ visibility: "hidden", display: "block", position: "absolute" });
+        $("body").append($clone);
 
         // The cloned element could contain many other hidden more-less divs, so do
         // them all at the same time to improve performance
-        $clone.find('.more-less').each(function () {
+        $clone.find(".more-less").each(function () {
             const $ml = $(this);
-            const classList = $ml.attr('class').split(/\s+/);
+            const classList = $ml.attr("class").split(/\s+/);
             $.each(classList, function (index, item) {
-                if (item.indexOf('more-less-id') >= 0) {
-                    const $toset = $parent.find('.' + item);
+                if (item.indexOf("more-less-id") >= 0) {
+                    const $toset = $parent.find("." + item);
                     // Can't use data() as it can't be re-read
-                    $toset.attr('data-actual-height', $ml.height());
+                    $toset.attr("data-actual-height", $ml.height());
                 }
             });
         });
 
         $clone.remove();
 
-        return $elem.attr('data-actual-height');
+        return $elem.attr("data-actual-height");
     }
 
     /**
@@ -128,12 +128,12 @@ class MoreLessComponent extends Component {
     clearMoreLess() {
         const $ml = $(this.el);
 
-        if ($ml.hasClass('clipped')) {
-            const content = $ml.find('.expandable').html();
+        if ($ml.hasClass("clipped")) {
+            const content = $ml.find(".expandable").html();
 
             $ml
                 .html(content)
-                .removeClass('clipped');
+                .removeClass("clipped");
         }
     }
 
@@ -142,50 +142,50 @@ class MoreLessComponent extends Component {
      */
     initMoreLess() {
         const $ml = $(this.el);
-        const column = $ml.data('column');
+        const column = $ml.data("column");
         const content = $ml.html();
 
         moreLess.addSubscriber(this);
 
-        $ml.removeClass('transparent');
+        $ml.removeClass("transparent");
         // Element may be hidden (e.g. when rendering edit fields on record page).
         // Actual height may be undefined in the event of errors.
         const ah = this.getActualHeight($ml);
         if (!ah || ah < MAX_HEIGHT) {
             return;
         }
-        $ml.addClass('clipped');
+        $ml.addClass("clipped");
 
-        const $expandable = $('<div/>', {
-            class: 'expandable popover column-content card card-secondary',
+        const $expandable = $("<div/>", {
+            class: "expandable popover column-content card card-secondary",
             html: `<div class="card-body">${content}</div>`
         });
 
-        const toggleLabel = 'Show ' + column + ' ⇒';
+        const toggleLabel = "Show " + column + " ⇒";
 
-        const $expandToggle = $('<button/>', {
-            class: 'btn btn-sm btn-default btn-inverted trigger',
+        const $expandToggle = $("<button/>", {
+            class: "btn btn-sm btn-default btn-inverted trigger",
             text: toggleLabel,
-            type: 'button',
-            'aria-expanded': false,
-            'data-expand-on-hover': false,
-            'data-label-expanded': 'Hide ' + column,
-            'data-label-collapsed': toggleLabel
+            type: "button",
+            "aria-expanded": false,
+            "data-expand-on-hover": false,
+            "data-label-expanded": "Hide " + column,
+            "data-label-collapsed": toggleLabel
         });
 
-        $expandToggle.on('toggle', function (e, state) {
+        $expandToggle.on("toggle", function (e, state) {
             const windowWidth = $(window).width();
             const leftOffset = $expandable.offset().left;
             const minWidth = 400;
             const colWidth = $ml.width();
             const newWidth = colWidth > minWidth ? colWidth : minWidth;
-            if (state === 'expanded') {
-                $expandable.css('width', newWidth + 'px');
+            if (state === "expanded") {
+                $expandable.css("width", newWidth + "px");
                 if (leftOffset + newWidth + 20 < windowWidth) {
                     return;
                 }
                 const overflow = windowWidth - (leftOffset + newWidth + 20);
-                $expandable.css('left', leftOffset + overflow + 'px');
+                $expandable.css("left", leftOffset + overflow + "px");
             }
         });
 
@@ -197,9 +197,9 @@ class MoreLessComponent extends Component {
         setupDisclosureWidgets($ml);
 
         // Set up the record-popup modal for any curvals in this more-less
-        import(/* webpackChunkName: "record-popup" */ '../../record-popup/lib/component')
+        import(/* webpackChunkName: "record-popup" */ "../../record-popup/lib/component")
             .then(({ default: RecordPopupComponent }) => {
-                const recordPopupElements = $ml.find('.record-popup');
+                const recordPopupElements = $ml.find(".record-popup");
                 recordPopupElements.each((i, el) => {
                     new RecordPopupComponent(el);
                 });

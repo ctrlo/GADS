@@ -1,6 +1,6 @@
-import { Component } from 'component';
-import { refreshSelects } from 'components/form-group/searchable-select/FilterSelectHelper';
-import 'jQuery-QueryBuilder/dist/js/query-builder.standalone';
+import { Component } from "component";
+import { refreshSelects } from "components/form-group/searchable-select/FilterSelectHelper";
+import "jQuery-QueryBuilder/dist/js/query-builder.standalone";
 
 /**
  * Component for managing display conditions in form groups.
@@ -30,13 +30,13 @@ class DisplayConditionsComponent extends Component {
             filters: filters,
             allow_groups: 0,
             operators: [
-                { type: 'equal', accept_values: true, apply_to: ['string'] },
-                { type: 'contains', accept_values: true, apply_to: ['string'] },
-                { type: 'not_equal', accept_values: true, apply_to: ['string'] },
-                { type: 'not_contains', accept_values: true, apply_to: ['string'] }
+                { type: "equal", accept_values: true, apply_to: ["string"] },
+                { type: "contains", accept_values: true, apply_to: ["string"] },
+                { type: "not_equal", accept_values: true, apply_to: ["string"] },
+                { type: "not_contains", accept_values: true, apply_to: ["string"] }
             ],
             allow_empty: true
-        }).queryBuilder('setRules', builderData.filterBase
+        }).queryBuilder("setRules", builderData.filterBase
             ? JSON.parse(atob(builderData.filterBase))
             : {rules:[]});
     }

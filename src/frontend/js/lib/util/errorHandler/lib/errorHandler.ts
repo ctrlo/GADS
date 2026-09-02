@@ -12,7 +12,7 @@ export class ErrorHandler {
      */
     constructor(private element: HTMLElement) {
         this.el = $(element);
-        this.el.data['errorHandler'] = this;
+        this.el.data["errorHandler"] = this;
         this.initErrorDisplay();
     }
 
@@ -20,7 +20,7 @@ export class ErrorHandler {
      * Initialise the display for the errors
      */
     private initErrorDisplay() {
-        this.errorContainer = $('<div class="error-container p-3 alert alert-danger font-weight-bold my-3 flex-column align-items-start"></div>');
+        this.errorContainer = $("<div class=\"error-container p-3 alert alert-danger font-weight-bold my-3 flex-column align-items-start\"></div>");
         this.el.prepend(this.errorContainer);
         this.renderErrors();
     }
@@ -31,13 +31,13 @@ export class ErrorHandler {
      */
     addError(...errors: (string | Error)[]) {
         errors.forEach(error => {
-            if (typeof error === 'string') {
+            if (typeof error === "string") {
                 this.errors.push(error);
             } else if (error instanceof Error) {
                 this.errors.push(error.message);
             } else {
-                console.warn('Unsupported error type:', error);
-                this.errors.push('An unknown error occurred');
+                console.warn("Unsupported error type:", error);
+                this.errors.push("An unknown error occurred");
             }
         });
         this.renderErrors();
@@ -59,7 +59,7 @@ export class ErrorHandler {
         if (this.errors.length > 0) {
             this.errorContainer.show();
             this.errors.forEach(error => {
-                const errorElement = $('<p class="error-message mx-1 my-2"></p>').text(error);
+                const errorElement = $("<p class=\"error-message mx-1 my-2\"></p>").text(error);
                 this.errorContainer.append(errorElement);
             });
         } else {

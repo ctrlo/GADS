@@ -1,7 +1,7 @@
-import ModalComponent from 'components/modal/lib/component';
-import * as DataTableHelper from 'components/data-table/lib/helper';
-import { modal } from 'components/modal/lib/modal';
-import SelectComponent from 'components/form-group/select/lib/component';
+import ModalComponent from "components/modal/lib/component";
+import * as DataTableHelper from "components/data-table/lib/helper";
+import { modal } from "components/modal/lib/modal";
+import SelectComponent from "components/form-group/select/lib/component";
 
 /**
  * Modal component for adding a new table
@@ -15,10 +15,10 @@ class AddTableModalComponent extends ModalComponent {
         super(element);
         this.el = $(this.element);
         this.json = {};
-        this.fieldOptions = this.el.find('.modal-body .field-options');
-        this.topicsTable = this.el.find('#topics');
-        this.fieldsTable = this.el.find('#fields');
-        this.selectTopic = this.el.find('.modal-body .select--js-topic')[0];
+        this.fieldOptions = this.el.find(".modal-body .field-options");
+        this.topicsTable = this.el.find("#topics");
+        this.fieldsTable = this.el.find("#fields");
+        this.selectTopic = this.el.find(".modal-body .select--js-topic")[0];
         //No point doing this as an import if it's in the initialisation
         this.selectTopicComponent = new SelectComponent(this.selectTopic);
         this.currentFieldObject = {};
@@ -30,12 +30,12 @@ class AddTableModalComponent extends ModalComponent {
      * Initialize the new table wizard
      */
     initNewTable() {
-        const btnCreateTopic = this.el.find('.modal-body .btn-js-create-topic');
-        const btnCreateField = this.el.find('.modal-body .btn-js-create-field');
+        const btnCreateTopic = this.el.find(".modal-body .btn-js-create-topic");
+        const btnCreateField = this.el.find(".modal-body .btn-js-create-field");
 
-        btnCreateTopic.on('click', () => { modal.activate(4, true); });
-        btnCreateField.on('click', () => { modal.activate(7, true); });
-        this.fieldOptions.addClass('hidden');
+        btnCreateTopic.on("click", () => { modal.activate(4, true); });
+        btnCreateField.on("click", () => { modal.activate(7, true); });
+        this.fieldOptions.addClass("hidden");
         this.setupDataObject();
     }
 
@@ -59,16 +59,16 @@ class AddTableModalComponent extends ModalComponent {
     addFieldsToObject($fields, obj) {
         $fields.each((i, field) => {
             if ($(field).val()) {
-                if ($(field).prop('type') == 'checkbox') {
-                    if ($(field).prop('checked')) {
-                        obj[$(field).attr('name')] = true;
+                if ($(field).prop("type") == "checkbox") {
+                    if ($(field).prop("checked")) {
+                        obj[$(field).attr("name")] = true;
                     } else {
-                        obj[$(field).attr('name')] = false;
+                        obj[$(field).attr("name")] = false;
                     }
-                } else if ($(field).attr('name') === 'topic_tempid') {
-                    obj[$(field).attr('name')] = parseInt($(field).val());
+                } else if ($(field).attr("name") === "topic_tempid") {
+                    obj[$(field).attr("name")] = parseInt($(field).val());
                 } else {
-                    obj[$(field).attr('name')] = $(field).val();
+                    obj[$(field).attr("name")] = $(field).val();
                 }
             }
         });
@@ -81,7 +81,7 @@ class AddTableModalComponent extends ModalComponent {
      * @param {JQuery<HTMLElement>} frame The frame containing the topic fields
      */
     addTopic(frame) {
-        const $fields = frame.find('input, textarea');
+        const $fields = frame.find("input, textarea");
 
         // Create new topic
         if (Object.keys(this.currentTopicObject).length === 0) {
@@ -98,14 +98,14 @@ class AddTableModalComponent extends ModalComponent {
             this.json.topics.push(topicObject);
 
             // Add topic as option to topic dropdown
-            this.selectTopicComponent.addOption(topicObject['name'], topicObject['tempId']);
+            this.selectTopicComponent.addOption(topicObject["name"], topicObject["tempId"]);
 
             // Update topics table
             const row = [
-                `<button class="btn btn-link btn-js-edit-topic" type="button" data-tempid="${topicObject['tempId']}">${topicObject['name']}</button>`,
-                topicObject['description'] || '',
-                topicObject['expanded'],
-                ''
+                `<button class="btn btn-link btn-js-edit-topic" type="button" data-tempid="${topicObject["tempId"]}">${topicObject["name"]}</button>`,
+                topicObject["description"] || "",
+                topicObject["expanded"],
+                ""
             ];
 
             DataTableHelper.addRow(row, this.topicsTable);
@@ -116,24 +116,24 @@ class AddTableModalComponent extends ModalComponent {
 
             $fields.each((i, field) => {
                 if ($(field).val()) {
-                    currentTopic[$(field).attr('name')] = $(field).val();
+                    currentTopic[$(field).attr("name")] = $(field).val();
                 }
             });
 
             // Update row in topics table
             const rowData = [
-                `<button class="btn btn-link btn-js-edit-topic" type="button" data-tempid="${this.currentTopicObject['tempId']}">${this.currentTopicObject['name']}</button>`,
-                this.currentTopicObject['description'] || '',
-                this.currentTopicObject['expanded'],
-                ''
+                `<button class="btn btn-link btn-js-edit-topic" type="button" data-tempid="${this.currentTopicObject["tempId"]}">${this.currentTopicObject["name"]}</button>`,
+                this.currentTopicObject["description"] || "",
+                this.currentTopicObject["expanded"],
+                ""
             ];
 
-            DataTableHelper.updateRow(rowData, this.topicsTable, this.currentTopicObject['tempId']);
+            DataTableHelper.updateRow(rowData, this.topicsTable, this.currentTopicObject["tempId"]);
 
             // Update topic dropdown
-            this.selectTopicComponent.updateOption(this.currentTopicObject['name'], this.currentTopicObject['tempId']);
+            this.selectTopicComponent.updateOption(this.currentTopicObject["name"], this.currentTopicObject["tempId"]);
 
-            this.addHandlerToEditItemButton('topic');
+            this.addHandlerToEditItemButton("topic");
         }
     }
 
@@ -147,14 +147,14 @@ class AddTableModalComponent extends ModalComponent {
             const $field = $container.find(`[name=${key}]`);
 
             if ($field) {
-                if (($field.prop('type') === 'checkbox' && value === true)) {
-                    $field.prop('checked', true);
-                } else if (($field.prop('type') === 'hidden')) {
+                if (($field.prop("type") === "checkbox" && value === true)) {
+                    $field.prop("checked", true);
+                } else if (($field.prop("type") === "hidden")) {
                     $field.val(value);
-                    $field.trigger('change');
+                    $field.trigger("change");
                 } else {
                     $field.val(value);
-                    $field.trigger('blur');
+                    $field.trigger("blur");
                 }
             }
         }
@@ -223,13 +223,13 @@ class AddTableModalComponent extends ModalComponent {
     addHandlerToEditItemButton(strType) {
         const $btnEditItem = this.el.find(`.modal-body .btn-js-edit-${strType}`);
 
-        $btnEditItem.off('click');
+        $btnEditItem.off("click");
 
-        const frameNumber = strType === 'topic' ? 4 : 7;
+        const frameNumber = strType === "topic" ? 4 : 7;
 
         $btnEditItem.each((i, btn) => {
-            const tempId = $(btn).data('tempid');
-            $(btn).on('click', () => { modal.activate(frameNumber, true, tempId); });
+            const tempId = $(btn).data("tempid");
+            $(btn).on("click", () => { modal.activate(frameNumber, true, tempId); });
         });
     }
 
@@ -246,7 +246,7 @@ class AddTableModalComponent extends ModalComponent {
      * @param {JQuery<HTMLElement>} frame The frame containing the field fields
      */
     addField(frame) {
-        const $fields = frame.find('input, textarea');
+        const $fields = frame.find("input, textarea");
 
         // Create new field
         if (Object.keys(this.currentFieldObject).length === 0) {
@@ -266,16 +266,16 @@ class AddTableModalComponent extends ModalComponent {
 
             // Update fields table
             const row = [
-                `<button class="btn btn-link btn-js-edit-field" type="button" data-tempid="${fieldObject['tempId']}">${fieldObject['name']}</button>`,
-                fieldObject['name'],
-                fieldObject['topic'] || '',
-                fieldObject['field-type'],
-                ''
+                `<button class="btn btn-link btn-js-edit-field" type="button" data-tempid="${fieldObject["tempId"]}">${fieldObject["name"]}</button>`,
+                fieldObject["name"],
+                fieldObject["topic"] || "",
+                fieldObject["field-type"],
+                ""
             ];
 
             DataTableHelper.addRow(row, this.fieldsTable);
 
-            this.addHandlerToEditItemButton('field');
+            this.addHandlerToEditItemButton("field");
 
         } else {
             // Update existing field in json
@@ -283,22 +283,22 @@ class AddTableModalComponent extends ModalComponent {
 
             $fields.each((i, field) => {
                 if ($(field).val()) {
-                    currentField[$(field).attr('name')] = $(field).val();
+                    currentField[$(field).attr("name")] = $(field).val();
                 }
             });
 
             // Update row in fields table
             const rowData = [
-                `<button class="btn btn-link btn-js-edit-field" type="button" data-tempid="${this.currentFieldObject['tempId']}">${this.currentFieldObject['name']}</button>`,
-                this.currentFieldObject['name'],
-                this.currentFieldObject['topic'] || '',
-                this.currentFieldObject['field-type'],
-                ''
+                `<button class="btn btn-link btn-js-edit-field" type="button" data-tempid="${this.currentFieldObject["tempId"]}">${this.currentFieldObject["name"]}</button>`,
+                this.currentFieldObject["name"],
+                this.currentFieldObject["topic"] || "",
+                this.currentFieldObject["field-type"],
+                ""
             ];
 
-            DataTableHelper.updateRow(rowData, this.fieldsTable, this.currentFieldObject['tempId']);
+            DataTableHelper.updateRow(rowData, this.fieldsTable, this.currentFieldObject["tempId"]);
 
-            this.addHandlerToEditItemButton('field');
+            this.addHandlerToEditItemButton("field");
         }
     }
 
@@ -307,15 +307,15 @@ class AddTableModalComponent extends ModalComponent {
      * @param {JQuery<HTMLElement>} frame The frame containing the field type settings
      */
     addFieldTypeSettings(frame) {
-        const $fieldTypeContainer = frame.find('[id^=field_type_].select-reveal__instance:visible');
-        const $fields = $fieldTypeContainer.find('input, textarea');
+        const $fieldTypeContainer = frame.find("[id^=field_type_].select-reveal__instance:visible");
+        const $fields = $fieldTypeContainer.find("input, textarea");
         const currentField = this.json.fields.find(x => x.tempId === this.currentFieldObject.tempId);
 
-        switch ($fieldTypeContainer.attr('id')) {
-            case 'field_type_enum':
+        switch ($fieldTypeContainer.attr("id")) {
+            case "field_type_enum":
             {
-                const $orderField = $fieldTypeContainer.find('input[name="ordering"]');
-                const $sortableFields = $fieldTypeContainer.find('.sortable input');
+                const $orderField = $fieldTypeContainer.find("input[name=\"ordering\"]");
+                const $sortableFields = $fieldTypeContainer.find(".sortable input");
 
                 let enumSettingsObject = {
                     dropdown_values: [],
@@ -324,7 +324,7 @@ class AddTableModalComponent extends ModalComponent {
 
                 $sortableFields.each((i, field) => {
                     let fieldObj = {};
-                    fieldObj[$(field).attr('name')] = $(field).val();
+                    fieldObj[$(field).attr("name")] = $(field).val();
                     enumSettingsObject.dropdown_values.push(fieldObj);
                 });
 
@@ -332,9 +332,9 @@ class AddTableModalComponent extends ModalComponent {
 
                 break;
             }
-            case 'field_type_tree':
+            case "field_type_tree":
             {
-                const $jstreeEl = $fieldTypeContainer.find('.tree-widget-container');
+                const $jstreeEl = $fieldTypeContainer.find(".tree-widget-container");
 
                 let treeSettingsObject = {
                     data: {},
@@ -342,7 +342,7 @@ class AddTableModalComponent extends ModalComponent {
                 };
 
                 if ($jstreeEl.length) {
-                    const v = $jstreeEl.jstree(true).get_json('#', { flat: false });
+                    const v = $jstreeEl.jstree(true).get_json("#", { flat: false });
                     //Not entirely sure what this is - I'm going to leave it in for now
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     const mytext = JSON.stringify(v);
@@ -357,10 +357,10 @@ class AddTableModalComponent extends ModalComponent {
 
                 break;
             }
-            case 'field_type_curval':
+            case "field_type_curval":
             {
-                const $curvalFieldIds = $fieldTypeContainer.find('input[name="curval_field_ids"]:visible');
-                const $otherFields = $fieldTypeContainer.find('input:not([name="curval_field_ids"]), textarea');
+                const $curvalFieldIds = $fieldTypeContainer.find("input[name=\"curval_field_ids\"]:visible");
+                const $otherFields = $fieldTypeContainer.find("input:not([name=\"curval_field_ids\"]), textarea");
 
                 let curvalSettingsObject = {
                     curval_field_ids: []
@@ -392,12 +392,12 @@ class AddTableModalComponent extends ModalComponent {
      * @param {JQuery<HTMLElement>} frame The frame containing the table fields
      */
     addTable(frame) {
-        const $fields = frame.find('input, textarea');
-        const $modalTitle = this.el.find('.modal-title');
+        const $fields = frame.find("input, textarea");
+        const $modalTitle = this.el.find(".modal-title");
 
         $fields.each((i, field) => {
             if ($(field).val()) {
-                this.json[$(field).attr('name')] = $(field).val();
+                this.json[$(field).attr("name")] = $(field).val();
             }
         });
 
@@ -411,7 +411,7 @@ class AddTableModalComponent extends ModalComponent {
      * @param {JQuery<HTMLElement>} frame The frame containing the field permissions
      */
     addCustomFieldPermissions(frame) {
-        const $customFieldPermissionsTable = frame.find('#custom_field_permissions_table');
+        const $customFieldPermissionsTable = frame.find("#custom_field_permissions_table");
         const $groups = $customFieldPermissionsTable.DataTable().rows();
         const currentField = this.json.fields.find(x => x.tempId === this.currentFieldObject.tempId);
 
@@ -421,8 +421,8 @@ class AddTableModalComponent extends ModalComponent {
         $groups.every(() => {
             const group = this.nodes()[0];
             const iGroupId = group.dataset.groupId;
-            const strGroupName = $(group).find('td')[0].innerHTML.trim();
-            const $fields = $(group).find('input');
+            const strGroupName = $(group).find("td")[0].innerHTML.trim();
+            const $fields = $(group).find("input");
 
             // Add new group
             let groupObject = {
@@ -444,13 +444,13 @@ class AddTableModalComponent extends ModalComponent {
      * @param {JQuery<HTMLElement>} frame The frame containing the table permissions
      */
     addTablePermissions(frame) {
-        const $groups = frame.find('.card--expandable');
+        const $groups = frame.find(".card--expandable");
 
         $groups.each((i, group) => {
-            const $groupRow = $(group).closest('.permission-group');
-            const iGroupId = ($groupRow && typeof $groupRow.data('group-id') !== 'undefined') ? $groupRow.data('group-id') : '';
-            const strGroupName = $(group).find('.card__subtitle')[0].innerHTML.trim();
-            const $fieldSets = $(group).find('fieldset');
+            const $groupRow = $(group).closest(".permission-group");
+            const iGroupId = ($groupRow && typeof $groupRow.data("group-id") !== "undefined") ? $groupRow.data("group-id") : "";
+            const strGroupName = $(group).find(".card__subtitle")[0].innerHTML.trim();
+            const $fieldSets = $(group).find("fieldset");
 
             // Add new group
             let groupObject = {
@@ -462,8 +462,8 @@ class AddTableModalComponent extends ModalComponent {
             };
 
             $fieldSets.each((i, fieldSet) => {
-                const strName = $(fieldSet).data('name');
-                const $fields = $(fieldSet).find('input');
+                const strName = $(fieldSet).data("name");
+                const $fields = $(fieldSet).find("input");
 
                 // Add fields to permissions object
                 groupObject[strName] = this.addFieldsToObject($fields, groupObject[strName]);
@@ -481,29 +481,29 @@ class AddTableModalComponent extends ModalComponent {
     handleNext(frame) {
         super.handleNext();
 
-        switch (frame.data('config').item) {
-            case 'topic':
+        switch (frame.data("config").item) {
+            case "topic":
                 this.addTopic(frame);
                 break;
-            case 'field':
+            case "field":
                 this.addField(frame);
                 break;
-            case 'field type settings':
+            case "field type settings":
                 this.addFieldTypeSettings(frame);
-                this.recalculateDatatableColumnWidths($('#custom_field_permissions_table'));
+                this.recalculateDatatableColumnWidths($("#custom_field_permissions_table"));
                 break;
-            case 'custom field permissions':
+            case "custom field permissions":
                 this.addCustomFieldPermissions(frame);
                 break;
-            case 'table':
+            case "table":
                 this.addTable(frame);
                 break;
-            case 'table permissions':
+            case "table permissions":
                 this.addTablePermissions(frame);
                 break;
             default:
             {
-                const $fields = frame.find('input, textarea');
+                const $fields = frame.find("input, textarea");
                 this.addFieldsToObject($fields, this.json);
             }
         }
@@ -536,10 +536,10 @@ class AddTableModalComponent extends ModalComponent {
      * @param {JQuery<HTMLElement>} frame The frame to handle update for
      */
     handleUpdate(frame) {
-        if (frame.data('config').item === 'topic') {
+        if (frame.data("config").item === "topic") {
             this.addTopic(frame);
             this.currentTopicObject = {};
-        } else if (frame.data('config').item === 'field') {
+        } else if (frame.data("config").item === "field") {
             this.addField(frame);
             this.currentFieldObject = {};
         }
@@ -584,7 +584,7 @@ class AddTableModalComponent extends ModalComponent {
      */
     handleClose() {
         // Collapse all collapsibles
-        this.el.find('.collapse').collapse('hide');
+        this.el.find(".collapse").collapse("hide");
 
         // Clear all datatables
         if (this.topicsTable) DataTableHelper.clearTable(this.topicsTable);

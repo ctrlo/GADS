@@ -1,4 +1,4 @@
-import { hideElement, showElement } from 'util/common';
+import { hideElement, showElement } from "util/common";
 
 /**
  * FileDragOptions interface to define options for the FileDrag class.
@@ -35,7 +35,7 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
      * @param onDrop Callback function to be called when files are dropped.
      */
     constructor(element: T, private options: FileDragOptions = {}, private onDrop: (files: File, index?: number, length?:number) => void) {
-        if (options.debug) console.log('FileDrag', element, options);
+        if (options.debug) console.log("FileDrag", element, options);
         this.el = $(element);
         this.initElements();
         this.initDocumentEvents();
@@ -46,24 +46,24 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
      * Initializes the events for the drop zone elements.
      */
     initElementEvents() {
-        if (this.options.debug) console.log('initElementEvents');
-        this.dropZone.on('dragenter', (e) => {
+        if (this.options.debug) console.log("initElementEvents");
+        this.dropZone.on("dragenter", (e) => {
             if (!this.dragging) return;
-            if(!this.dropZone.hasClass('dragging')) this.dropZone.addClass('dragging');
+            if(!this.dropZone.hasClass("dragging")) this.dropZone.addClass("dragging");
             e.preventDefault();
         });
-        this.dropZone.on('dragleave', (e) => {
+        this.dropZone.on("dragleave", (e) => {
             if (!this.dragging) return;
-            if(this.dropZone.hasClass('dragging')) this.dropZone.removeClass('dragging');
+            if(this.dropZone.hasClass("dragging")) this.dropZone.removeClass("dragging");
             e.preventDefault();
         });
-        this.dropZone.on('drop', (e) => {
+        this.dropZone.on("drop", (e) => {
             e.preventDefault();
             if (!this.dragging) return;
             this.dragging = false;
-            if(this.el.hasClass('dragging')) this.el.removeClass('dragging');
-            hideElement($('.drop-zone'));
-            showElement($('[data-draggable="true"]'));
+            if(this.el.hasClass("dragging")) this.el.removeClass("dragging");
+            hideElement($(".drop-zone"));
+            showElement($("[data-draggable=\"true\"]"));
             if (this.options.debug) console.log(e.originalEvent.dataTransfer.files);
             showElement(this.el);
             console.log(e.originalEvent.dataTransfer.files);
@@ -76,7 +76,7 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
             } else {
                 this.onDrop(e.originalEvent.dataTransfer.files[0]);
             }
-            $(document).trigger('drop');
+            $(document).trigger("drop");
         });
     }
 
@@ -84,14 +84,14 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
      * Initializes the document-wide drag and drop events.
      */
     initDocumentEvents() {
-        if (this.options.debug) console.log('initDocumentEvents');
-        $(document).on('dragenter', () => {
+        if (this.options.debug) console.log("initDocumentEvents");
+        $(document).on("dragenter", () => {
             if (this.dragging) return;
             this.dragging = true;
             hideElement(this.el);
             showElement(this.dropZone);
         });
-        $(document).on('dragleave', (e) => {
+        $(document).on("dragleave", (e) => {
             if (!this.dragging) return;
             if (e.originalEvent.pageX != 0 || e.originalEvent.pageY != 0) {
                 return false;
@@ -100,14 +100,14 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
             hideElement(this.dropZone);
             showElement(this.el);
         });
-        $(document).on('drop', (e) => {
+        $(document).on("drop", (e) => {
             e.preventDefault();
             if (!this.dragging) return;
             this.dragging = false;
             hideElement(this.dropZone);
             showElement(this.el);
         });
-        $(document).on('dragover', (e) => {
+        $(document).on("dragover", (e) => {
             if (!this.dragging) return;
             e.preventDefault();
         });
@@ -117,10 +117,10 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
      * Initializes the elements for the drag and drop functionality.
      */
     initElements() {
-        if (this.options.debug) console.log('initElements');
-        this.el.data('draggable', 'true');
-        this.dropZone = $('<div class="drop-zone">Drop files here</div>');
-        const error = $('<div class="upload__error">Error</div>');
+        if (this.options.debug) console.log("initElements");
+        this.el.data("draggable", "true");
+        this.dropZone = $("<div class=\"drop-zone\">Drop files here</div>");
+        const error = $("<div class=\"upload__error\">Error</div>");
         hideElement(error);
         const parent = this.el.parent();
         parent.append(this.dropZone);

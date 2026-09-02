@@ -27,7 +27,7 @@ export default defineConfig([
         rules: {
             "@typescript-eslint/no-explicit-any": "off",
             'react/prop-types': 'off',
-            '@stylistic/quotes': ['error', 'single'],
+            '@stylistic/quotes': ['error', 'double'],
             '@stylistic/no-extra-semi': 'error',
             '@stylistic/semi': ['error', 'always'],
             '@stylistic/curly-newline': 'error',

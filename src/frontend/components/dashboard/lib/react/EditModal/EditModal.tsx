@@ -1,7 +1,7 @@
 /* eslint-disable @stylistic/semi */
-import React, { useEffect } from 'react';
-import Modal, {Styles} from 'react-modal';
-import { AppModalProps } from '../types';
+import React, { useEffect } from "react";
+import Modal, {Styles} from "react-modal";
+import { AppModalProps } from "../types";
 
 /**
  * Edit modal component
@@ -11,26 +11,26 @@ import { AppModalProps } from '../types';
 export default function EditModal({ editModalOpen, closeModal, editError, loadingEditHtml, editHtml, formRef, deleteActiveWidget, saveActiveWidget }:AppModalProps): React.JSX.Element {
     const modalStyle: Styles = {
         content: {
-            minWidth: '350px',
-            maxWidth: '80vw',
-            maxHeight: '90vh',
-            top: '50%',
-            left: '50%',
-            right: 'auto',
-            bottom: 'auto',
-            marginRight: '-50%',
-            transform: 'translate(-50%, -50%)',
-            msTransform: 'translate(-50%, -50%)',
-            padding: '2rem 1.5rem'
+            minWidth: "350px",
+            maxWidth: "80vw",
+            maxHeight: "90vh",
+            top: "50%",
+            left: "50%",
+            right: "auto",
+            bottom: "auto",
+            marginRight: "-50%",
+            transform: "translate(-50%, -50%)",
+            msTransform: "translate(-50%, -50%)",
+            padding: "2rem 1.5rem"
         },
         overlay: {
             zIndex: 1030,
-            background: 'rgba(0, 0, 0, .15)'
+            background: "rgba(0, 0, 0, .15)"
         }
     };
 
     useEffect(() => {
-        Modal.setAppElement('#ld-app');
+        Modal.setAppElement("#ld-app");
     }, []);
 
     const test = window.test;

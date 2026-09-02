@@ -1,4 +1,4 @@
-import { MapperFunction } from 'util/mapper/mapper';
+import { MapperFunction } from "util/mapper/mapper";
 
 /**
  * TypeaheadSourceOptions class for configuring typeahead data sources
@@ -21,6 +21,6 @@ export class TypeaheadSourceOptions {
         public appendQuery: boolean,
         public data: any,
         public dataBuilder?: (...args: any[]) => any,
-        public method: 'GET' | 'POST' = 'GET') {
+        public method: "GET" | "POST" = "GET") {
     }
 }

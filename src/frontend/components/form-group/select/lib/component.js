@@ -1,9 +1,9 @@
-import { Component } from 'component';
-import { initValidationOnField } from 'validation';
+import { Component } from "component";
+import { initValidationOnField } from "validation";
 
-const SELECT_PLACEHOLDER = 'select__placeholder';
-const SELECT_MENU_ITEM_ACTIVE = 'select__menu-item--active';
-const SELECT_MENU_ITEM_HOVER = 'select__menu-item--hover';
+const SELECT_PLACEHOLDER = "select__placeholder";
+const SELECT_MENU_ITEM_ACTIVE = "select__menu-item--active";
+const SELECT_MENU_ITEM_HOVER = "select__menu-item--hover";
 
 /**
  * Select component that handles custom select functionality
@@ -16,17 +16,17 @@ class SelectComponent extends Component {
     constructor(element) {
         super(element);
         this.el = $(this.element);
-        this.toggleButton = this.el.find('.select__toggle');
-        this.input = this.el.find('input');
-        this.menu = this.el.find('.select__menu');
-        this.options = this.el.find('.select__menu-item');
-        this.optionChecked = '';
+        this.toggleButton = this.el.find(".select__toggle");
+        this.input = this.el.find("input");
+        this.menu = this.el.find(".select__menu");
+        this.options = this.el.find(".select__menu-item");
+        this.optionChecked = "";
         this.optionHoveredIndex = -1;
         this.optionsCount = this.options.length;
-        this.isSelectReveal = this.el.hasClass('select--reveal');
+        this.isSelectReveal = this.el.hasClass("select--reveal");
         this.initSelect(this.el);
 
-        if (this.el.hasClass('select--required')) {
+        if (this.el.hasClass("select--required")) {
             initValidationOnField(this.el);
         }
     }
@@ -47,12 +47,12 @@ class SelectComponent extends Component {
         }
 
         // Bind event handlers
-        this.options.on('click', (ev) => { this.handleClick(ev); });
-        this.input.on('change', (ev) => { this.handleChange(ev); });
-        this.el.on('show.bs.dropdown', () => { this.handleOpen(); });
+        this.options.on("click", (ev) => { this.handleClick(ev); });
+        this.input.on("change", (ev) => { this.handleChange(ev); });
+        this.el.on("show.bs.dropdown", () => { this.handleOpen(); });
 
         if (this.input.val()) {
-            this.input.trigger('change');
+            this.input.trigger("change");
         }
     }
 
@@ -62,18 +62,18 @@ class SelectComponent extends Component {
      * @param {string} value The value of the option to add
      */
     addOption(name, value) {
-        const newOption = document.createElement('li');
+        const newOption = document.createElement("li");
 
-        newOption.classList.add('select__menu-item');
-        newOption.setAttribute('role', 'option');
-        newOption.setAttribute('aria-selected', 'false');
-        newOption.setAttribute('data-id', name);
-        newOption.setAttribute('data-value', value);
+        newOption.classList.add("select__menu-item");
+        newOption.setAttribute("role", "option");
+        newOption.setAttribute("aria-selected", "false");
+        newOption.setAttribute("data-id", name);
+        newOption.setAttribute("data-value", value);
         newOption.innerHTML = name;
 
         this.menu.append(newOption);
         this.bindOptionHandler(newOption);
-        this.options = this.el.find('.select__menu-item');
+        this.options = this.el.find(".select__menu-item");
     }
 
     /**
@@ -96,7 +96,7 @@ class SelectComponent extends Component {
     updateOption(name, value) {
         this.options.each((i, option) => {
             if (parseInt(option.dataset.value) === value) {
-                option.setAttribute('data-id', name);
+                option.setAttribute("data-id", name);
                 option.innerHTML = name;
             }
         });
@@ -107,14 +107,14 @@ class SelectComponent extends Component {
      * @param {HTMLElement} option The option element to bind the click handler to
      */
     bindOptionHandler(option) {
-        $(option).on('click', (ev) => { this.handleClick(ev); });
+        $(option).on("click", (ev) => { this.handleClick(ev); });
     }
 
     /**
      * Handles the opening of the select
      */
     handleOpen() {
-        this.el.on('keydown', (ev) => { this.supportKeyboardNavigation(ev); });
+        this.el.on("keydown", (ev) => { this.supportKeyboardNavigation(ev); });
     }
 
     /**
@@ -122,9 +122,9 @@ class SelectComponent extends Component {
      * @param {JQuery.TriggeredEvent} ev The event that triggered the close
      */
     handleClose(ev) {
-        this.el.dropdown('hide');
+        this.el.dropdown("hide");
         ev.stopPropagation();
-        this.el.off('keydown');
+        this.el.off("keydown");
     }
 
     /**
@@ -134,11 +134,11 @@ class SelectComponent extends Component {
     handleChange(ev) {
         const value = $(ev.target).val();
 
-        if (value === '') {
+        if (value === "") {
             this.resetSelect();
         } else {
             this.options.each((i, option) => {
-                if ($(option).data('value')
+                if ($(option).data("value")
                     .toString() === value) {
                     this.updateChecked($(option));
                     if (this.isSelectReveal) {
@@ -155,15 +155,15 @@ class SelectComponent extends Component {
      */
     handleClick(ev) {
         const option = $(ev.target);
-        const value = option.data('value');
-        const revealID = option.data('reveal_id');
+        const value = option.data("value");
+        const revealID = option.data("reveal_id");
 
         this.input
             .val(value)
-            .trigger('change');
+            .trigger("change");
 
         if (revealID !== undefined) {
-            this.input.attr('data-reveal_id', revealID);
+            this.input.attr("data-reveal_id", revealID);
         }
 
         this.updateChecked($(option));
@@ -172,7 +172,7 @@ class SelectComponent extends Component {
             this.revealInstance($(option));
         }
 
-        this.toggleButton.trigger('focus');
+        this.toggleButton.trigger("focus");
     }
 
     /**
@@ -180,13 +180,13 @@ class SelectComponent extends Component {
      * @param {JQuery<HTMLElement>} $option The option that was clicked
      */
     revealInstance($option) {
-        const arrSelectRevealInstances = $(`.select-reveal--${this.input.attr('id')} > .select-reveal__instance`);
+        const arrSelectRevealInstances = $(`.select-reveal--${this.input.attr("id")} > .select-reveal__instance`);
         let instanceID;
 
-        if ($option.data('reveal_id') !== undefined) {
-            instanceID = `#${this.input.attr('id')}_${$option.data('reveal_id')}`;
+        if ($option.data("reveal_id") !== undefined) {
+            instanceID = `#${this.input.attr("id")}_${$option.data("reveal_id")}`;
         } else {
-            instanceID = `#${this.input.attr('id')}_${$option.data('value')}`;
+            instanceID = `#${this.input.attr("id")}_${$option.data("value")}`;
         }
 
         arrSelectRevealInstances.each((i, selectRevealInstance) => {
@@ -204,12 +204,12 @@ class SelectComponent extends Component {
      * @param {boolean} bDisable True to disable the fields, false to enable them
      */
     disableFields(container, bDisable) {
-        const $fields = $(container).find('input, textarea');
+        const $fields = $(container).find("input, textarea");
 
         if (bDisable) {
-            $fields.prop('disabled', true);
+            $fields.prop("disabled", true);
         } else {
-            $fields.removeAttr('disabled');
+            $fields.removeAttr("disabled");
         }
     }
 
@@ -236,17 +236,17 @@ class SelectComponent extends Component {
      * @param {HTMLElement} option The option element to update
      */
     updateChecked(option) {
-        const value = $(option).data('value');
+        const value = $(option).data("value");
         const text = $(option).html();
 
-        this.toggleButton.find('span').html(text);
-        this.toggleButton.find('span').removeClass(SELECT_PLACEHOLDER);
+        this.toggleButton.find("span").html(text);
+        this.toggleButton.find("span").removeClass(SELECT_PLACEHOLDER);
 
         this.options.removeClass(SELECT_MENU_ITEM_ACTIVE);
-        this.options.attr('aria-selected', false);
+        this.options.attr("aria-selected", false);
 
         $(option).addClass(SELECT_MENU_ITEM_ACTIVE);
-        $(option).attr('aria-selected', true);
+        $(option).attr("aria-selected", true);
 
         this.optionChecked = value;
     }
@@ -257,35 +257,35 @@ class SelectComponent extends Component {
      */
     supportKeyboardNavigation(ev) {
     // press down -> go next
-        if (ev.key === 'ArrowDown' && this.optionHoveredIndex < this.optionsCount - 1) {
+        if (ev.key === "ArrowDown" && this.optionHoveredIndex < this.optionsCount - 1) {
             ev.preventDefault(); // prevent page scrolling
             this.updateHovered(this.optionHoveredIndex + 1);
         }
 
         // press up -> go previous
-        if (ev.key === 'ArrowUp' && this.optionHoveredIndex > 0) {
+        if (ev.key === "ArrowUp" && this.optionHoveredIndex > 0) {
             ev.preventDefault(); // prevent page scrolling
             this.updateHovered(this.optionHoveredIndex - 1);
         }
 
         // press Enter or space -> select the option
-        if (ev.key === 'Enter' || ev.key === ' ') {
+        if (ev.key === "Enter" || ev.key === " ") {
             ev.preventDefault();
 
             const option = this.options[this.optionHoveredIndex];
-            const value = option && $(option).data('value');
+            const value = option && $(option).data("value");
 
             if (value) {
                 this.input
                     .val(value)
-                    .trigger('change');
+                    .trigger("change");
             }
 
             this.handleClose(ev);
         }
 
         // press ESC -> close selectCustom
-        if (ev.key === 'Escape') {
+        if (ev.key === "Escape") {
             this.handleClose(ev);
         }
     }
@@ -296,12 +296,12 @@ class SelectComponent extends Component {
     resetSelect() {
         const placeholder = this.input[0].placeholder;
 
-        this.toggleButton.find('span').html(placeholder);
-        this.toggleButton.find('span').addClass(SELECT_PLACEHOLDER);
+        this.toggleButton.find("span").html(placeholder);
+        this.toggleButton.find("span").addClass(SELECT_PLACEHOLDER);
         this.options.removeClass(SELECT_MENU_ITEM_ACTIVE);
-        this.options.attr('aria-selected', false);
-        this.input.removeAttr('value');
-        this.input.removeAttr('data-restore-value');
+        this.options.attr("aria-selected", false);
+        this.input.removeAttr("value");
+        this.input.removeAttr("data-restore-value");
     }
 }
 

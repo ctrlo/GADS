@@ -1,6 +1,6 @@
-import { MapperFunction, map } from 'util/mapper/mapper';
-import { TypeaheadSourceOptions } from './TypeaheadSourceOptions';
-import { Typeahead } from './Typeahead';
+import { MapperFunction, map } from "util/mapper/mapper";
+import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
+import { Typeahead } from "./Typeahead";
 
 type TypeaheadCallback = (suggestion: { name: string, id: number }) => void;
 
@@ -16,7 +16,7 @@ export class TypeaheadBuilder {
     private data: any;
     private mapper: MapperFunction = (data: any) => { return data.map(d => { return { name: d.name, id: d.id }; }); };
     private dataBuilder?: (...args: any[]) => any;
-    private method: 'GET' | 'POST' = 'GET';
+    private method: "GET" | "POST" = "GET";
 
     /**
      * Constructor for TypeaheadBuilder class
@@ -31,9 +31,9 @@ export class TypeaheadBuilder {
      * @param method - The HTTP method to use for the ajax request, defaults to 'GET'
      * @returns The builder being used
      */
-    withMethod(method: 'GET' | 'POST' = 'GET'): this {
-        if (method !== 'GET' && method !== 'POST') {
-            throw new Error('Method must be either \'GET\' or \'POST\'');
+    withMethod(method: "GET" | "POST" = "GET"): this {
+        if (method !== "GET" && method !== "POST") {
+            throw new Error("Method must be either 'GET' or 'POST'");
         }
         this.method = method;
         return this;
@@ -136,10 +136,10 @@ export class TypeaheadBuilder {
      * @throws {Error} If input, callback, name, or ajax source is not set
      */
     build() {
-        if (!this.$input) throw new Error('Input not set');
-        if (!this.callback) throw new Error('Callback not set');
-        if (!this.name) throw new Error('Name not set');
-        if (!this.ajaxSource) throw new Error('Ajax source not set');
+        if (!this.$input) throw new Error("Input not set");
+        if (!this.callback) throw new Error("Callback not set");
+        if (!this.name) throw new Error("Name not set");
+        if (!this.ajaxSource) throw new Error("Ajax source not set");
         const options = new TypeaheadSourceOptions(this.name, this.ajaxSource, this.mapper, this.appendQuery, this.data, this.dataBuilder, this.method);
         return new Typeahead(this.$input, this.callback, options);
     }

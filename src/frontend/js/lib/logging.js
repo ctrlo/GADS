@@ -1,4 +1,4 @@
-import { uploadMessage } from 'util/scriptErrorHandler';
+import { uploadMessage } from "util/scriptErrorHandler";
 
 /**
  * Class to manage logging in the application.
@@ -12,9 +12,9 @@ class Logging {
     constructor() {
         this.allowLogging =
             window.test ||
-            location.hostname === 'localhost' ||
-            location.hostname === '127.0.0.1' ||
-            location.hostname.endsWith('.peek.digitpaint.nl');
+            location.hostname === "localhost" ||
+            location.hostname === "127.0.0.1" ||
+            location.hostname.endsWith(".peek.digitpaint.nl");
     }
 
     /**
@@ -25,7 +25,7 @@ class Logging {
         if (this.allowLogging) {
             console.log(...message);
         } else {
-            const msg = this.formatMessage('log', ...message);
+            const msg = this.formatMessage("log", ...message);
             uploadMessage(msg);
         }
     }
@@ -38,7 +38,7 @@ class Logging {
         if (this.allowLogging) {
             console.info(...message);
         } else {
-            const msg = this.formatMessage('info', ...message);
+            const msg = this.formatMessage("info", ...message);
             uploadMessage(msg);
         }
     }
@@ -51,7 +51,7 @@ class Logging {
         if (this.allowLogging) {
             console.warn(...message);
         } else {
-            const msg = this.formatMessage('warn', ...message);
+            const msg = this.formatMessage("warn", ...message);
             uploadMessage(msg);
         }
     }
@@ -64,7 +64,7 @@ class Logging {
         if (this.allowLogging) {
             console.error(...message);
         } else {
-            const msg = this.formatMessage('error', ...message);
+            const msg = this.formatMessage("error", ...message);
             uploadMessage(msg);
         }
     }
@@ -76,16 +76,16 @@ class Logging {
      * @returns {string} The formatted message
      */
     formatMessage(type, ...message) {
-        let output = type + ': ';
+        let output = type + ": ";
         for (let i = 0; i < message.length; i++) {
             if(!message[i]) continue;
-            if (typeof message[i] === 'object') {
+            if (typeof message[i] === "object") {
                 output += JSON.stringify(message[i]);
             } else {
                 // This is wrapped so that anything that's not an object is converted to a string
                 output += `${message[i]}`;
             }
-            if (i < message.length - 1) output += ' ';
+            if (i < message.length - 1) output += " ";
         }
         return output;
     }

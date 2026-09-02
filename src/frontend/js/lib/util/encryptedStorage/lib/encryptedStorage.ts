@@ -1,4 +1,4 @@
-import { decrypt, encrypt } from 'util/encryption';
+import { decrypt, encrypt } from "util/encryption";
 
 /**
  * EncryptedStorage is a wrapper around the localStorage API that encrypts and decrypts data before storing it.

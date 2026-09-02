@@ -1,6 +1,6 @@
-import React from 'react';
-import { FooterProps } from './types';
-import { Dropdown } from 'react-bootstrap';
+import React from "react";
+import { FooterProps } from "./types";
+import { Dropdown } from "react-bootstrap";
 
 /**
  * Footer component for the dashboard

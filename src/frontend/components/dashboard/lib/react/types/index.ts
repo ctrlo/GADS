@@ -1,6 +1,6 @@
-import ReactGridLayout, { Layout } from 'react-grid-layout';
-import ApiClient from '../api';
-import { RefObject } from 'react';
+import ReactGridLayout, { Layout } from "react-grid-layout";
+import ApiClient from "../api";
+import { RefObject } from "react";
 
 /**
  * Basic function type for callbacks

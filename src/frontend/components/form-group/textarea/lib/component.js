@@ -1,5 +1,5 @@
-import { Component } from 'component';
-import { initValidationOnField } from 'validation';
+import { Component } from "component";
+import { initValidationOnField } from "validation";
 
 /**
  * Text area component that handles auto-adjusting height
@@ -13,16 +13,16 @@ class TextareaComponent extends Component {
         super(element);
         this.el = $(this.element);
 
-        if (this.el.hasClass('textarea--required')) {
+        if (this.el.hasClass("textarea--required")) {
             initValidationOnField(this.el);
         }
 
         // Check if there is a textarea with the class 'auto-adjust'
-        const $autoAdjustTextarea = this.el.find('textarea.auto-adjust');
+        const $autoAdjustTextarea = this.el.find("textarea.auto-adjust");
         if ($autoAdjustTextarea.length) {
             this.adjustTextareaHeight();
 
-            $autoAdjustTextarea.on('change', () => {
+            $autoAdjustTextarea.on("change", () => {
                 this.adjustTextareaHeight();
             });
         }
@@ -32,20 +32,20 @@ class TextareaComponent extends Component {
      * Adjust the height of the textarea based on its content
      */
     adjustTextareaHeight() {
-        const $textarea = this.el.find('textarea.auto-adjust');
+        const $textarea = this.el.find("textarea.auto-adjust");
 
         // Create a hidden div with just the text content
-        const $hiddenDiv = $('<div></div>').text($textarea.val())
+        const $hiddenDiv = $("<div></div>").text($textarea.val())
             .css({
-                visibility: 'hidden',
-                position: 'absolute',
-                whiteSpace: 'pre-wrap',
-                padding: $textarea.css('padding'),
-                border: $textarea.css('border')
+                visibility: "hidden",
+                position: "absolute",
+                whiteSpace: "pre-wrap",
+                padding: $textarea.css("padding"),
+                border: $textarea.css("border")
             });
 
         // Add div to body
-        $('body').append($hiddenDiv);
+        $("body").append($hiddenDiv);
 
         // Calc the height + padding + border
         const contentHeight = $hiddenDiv.outerHeight() / parseFloat(getComputedStyle($hiddenDiv[0]).fontSize);
@@ -53,7 +53,7 @@ class TextareaComponent extends Component {
         // Remove hidden div
         $hiddenDiv.remove();
 
-        const lineHeight = parseFloat($textarea.css('line-height')) / parseFloat($textarea.css('font-size'));
+        const lineHeight = parseFloat($textarea.css("line-height")) / parseFloat($textarea.css("font-size"));
         const minHeight = 2.5; // min height in REM
         const maxHeight = 18;  // max height in REM
 
@@ -64,7 +64,7 @@ class TextareaComponent extends Component {
         adjustedHeight = Math.min(adjustedHeight, maxHeight);
 
         // Set textarea height
-        $textarea.css('height', `${adjustedHeight}rem`);
+        $textarea.css("height", `${adjustedHeight}rem`);
     }
 }
 

@@ -1,6 +1,6 @@
-import React from 'react';
-import { MenuProps } from '../types';
-import { Nav } from 'react-bootstrap';
+import React from "react";
+import { MenuProps } from "../types";
+import { Nav } from "react-bootstrap";
 
 /**
  * Render a menu item for the dashboard.

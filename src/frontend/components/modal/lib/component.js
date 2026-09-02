@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
-import { Component } from 'component';
-import { modal } from './modal';
-import { Frame } from './frame';
-import { logging } from 'logging';
+import { Component } from "component";
+import { modal } from "./modal";
+import { Frame } from "./frame";
+import { logging } from "logging";
 
 /**
  * Modal component for handling wizards and forms.
@@ -23,9 +23,9 @@ class ModalComponent extends Component {
     constructor(element) {
         super(element);
         this.el = $(this.element);
-        this.isWizzard = this.el.hasClass('modal--wizzard');
-        this.isForm = this.el.hasClass('modal--form');
-        this.frames = this.el.find('.modal-frame');
+        this.isWizzard = this.el.hasClass("modal--wizzard");
+        this.isForm = this.el.hasClass("modal--form");
+        this.frames = this.el.find(".modal-frame");
         this.typingTimer = null;
         if (!this.wasInitialized) this.initModal();
     }
@@ -34,7 +34,7 @@ class ModalComponent extends Component {
      * Initialize the modal
      */
     initModal() {
-        this.el.on('show.bs.modal', () => {
+        this.el.on("show.bs.modal", () => {
             modal.addSubscriber(this);
 
             if (this.isWizzard) {
@@ -45,9 +45,9 @@ class ModalComponent extends Component {
                     this.preventModalToOpen();
                 }
 
-                this.el.on('hide.bs.modal', (e) => {
+                this.el.on("hide.bs.modal", (e) => {
                     if (this.dataHasChanged()) {
-                        if (!confirm('Are you sure you want to close this popup? Any unsaved data will be lost.')) {
+                        if (!confirm("Are you sure you want to close this popup? Any unsaved data will be lost.")) {
                             e.preventDefault();
                         }
                     }
@@ -55,8 +55,8 @@ class ModalComponent extends Component {
             }
 
             if ((this.isWizzard) || (this.isForm)) {
-                this.el.on('hidden.bs.modal', () => {
-                    this.el.off('hide.bs.modal');
+                this.el.on("hidden.bs.modal", () => {
+                    this.el.off("hide.bs.modal");
                     modal.close();
                 });
             }
@@ -70,23 +70,23 @@ class ModalComponent extends Component {
      * @returns {boolean} true if data has changed, false otherwise.
      */
     dataHasChanged() {
-        const fields = $(this.el).find('input, textarea');
+        const fields = $(this.el).find("input, textarea");
         let hasChanged = false;
 
         fields.each((i, field) => {
             if ($(field).val()) {
-                if (($(field).attr('type') !== 'hidden' && $(field).attr('type') !== 'checkbox' && $(field).attr('type') !== 'radio') ||
-                    ($(field).attr('type') === 'hidden' && $(field).parents('.select').length)) {
-                    if (($(field).data('original-value') && $(field).val()
-                        .toString() !== $(field).data('original-value')
+                if (($(field).attr("type") !== "hidden" && $(field).attr("type") !== "checkbox" && $(field).attr("type") !== "radio") ||
+                    ($(field).attr("type") === "hidden" && $(field).parents(".select").length)) {
+                    if (($(field).data("original-value") && $(field).val()
+                        .toString() !== $(field).data("original-value")
                         .toString()) ||
-                        !$(field).data('original-value')) {
+                        !$(field).data("original-value")) {
                         hasChanged = true;
                         return false;
                     }
-                } else if ($(field).attr('type') !== 'hidden' && (($(field).data('original-value') && $(field).prop('checked') && $(field).val() !== $(field).data('original-value')
+                } else if ($(field).attr("type") !== "hidden" && (($(field).data("original-value") && $(field).prop("checked") && $(field).val() !== $(field).data("original-value")
                     .toString()) ||
-                    (!$(field).data('original-value') && $(field).prop('checked')))) {
+                    (!$(field).data("original-value") && $(field).prop("checked")))) {
                     hasChanged = true;
                     return false;
                 }
@@ -102,11 +102,11 @@ class ModalComponent extends Component {
      */
     hideContent(bHide) {
         if (bHide) {
-            $('body').children()
-                .attr('aria-hidden', true);
+            $("body").children()
+                .attr("aria-hidden", true);
         } else {
-            $('body').children()
-                .removeAttr('aria-hidden');
+            $("body").children()
+                .removeAttr("aria-hidden");
         }
     }
 
@@ -114,8 +114,8 @@ class ModalComponent extends Component {
      * Prevent the modal opening
      */
     preventModalToOpen() {
-        const modalId = this.el.attr('id') || '';
-        $(`.btn[data-bs-target="#${modalId}"]`).on('click', function (e) {
+        const modalId = this.el.attr("id") || "";
+        $(`.btn[data-bs-target="#${modalId}"]`).on("click", function (e) {
             e.stopPropagation();
         });
     }
@@ -125,30 +125,30 @@ class ModalComponent extends Component {
      * @param {HTMLElement | JQuery<HTMLElement>} frame The frame to clear fields from.
      */
     clearFields(frame) {
-        const fields = $(frame).find('input, textarea');
+        const fields = $(frame).find("input, textarea");
 
         fields.each((i, field) => {
             const $field = $(field);
 
-            if ($field.attr('type') === 'radio') {
+            if ($field.attr("type") === "radio") {
                 // Simple removal of checked property will suffice
-                $field.prop('checked', false);
-            } else if ($field.attr('type') === 'checkbox') {
+                $field.prop("checked", false);
+            } else if ($field.attr("type") === "checkbox") {
                 // Need to trigger click event to ensure widget is updated
-                if ($field.is(':checked')) $field.trigger('click');
+                if ($field.is(":checked")) $field.trigger("click");
             } else {
-                if ($field.data('restore-value')) {
-                    $field.val($field.data('restore-value'));
+                if ($field.data("restore-value")) {
+                    $field.val($field.data("restore-value"));
                 } else {
-                    $field.val('');
+                    $field.val("");
                 }
-                $(field).removeData('original-value');
-                $field.trigger('change');
+                $(field).removeData("original-value");
+                $field.trigger("change");
             }
 
-            if ($field.is(':invalid')) {
-                $field.attr('aria-invalid', false);
-                $field.closest('.input').removeClass('input--invalid');
+            if ($field.is(":invalid")) {
+                $field.attr("aria-invalid", false);
+                $field.closest(".input").removeClass("input--invalid");
             }
         });
     }
@@ -176,7 +176,7 @@ class ModalComponent extends Component {
      * @returns {number | undefined} The frame number if available, otherwise undefined.
      */
     getFrameNumber(frame) {
-        const config = $(frame).data('config');
+        const config = $(frame).data("config");
 
         if (!config.frame || isNaN(config.frame)) {
             return;
@@ -194,7 +194,7 @@ class ModalComponent extends Component {
         let selectedFrame = null;
 
         this.frames.each((i, frame) => {
-            const config = $(frame).data('config');
+            const config = $(frame).data("config");
 
             if (config.frame === frameNr) {
                 selectedFrame = frame;
@@ -213,10 +213,10 @@ class ModalComponent extends Component {
      */
     activateFrame(frameNumber, previousFrameNumber, clearFields) {
         this.frames.each((i, frame) => {
-            const config = $(frame).data('config');
+            const config = $(frame).data("config");
 
             if (!config.frame || isNaN(config.frame)) {
-                throw 'activateFrame: frame is not a number!';
+                throw "activateFrame: frame is not a number!";
             }
 
             this.unbindEventHandlers($(frame));
@@ -228,8 +228,8 @@ class ModalComponent extends Component {
                     logging.error(e);
                 }
 
-                this.frame.object.removeClass('invisible');
-                this.frame.object.find('.alert').hide();
+                this.frame.object.removeClass("invisible");
+                this.frame.object.find(".alert").hide();
                 this.activateStep(this.frame.step);
                 this.bindEventHandlers();
 
@@ -244,7 +244,7 @@ class ModalComponent extends Component {
                 }
 
             } else {
-                $(frame).addClass('invisible');
+                $(frame).addClass("invisible");
             }
         });
     }
@@ -257,11 +257,11 @@ class ModalComponent extends Component {
      * @throws Will throw an error if the frame configuration is invalid.
      */
     createFrame(frame, previousFrameNumber) {
-        if (isNaN($(frame).data('config').step) || (isNaN($(frame).data('config').frame))) {
-            throw 'createFrame: Parameter is not a number!';
+        if (isNaN($(frame).data("config").step) || (isNaN($(frame).data("config").frame))) {
+            throw "createFrame: Parameter is not a number!";
         }
-        if ($(frame).data('config').skip && isNaN($(frame).data('config').skip)) {
-            throw 'createFrame: Skip parameter is not a number!';
+        if ($(frame).data("config").skip && isNaN($(frame).data("config").skip)) {
+            throw "createFrame: Skip parameter is not a number!";
         }
         return new Frame($(frame), previousFrameNumber);
     }
@@ -270,14 +270,14 @@ class ModalComponent extends Component {
      * Add event listeners to the buttons and required fields of the current frame
      */
     bindEventHandlers() {
-        this.frame.buttons.next.on('click', () => { modal.next(this.frame.object); });
-        this.frame.buttons.back.on('click', () => { modal.back(this.frame.object); });
-        this.frame.buttons.skip.on('click', () => { if(this.frame.skip) modal.skip(this.frame.skip); });
-        this.frame.buttons.addNext.on('click', () => { modal.add(this.frame.object); });
-        this.frame.buttons.save.on('click', () => { modal.save(); });
-        this.frame.requiredFields.on('keyup.modalEvent', (ev) => { this.handleKeyup(ev); });
-        this.frame.requiredFields.on('keydown.modalEvent', () => { this.handleKeydown(); });
-        this.frame.requiredFields.on('blur.modalEvent', (ev) => { this.handleBlur(ev); });
+        this.frame.buttons.next.on("click", () => { modal.next(this.frame.object); });
+        this.frame.buttons.back.on("click", () => { modal.back(this.frame.object); });
+        this.frame.buttons.skip.on("click", () => { if(this.frame.skip) modal.skip(this.frame.skip); });
+        this.frame.buttons.addNext.on("click", () => { modal.add(this.frame.object); });
+        this.frame.buttons.save.on("click", () => { modal.save(); });
+        this.frame.requiredFields.on("keyup.modalEvent", (ev) => { this.handleKeyup(ev); });
+        this.frame.requiredFields.on("keydown.modalEvent", () => { this.handleKeydown(); });
+        this.frame.requiredFields.on("blur.modalEvent", (ev) => { this.handleBlur(ev); });
     }
 
     /**
@@ -321,7 +321,7 @@ class ModalComponent extends Component {
      * @returns {boolean} true if the field is valid, false otherwise.
      */
     isValidField(field) {
-        if (($(field).is(':invalid')) || ($(field).val() == '')) {
+        if (($(field).is(":invalid")) || ($(field).val() == "")) {
             return false;
         } else {
             return true;
@@ -337,8 +337,8 @@ class ModalComponent extends Component {
         this.frame.error = [];
 
         if (!isValid) {
-            const fieldLabel = $(field).closest('.input')
-                .find('label')
+            const fieldLabel = $(field).closest(".input")
+                .find("label")
                 .html();
             this.frame.error.push(`${fieldLabel} is invalid`);
         }
@@ -368,12 +368,12 @@ class ModalComponent extends Component {
      * @param {JQuery<HTMLElement>} $field The field to set the state for.
      */
     setInputState($field) {
-        if ($field.is(':invalid')) {
-            $field.attr('aria-invalid', true);
-            $field.closest('.input').addClass('input--invalid');
+        if ($field.is(":invalid")) {
+            $field.attr("aria-invalid", true);
+            $field.closest(".input").addClass("input--invalid");
         } else {
-            $field.attr('aria-invalid', false);
-            $field.closest('.input').removeClass('input--invalid');
+            $field.attr("aria-invalid", false);
+            $field.closest(".input").removeClass("input--invalid");
         }
     }
 
@@ -381,17 +381,17 @@ class ModalComponent extends Component {
      * Set the state of the frame based on its validity and errors.
      */
     setFrameState() {
-        const alert = this.frame.object.find('.alert');
+        const alert = this.frame.object.find(".alert");
 
         if(this.frame.buttons.next) this.setNextButtonState(this.frame.isValid);
         if(this.frame.buttons.invisible) this.setInvisibleButtonState(this.frame.isValid);
 
         if ((!this.frame.isValid) && (this.frame.error.length > 0)) {
-            const errorIntro = '<p>There were problems with the following fields:</p>';
-            let errorList = '';
+            const errorIntro = "<p>There were problems with the following fields:</p>";
+            let errorList = "";
 
             $.each(this.frame.error, (i, errorMsg) => {
-                const errorMsgHtml = $('<span>').text(errorMsg)
+                const errorMsgHtml = $("<span>").text(errorMsg)
                     .html();
                 errorList += `<li>${errorMsgHtml}</li>`;
             });
@@ -409,8 +409,8 @@ class ModalComponent extends Component {
      * @param {JQuery<HTMLElement>} frame The frame to unbind event handlers from.
      */
     unbindEventHandlers(frame) {
-        frame.find('.modal-footer .btn').off();
-        frame.find('input[required]').off('.modalEvent');
+        frame.find(".modal-footer .btn").off();
+        frame.find("input[required]").off(".modalEvent");
     }
 
     /**
@@ -419,13 +419,13 @@ class ModalComponent extends Component {
      */
     setNextButtonState(valid) {
         if (valid) {
-            this.frame.buttons.next.removeAttr('disabled');
-            this.frame.buttons.next.removeClass('btn-disabled');
-            this.frame.buttons.next.addClass('btn-primary');
+            this.frame.buttons.next.removeAttr("disabled");
+            this.frame.buttons.next.removeClass("btn-disabled");
+            this.frame.buttons.next.addClass("btn-primary");
         } else {
-            this.frame.buttons.next.attr('disabled', 'disabled');
-            this.frame.buttons.next.addClass('btn-disabled');
-            this.frame.buttons.next.removeClass('btn-primary');
+            this.frame.buttons.next.attr("disabled", "disabled");
+            this.frame.buttons.next.addClass("btn-disabled");
+            this.frame.buttons.next.removeClass("btn-primary");
         }
     }
 
@@ -435,9 +435,9 @@ class ModalComponent extends Component {
      */
     setInvisibleButtonState(valid) {
         if (valid) {
-            this.frame.buttons.invisible.removeClass('btn-invisible');
+            this.frame.buttons.invisible.removeClass("btn-invisible");
         } else {
-            this.frame.buttons.invisible.addClass('btn-invisible');
+            this.frame.buttons.invisible.addClass("btn-invisible");
         }
     }
 
@@ -446,13 +446,13 @@ class ModalComponent extends Component {
      * @param {number} currentStep The step number to activate.
      */
     activateStep(currentStep) {
-        let steps = this.el.find('.modal__step');
+        let steps = this.el.find(".modal__step");
 
         steps.each((i, step) => {
-            if ($(step).data('step') === currentStep) {
-                $(step).addClass('modal__step--active');
+            if ($(step).data("step") === currentStep) {
+                $(step).addClass("modal__step--active");
             } else {
-                $(step).removeClass('modal__step--active');
+                $(step).removeClass("modal__step--active");
             }
         });
     }
@@ -463,16 +463,16 @@ class ModalComponent extends Component {
      */
     handleUpload(dataObj) {
         const self = this;
-        const url = this.el.data('config').url;
-        const id = this.el.data('config').id;
-        const csrf = $('body').data('csrf').toString();
-        dataObj['csrf_token'] = csrf || '';
+        const url = this.el.data("config").url;
+        const id = this.el.data("config").id;
+        const csrf = $("body").data("csrf").toString();
+        dataObj["csrf_token"] = csrf || "";
         const dataStr = JSON.stringify(dataObj);
         const strURL = id ? `${url}/${id}` : url;
 
         $.ajax({
-            method: 'POST',
-            contentType: 'application/json',
+            method: "POST",
+            contentType: "application/json",
             url: strURL,
             data: dataStr,
             processData: false
@@ -491,9 +491,9 @@ class ModalComponent extends Component {
      * @param {string} strError The error message to display.
      */
     showError(strError) {
-        const alert = this.frame.object.find('.alert');
+        const alert = this.frame.object.find(".alert");
 
-        const strErrorHtml = $('<span>').text(strError)
+        const strErrorHtml = $("<span>").text(strError)
             .html();
         alert.html(`<p>Error: ${strErrorHtml}</p>`);
         alert.show();
@@ -553,7 +553,7 @@ class ModalComponent extends Component {
      * @param {HTMLElement | JQuery<HTMLElement>} modal The modal to show.
      */
     handleShow(modal) {
-        $(modal).modal('show');
+        $(modal).modal("show");
     }
 
     /**
@@ -582,13 +582,13 @@ class ModalComponent extends Component {
             this.activateFrame(1, 0, true);
 
             // Clear the id in the data-config
-            if (this.el.data('config') && this.el.data('config').id) {
-                this.el.data('config').id = null;
+            if (this.el.data("config") && this.el.data("config").id) {
+                this.el.data("config").id = null;
             }
         }
 
         // Remove binded events and subscribers
-        this.el.off('hide.bs.modal hidden.bs.modal');
+        this.el.off("hide.bs.modal hidden.bs.modal");
         modal.unsubscribe(this);
     }
 }

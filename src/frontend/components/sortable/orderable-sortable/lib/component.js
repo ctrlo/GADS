@@ -1,4 +1,4 @@
-import { Component } from 'component';
+import { Component } from "component";
 
 /**
  * Class representing an OrderableSortable component.
@@ -12,7 +12,7 @@ class OrderableSortableComponent extends Component {
     constructor(element) {
         super(element);
         this.el = $(this.element);
-        this.selectElement = this.el.find('.select__menu-item');
+        this.selectElement = this.el.find(".select__menu-item");
 
         this.initSortable();
     }
@@ -21,7 +21,7 @@ class OrderableSortableComponent extends Component {
      * Initializes the sortable component with event listeners.
      */
     initSortable() {
-        this.selectElement.on('click', (ev) => { this.handleOrder(ev); });
+        this.selectElement.on("click", (ev) => { this.handleOrder(ev); });
     }
 
     /**
@@ -31,9 +31,9 @@ class OrderableSortableComponent extends Component {
     handleOrder(ev) {
         const target = $(ev.currentTarget);
 
-        if (target.data('value') === 2) {
+        if (target.data("value") === 2) {
             this.orderRows(true);
-        } else if (target.data('value') === 3) {
+        } else if (target.data("value") === 3) {
             this.orderRows(false);
         }
     }
@@ -43,17 +43,17 @@ class OrderableSortableComponent extends Component {
      * @param {boolean} ascending Whether to order rows in ascending or descending order.
      */
     orderRows(ascending) {
-        const items = $('.sortable__list').children('.sortable__row')
+        const items = $(".sortable__list").children(".sortable__row")
             .sort(function (a, b) {
-                const vA = $('.input > .input__field > .form-control', a).val();
-                const vB = $('.input > .input__field > .form-control', b).val();
+                const vA = $(".input > .input__field > .form-control", a).val();
+                const vB = $(".input > .input__field > .form-control", b).val();
                 if (ascending) {
                     return (vA < vB) ? -1 : (vA > vB) ? 1 : 0;
                 } else {
                     return (vA > vB) ? -1 : (vA < vB) ? 1 : 0;
                 }
             });
-        $('.sortable__list').append(items);
+        $(".sortable__list").append(items);
     }
 }
 

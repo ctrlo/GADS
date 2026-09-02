@@ -1,6 +1,6 @@
-import { Component } from 'component';
-import 'jstree';
-import { initValidationOnField, validateTree } from 'validation';
+import { Component } from "component";
+import "jstree";
+import { initValidationOnField, validateTree } from "validation";
 
 /**
  * Component to display a tree structure using jstree.
@@ -13,15 +13,15 @@ class TreeComponent extends Component {
     constructor(element) {
         super(element);
         this.el = $(this.element);
-        this.isConfTree = this.el.hasClass('tree--config');
+        this.isConfTree = this.el.hasClass("tree--config");
 
-        if (this.el.find('.tree-widget-container').length > 0) {
-            this.multiValue = this.el.closest('.linkspace-field').data('is-multivalue');
-            this.noInitialData = this.el.data('no-initial-data');
-            this.$treeContainer = this.el.find('.tree-widget-container');
-            this.id = this.$treeContainer.data('column-id');
-            this.field = this.$treeContainer.data('field');
-            this.endNodeOnly = this.$treeContainer.data('end-node-only');
+        if (this.el.find(".tree-widget-container").length > 0) {
+            this.multiValue = this.el.closest(".linkspace-field").data("is-multivalue");
+            this.noInitialData = this.el.data("no-initial-data");
+            this.$treeContainer = this.el.find(".tree-widget-container");
+            this.id = this.$treeContainer.data("column-id");
+            this.field = this.$treeContainer.data("field");
+            this.endNodeOnly = this.$treeContainer.data("end-node-only");
             // Used to only trigger change events once the tree has finished
             // initializing (i.e. change events that are actually initialited by a
             // user making a selection)
@@ -35,7 +35,7 @@ class TreeComponent extends Component {
      * Initializes the jstree with the appropriate configuration.
      */
     initTree() {
-        const idsAsParams = this.$treeContainer.data('ids-as-params');
+        const idsAsParams = this.$treeContainer.data("ids-as-params");
         const treeConfig = {
             core: {
                 check_callback: true,
@@ -48,13 +48,13 @@ class TreeComponent extends Component {
         };
 
         if (!this.multiValue) {
-            treeConfig.core['multiple'] = false;
+            treeConfig.core["multiple"] = false;
         } else {
-            treeConfig.plugins.push('checkbox');
+            treeConfig.plugins.push("checkbox");
         }
 
         if (!this.isConfTree) {
-            this.$treeContainer.on('changed.jstree', (e, data) => this.handleChange(data));
+            this.$treeContainer.on("changed.jstree", (e, data) => this.handleChange(data));
         }
 
         // The below fix is to prevent the tree from erroring when it is a multivalue and a value is deselected
@@ -63,12 +63,12 @@ class TreeComponent extends Component {
             //Unless you have a click event, the select_node event doesn't trigger when you click on the same node - I don't know why this is
             let node;
 
-            this.$treeContainer.on('click', '.jstree-clicked', () => {
-                if (!node) throw 'Not a node!';
+            this.$treeContainer.on("click", ".jstree-clicked", () => {
+                if (!node) throw "Not a node!";
                 this.$treeContainer.jstree(true).deselect_node(node);
             });
 
-            this.$treeContainer.on('select_node.jstree', (e, data) => {
+            this.$treeContainer.on("select_node.jstree", (e, data) => {
                 if (node && data.node.id == node.id) {
                     this.$treeContainer.jstree(true).deselect_node(data.node);
                     node = null;
@@ -80,17 +80,17 @@ class TreeComponent extends Component {
             //Endfix
         }
 
-        this.$treeContainer.on('ready.jstree', () => {
+        this.$treeContainer.on("ready.jstree", () => {
             initValidationOnField(this.el);
             this.initialized = true;
         });
-        this.$treeContainer.on('changed.jstree', () => validateTree(this.el));
+        this.$treeContainer.on("changed.jstree", () => validateTree(this.el));
 
         this.$treeContainer.jstree(treeConfig);
         this.setupJStreeButtons(this.$treeContainer);
 
         // hack - see https://github.com/vakata/jstree/issues/1955
-        this.$treeContainer.jstree(true).settings.checkbox.cascade = 'undetermined';
+        this.$treeContainer.jstree(true).settings.checkbox.cascade = "undetermined";
     }
 
     /**
@@ -101,7 +101,7 @@ class TreeComponent extends Component {
      */
     getData(id, idsAsParams) {
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;
-        const layout_identifier = $('body').data('layout-identifier');
+        const layout_identifier = $("body").data("layout-identifier");
 
         return (
             {
@@ -115,7 +115,7 @@ class TreeComponent extends Component {
                 data: function (node) {
                     return { id: node.id };
                 },
-                dataType: 'json'
+                dataType: "json"
             }
         );
     }
@@ -144,8 +144,8 @@ class TreeComponent extends Component {
      */
     handleChange(data) {
     // remove all existing hidden value fields
-        this.$treeContainer.nextAll('.selected-tree-value').remove();
-        const selectedElms = this.$treeContainer.jstree('get_selected', true);
+        this.$treeContainer.nextAll(".selected-tree-value").remove();
+        const selectedElms = this.$treeContainer.jstree("get_selected", true);
 
         $.each(selectedElms, (_, selectedElm) => {
             // store the selected values in hidden fields as children of the element.
@@ -153,9 +153,9 @@ class TreeComponent extends Component {
             // order of multivalue values, it makes sense to have them in the same
             // order in this case for calc values)
             const node = $(`<input type="hidden" class="selected-tree-value" name="${this.field}" value="${selectedElm.id}" />`)
-                .appendTo(this.$treeContainer.closest('.tree'));
-            const text_value = data.instance.get_path(selectedElm, '#');
-            node.data('text-value', text_value);
+                .appendTo(this.$treeContainer.closest(".tree"));
+            const text_value = data.instance.get_path(selectedElm, "#");
+            node.data("text-value", text_value);
         });
         // Hacky: we need to submit at least an empty value if nothing is
         // selected, to ensure the forward/back functionality works. XXX If the
@@ -165,7 +165,7 @@ class TreeComponent extends Component {
         }
 
         if (this.initialized)
-            this.$treeContainer.trigger('change');
+            this.$treeContainer.trigger("change");
     }
 
     /**
@@ -173,19 +173,19 @@ class TreeComponent extends Component {
      * @param {JQuery<HTMLElement>} $treeContainer The jstree container element.
      */
     setupJStreeButtons($treeContainer) {
-        const $btnExpand = this.el.find('.btn-js-tree-expand');
-        const $btnCollapse = this.el.find('.btn-js-tree-collapse');
-        const $btnReload = this.el.find('.btn-js-tree-reload');
-        const $btnAdd = this.el.find('.btn-js-tree-add');
-        const $btnRename = this.el.find('.btn-js-tree-rename');
-        const $btnDelete = this.el.find('.btn-js-tree-delete');
+        const $btnExpand = this.el.find(".btn-js-tree-expand");
+        const $btnCollapse = this.el.find(".btn-js-tree-collapse");
+        const $btnReload = this.el.find(".btn-js-tree-reload");
+        const $btnAdd = this.el.find(".btn-js-tree-add");
+        const $btnRename = this.el.find(".btn-js-tree-rename");
+        const $btnDelete = this.el.find(".btn-js-tree-delete");
 
-        $btnExpand.on('click', () => { $treeContainer.jstree('open_all'); });
-        $btnCollapse.on('click', () => { $treeContainer.jstree('close_all'); });
-        $btnReload.on('click', () => { $treeContainer.jstree('refresh'); });
-        $btnAdd.on('click', () => { this.handleAdd(); });
-        $btnRename.on('click', () => { this.handleRename(); });
-        $btnDelete.on('click', () => { this.handleDelete(); });
+        $btnExpand.on("click", () => { $treeContainer.jstree("open_all"); });
+        $btnCollapse.on("click", () => { $treeContainer.jstree("close_all"); });
+        $btnReload.on("click", () => { $treeContainer.jstree("refresh"); });
+        $btnAdd.on("click", () => { this.handleAdd(); });
+        $btnRename.on("click", () => { this.handleRename(); });
+        $btnDelete.on("click", () => { this.handleDelete(); });
     }
 
     /**
@@ -198,10 +198,10 @@ class TreeComponent extends Component {
         if (sel.length) {
             sel = sel[0];
         } else {
-            sel = '#';
+            sel = "#";
         }
 
-        sel = ref.create_node(sel, { type: 'file' });
+        sel = ref.create_node(sel, { type: "file" });
 
         if (sel) {
             ref.edit(sel);

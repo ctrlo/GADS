@@ -1,11 +1,11 @@
-import { Component } from 'component';
-import { sidebarObservable } from './sidebarObservable';
+import { Component } from "component";
+import { sidebarObservable } from "./sidebarObservable";
 
-const COLLAPSED_CLASS = 'sidebar--collapsed';
-const EXPANDED_CLASS = 'main--expanded';
-const KEY_NAV_STATE = 'main-menu::state';
-const NAV_STATE_EXPANDED = 'expanded';
-const NAV_STATE_COLLAPSED = 'collapsed';
+const COLLAPSED_CLASS = "sidebar--collapsed";
+const EXPANDED_CLASS = "main--expanded";
+const KEY_NAV_STATE = "main-menu::state";
+const NAV_STATE_EXPANDED = "expanded";
+const NAV_STATE_COLLAPSED = "collapsed";
 
 /**
  * SidebarComponent class to manage the sidebar behavior.
@@ -19,18 +19,18 @@ class SidebarComponent extends Component {
         super(element);
         this.el = $(this.element);
         this.isMobile = this.isMobileResolution();
-        this.toggle = this.el.find('.sidebar__toggle');
+        this.toggle = this.el.find(".sidebar__toggle");
         this.currentState = localStorage.getItem(KEY_NAV_STATE) || (this.isMobile ? NAV_STATE_COLLAPSED : NAV_STATE_EXPANDED);
 
         this.initSidebar();
-        this.el.removeClass('hidden');
+        this.el.removeClass("hidden");
     }
 
     /**
      * Initializes the sidebar by setting up the toggle button and handling the initial state.
      */
     initSidebar() {
-        const sidebarToggle = this.el.find('.sidebar__toggle');
+        const sidebarToggle = this.el.find(".sidebar__toggle");
         sidebarObservable.addSubscriber(this);
 
         if (!sidebarToggle) {
@@ -45,9 +45,9 @@ class SidebarComponent extends Component {
             this.expandSidebar();
         }
 
-        $(window).on('resize', () => { this.handleResize(); });
+        $(window).on("resize", () => { this.handleResize(); });
 
-        sidebarToggle.on('click', () => { this.handleClick(); });
+        sidebarToggle.on("click", () => { this.handleClick(); });
     }
 
     /**
@@ -84,8 +84,8 @@ class SidebarComponent extends Component {
      */
     collapseSidebar() {
         this.el.addClass(COLLAPSED_CLASS);
-        $(this.toggle).attr('aria-expanded', 'false');
-        $(document).find('main')
+        $(this.toggle).attr("aria-expanded", "false");
+        $(document).find("main")
             .addClass(EXPANDED_CLASS);
 
         if (!this.isMobile) {
@@ -99,8 +99,8 @@ class SidebarComponent extends Component {
      */
     expandSidebar() {
         this.el.removeClass(COLLAPSED_CLASS);
-        $(this.toggle).attr('aria-expanded', 'true');
-        $(document).find('main')
+        $(this.toggle).attr("aria-expanded", "true");
+        $(document).find("main")
             .removeClass(EXPANDED_CLASS);
 
         if (!this.isMobile) {
@@ -114,7 +114,7 @@ class SidebarComponent extends Component {
      * @returns {boolean} True if the resolution is mobile, false otherwise.
      */
     isMobileResolution() {
-        return window.matchMedia('(max-width: 991px)').matches;
+        return window.matchMedia("(max-width: 991px)").matches;
     }
 }
 

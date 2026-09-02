@@ -1,4 +1,4 @@
-import DataTable from 'datatables.net-bs5';
+import DataTable from "datatables.net-bs5";
 
 /**
  * Create a toggle button
@@ -11,20 +11,20 @@ function createToggleButton(id:string, label:string, checked: boolean, onToggle:
     const element = $(`
     <div class="dt-toggle-button">
         <div class="custom-control form-check form-switch">
-            <input class="custom-control-input form-check-input" type="checkbox" role="switch" id="${id}" ${checked ? 'checked="checked"' : ''}>
+            <input class="custom-control-input form-check-input" type="checkbox" role="switch" id="${id}" ${checked ? "checked=\"checked\"" : ""}>
             <label class="custom-control-label form-check-label" for="${id}">${label}</label>
         </div>
     </div>`);
 
-    element.find(`#${id}`).on('change', onToggle);
+    element.find(`#${id}`).on("change", onToggle);
 
     return element;
 }
 
 // I feel using the "proper" toggle from bootstrap is better than the custom one and adding extra "fluff" to the datatables code in my opinion
-DataTable.feature.register('fullscreen', function (settings, opts) {
+DataTable.feature.register("fullscreen", function (settings, opts) {
     const options = Object.assign({
         checked: false
     }, opts);
-    return createToggleButton('fullscreen-button', 'Fullscreen', options.checked, options.onToggle);
+    return createToggleButton("fullscreen-button", "Fullscreen", options.checked, options.onToggle);
 });

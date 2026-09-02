@@ -1,5 +1,5 @@
-import { Component } from 'component';
-import { getFieldValues } from 'get-field-values';
+import { Component } from "component";
+import { getFieldValues } from "get-field-values";
 
 /**
  * Component to handle dependent fields in forms.
@@ -27,18 +27,18 @@ class DependentFieldsComponent extends Component {
      * @returns {object} An object containing the field, condition, and rules for dependencies.
      */
     getFieldDependency() {
-        const dependency = $(this.element).data('dependency');
+        const dependency = $(this.element).data("dependency");
         const decoded = JSON.parse(atob(dependency));
         const rules = decoded.rules;
         const condition = decoded.condition;
 
         const rr = jQuery.map(rules, function (rule) {
             const match_type = rule.operator;
-            const is_negative = match_type.indexOf('not') !== -1 ? true : false;
+            const is_negative = match_type.indexOf("not") !== -1 ? true : false;
             const regexp =
-                match_type.indexOf('equal') !== -1
-                    ? new RegExp('^' + rule.value + '$', 'i')
-                    : new RegExp(rule.value, 'i');
+                match_type.indexOf("equal") !== -1
+                    ? new RegExp("^" + rule.value + "$", "i")
+                    : new RegExp(rule.value, "i");
             let id = rule.id;
             let filtered = false;
             if (rule.filtered) { // Whether the field is of type "filval"
@@ -75,7 +75,7 @@ class DependentFieldsComponent extends Component {
         // check are not rendered on the page until the relevant filtered curval
         // field is opened. As such, use the dependent-not-shown property instead,
         // which is evaluated server-side
-        if ($field.data('dependent-not-shown')) {
+        if ($field.data("dependent-not-shown")) {
             $field.hide();
         }
 
@@ -98,7 +98,7 @@ class DependentFieldsComponent extends Component {
                     // Blank values are returned as undefined for consistency with
                     // backend calc code. Convert to empty string, otherwise they will
                     // be rendered as the string "undefined" in a regex
-                    if (value === undefined) value = '';
+                    if (value === undefined) value = "";
                     if (is_negative) {
                         if (regexp.test(value)) this_not_shown = 1;
                     } else {
@@ -111,7 +111,7 @@ class DependentFieldsComponent extends Component {
                 }
 
                 if (condition) {
-                    if (condition == 'OR') {
+                    if (condition == "OR") {
                         return is_shown; // Whether to break
                     }
                     if (this_not_shown) {
@@ -135,23 +135,23 @@ class DependentFieldsComponent extends Component {
                 } else {
                     $field.hide();
                 }
-                const $expandableCard = $field.closest('.card--expandable');
+                const $expandableCard = $field.closest(".card--expandable");
 
                 if ($expandableCard.length) {
                     // Check each field in the card to see if none are shown, and
                     // hide/show the card accordingly
                     let none_shown = true; // Assume card not shown
-                    $expandableCard.find('.linkspace-field').each(function () {
-                        if ($(this).css('display') != 'none') {
+                    $expandableCard.find(".linkspace-field").each(function () {
+                        if ($(this).css("display") != "none") {
                             none_shown = false;
                             return; // Shortcut checking any more fields
                         }
                     });
-                    const $collapsibleElm = $expandableCard.find('.collapse');
+                    const $collapsibleElm = $expandableCard.find(".collapse");
                     if (none_shown) {
-                        $collapsibleElm.closest('.card').hide();
+                        $collapsibleElm.closest(".card").hide();
                     } else {
-                        $collapsibleElm.closest('.card').show();
+                        $collapsibleElm.closest(".card").show();
                     }
                 }
 
@@ -159,8 +159,8 @@ class DependentFieldsComponent extends Component {
                 // if this one is now hidden then that will change its value to
                 // blank. Don't do this if the dependent field is the same as the field
                 // with the display condition.
-                if ($field.data('column-id') != $depends.data('column-id'))
-                    $field.trigger('change');
+                if ($field.data("column-id") != $depends.data("column-id"))
+                    $field.trigger("change");
             };
 
             // If the field depended on is not actually in the form (e.g. if the
@@ -171,7 +171,7 @@ class DependentFieldsComponent extends Component {
             }
 
             // Standard change of visible form field
-            $depends.on('change', function () {
+            $depends.on("change", function () {
                 processChange();
             });
         });

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
-import { Component } from 'component';
-import 'summernote/dist/summernote-bs5';
-import { logging } from 'logging';
+import { Component } from "component";
+import "summernote/dist/summernote-bs5";
+import { logging } from "logging";
 
 /**
  * Class representing a SummerNote component.
@@ -23,14 +23,14 @@ class SummerNoteComponent extends Component {
         const self = this;
         $(this.element).summernote({
             toolbar: [
-                ['style', ['style']],
-                ['font', ['bold', 'underline', 'clear']],
-                ['fontname', ['fontname']],
-                ['color', ['color']],
-                ['para', ['ul', 'ol', 'paragraph']],
-                ['table', ['table']],
-                ['insert', ['link', 'picture', 'video']],
-                ['view', ['codeview', 'help']]
+                ["style", ["style"]],
+                ["font", ["bold", "underline", "clear"]],
+                ["fontname", ["fontname"]],
+                ["color", ["color"]],
+                ["para", ["ul", "ol", "paragraph"]],
+                ["table", ["table"]],
+                ["insert", ["link", "picture", "video"]],
+                ["view", ["codeview", "help"]]
             ],
             dialogsInBody: true,
             height: 400,
@@ -38,8 +38,8 @@ class SummerNoteComponent extends Component {
                 // Load initial content
                 onInit: function () {
                     const $sum_div = $(this);
-                    const $sum_input = $sum_div.siblings('input[type=hidden].summernote_content');
-                    $(this).summernote('code', $sum_input.val());
+                    const $sum_input = $sum_div.siblings("input[type=hidden].summernote_content");
+                    $(this).summernote("code", $sum_input.val());
                 },
                 onImageUpload: function (files) {
                     for (var i = 0; i < files.length; i++) {
@@ -47,13 +47,13 @@ class SummerNoteComponent extends Component {
                     }
                 },
                 onChange: function (contents) {
-                    const $sum_div = $(this).closest('.summernote');
+                    const $sum_div = $(this).closest(".summernote");
                     // Ensure submitted content is empty string if blank content
                     // (easier checking for blank values)
-                    if ($sum_div.summernote('isEmpty')) {
-                        contents = '';
+                    if ($sum_div.summernote("isEmpty")) {
+                        contents = "";
                     }
-                    var $sum_input = $sum_div.siblings('input[type=hidden].summernote_content');
+                    var $sum_input = $sum_div.siblings("input[type=hidden].summernote_content");
                     $sum_input.val(contents);
                 }
             }
@@ -66,21 +66,21 @@ class SummerNoteComponent extends Component {
      * @param {HTMLElement} el The HTML element where the editor is initialized.
      */
     handleHtmlEditorFileUpload(file, el) {
-        if (file.type.includes('image')) {
+        if (file.type.includes("image")) {
             const data = new FormData();
-            data.append('file', file);
-            data.append('csrf_token', $('body').data('csrf'));
+            data.append("file", file);
+            data.append("csrf_token", $("body").data("csrf"));
             $.ajax({
-                url: '/file?ajax&is_independent',
-                type: 'POST',
+                url: "/file?ajax&is_independent",
+                type: "POST",
                 contentType: false,
                 cache: false,
                 processData: false,
-                dataType: 'JSON',
+                dataType: "JSON",
                 data: data,
                 success: function (response) {
                     if (response.is_ok) {
-                        $(el).summernote('editor.insertImage', response.url);
+                        $(el).summernote("editor.insertImage", response.url);
                     } else {
                         logging.error(response.error);
                     }
@@ -89,7 +89,7 @@ class SummerNoteComponent extends Component {
                 logging.error(e);
             });
         } else {
-            logging.error('The type of file uploaded was not an image');
+            logging.error("The type of file uploaded was not an image");
         }
     }
 }

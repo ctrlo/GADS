@@ -1,7 +1,7 @@
-import { SearchableSelect } from './lib/SearchableSelect';
-import { SearchableSelectOptions } from './lib/options';
+import { SearchableSelect } from "./lib/SearchableSelect";
+import { SearchableSelectOptions } from "./lib/options";
 
-if (typeof jQuery === 'undefined') throw new Error('jQuery is not loaded. Please include jQuery before this script.');
+if (typeof jQuery === "undefined") throw new Error("jQuery is not loaded. Please include jQuery before this script.");
 
 declare global {
     interface JQuery {
@@ -19,17 +19,17 @@ export { };
         const settings: SearchableSelectOptions = $.extend({
             target: this.parent()[0],
             classList: [],
-            placeholder: 'Select an option',
+            placeholder: "Select an option",
             element: this[0] as HTMLSelectElement
         }, options);
         this.each(function () {
             const element = this as HTMLSelectElement;
-            if (element.tagName.toLowerCase() === 'select') {
+            if (element.tagName.toLowerCase() === "select") {
                 const select = new SearchableSelect(settings);
                 selectMap.set(element, select);
-                $(element).data('searchableSelect', 'true');
+                $(element).data("searchableSelect", "true");
             } else {
-                console.warn('Element is not a select:', element);
+                console.warn("Element is not a select:", element);
             }
         });
         return this;
@@ -39,7 +39,7 @@ export { };
         if (element && selectMap.get(element)) {
             return selectMap.get(element) as SearchableSelect;
         } else {
-            console.warn('No SearchableSelect instance found for this element:', element);
+            console.warn("No SearchableSelect instance found for this element:", element);
             return null;
         }
     };

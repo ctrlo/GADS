@@ -1,7 +1,7 @@
-import 'jstree';
-import 'datatables.net-bs5';
-import 'jQuery-QueryBuilder/dist/js/query-builder.standalone';
-import { validateQueryBuilder } from 'validation';
+import "jstree";
+import "datatables.net-bs5";
+import "jQuery-QueryBuilder/dist/js/query-builder.standalone";
+import { validateQueryBuilder } from "validation";
 
 declare global {
     interface Window {
@@ -27,50 +27,50 @@ export default class SubmitFieldButton {
      * @param {JQuery<HTMLElement>} element The submit button element
      */
     constructor(element: JQuery<HTMLElement>) {
-        element.on('click', (ev) => {
-            const $form = $(ev.currentTarget).closest('form') as JQuery<HTMLFormElement>;
+        element.on("click", (ev) => {
+            const $form = $(ev.currentTarget).closest("form") as JQuery<HTMLFormElement>;
 
-            const $jstreeContainer = $('#field_type_tree');
-            const $jstreeEl = $('#tree-config .tree-widget-container');
-            const $calcCode = $('#calcfield_card_header');
+            const $jstreeContainer = $("#field_type_tree");
+            const $jstreeEl = $("#tree-config .tree-widget-container");
+            const $calcCode = $("#calcfield_card_header");
 
-            const $displayConditionsBuilderEl = $('#displayConditionsBuilder');
-            const res = $displayConditionsBuilderEl.length && $displayConditionsBuilderEl.queryBuilder('getRules');
-            const peopleConditionsFieldEl = $('.people-filter');
-            const $peopleConditionsFieldRes = peopleConditionsFieldEl.length && $('#field_type').val() == 'person' && peopleConditionsFieldEl.queryBuilder('getRules');
-            const $displayConditionsField = $('#displayConditions');
+            const $displayConditionsBuilderEl = $("#displayConditionsBuilder");
+            const res = $displayConditionsBuilderEl.length && $displayConditionsBuilderEl.queryBuilder("getRules");
+            const peopleConditionsFieldEl = $(".people-filter");
+            const $peopleConditionsFieldRes = peopleConditionsFieldEl.length && $("#field_type").val() == "person" && peopleConditionsFieldEl.queryBuilder("getRules");
+            const $displayConditionsField = $("#displayConditions");
 
-            const $instanceIDField = $('#refers_to_instance_id');
+            const $instanceIDField = $("#refers_to_instance_id");
             let $filterEl: JQuery<HTMLElement> | undefined = undefined;
             if($instanceIDField.length) {
                 $filterEl =  $(`[data-builder-id='${$instanceIDField.val()}']`);
             }
 
-            const $permissionTable = $('#default_field_permissions_table');
+            const $permissionTable = $("#default_field_permissions_table");
 
             let bUpdateTree = false;
             let bUpdateFilter = false;
             let bUpdateDisplayConditions = false;
             let bUpdatePeopleFilter = false;
 
-            const $showInEdit = $('#show_in_edit');
-            if (($calcCode.length && $calcCode.is(':visible')) && !$showInEdit.val()) {
+            const $showInEdit = $("#show_in_edit");
+            if (($calcCode.length && $calcCode.is(":visible")) && !$showInEdit.val()) {
                 if (!this.errored) {
-                    const error = document.createElement('div');
-                    error.classList.add('form-text', 'form-text--error');
-                    error.innerHTML = 'Please select the calculation field visibility before submitting the form';
-                    $showInEdit.closest('.form-group').append(error);
+                    const error = document.createElement("div");
+                    error.classList.add("form-text", "form-text--error");
+                    error.innerHTML = "Please select the calculation field visibility before submitting the form";
+                    $showInEdit.closest(".form-group").append(error);
                     error.scrollIntoView();
                     this.errored = true;
                 }
                 ev.preventDefault();
             }
 
-            if (($jstreeContainer.length && $jstreeContainer.is(':visible') && $jstreeEl.length) || (!$jstreeContainer.length && $jstreeEl.length)) {
+            if (($jstreeContainer.length && $jstreeContainer.is(":visible") && $jstreeEl.length) || (!$jstreeContainer.length && $jstreeEl.length)) {
                 bUpdateTree = true;
             }
 
-            if ($instanceIDField.length && !$instanceIDField.prop('disabled') && $filterEl && $filterEl.length) {
+            if ($instanceIDField.length && !$instanceIDField.prop("disabled") && $filterEl && $filterEl.length) {
                 bUpdateFilter = true;
             }
 
@@ -86,17 +86,17 @@ export default class SubmitFieldButton {
 
             if (bUpdateTree) {
                 //Bit of typecasting here, purely because the jstree plugin doesn't have types
-                const v = $jstreeEl.jstree(true).get_json('#', { flat: false });
+                const v = $jstreeEl.jstree(true).get_json("#", { flat: false });
                 const mytext = JSON.stringify(v);
                 const data = $jstreeEl.data();
 
                 $.ajax({
                     async: false,
-                    type: 'POST',
+                    type: "POST",
                     url: this.getURL(data),
                     data: { data: mytext, csrf_token: data.csrfToken }
                 }).done(() => {
-                    alert('Tree has been updated');
+                    alert("Tree has been updated");
                 });
             }
 
@@ -118,7 +118,7 @@ export default class SubmitFieldButton {
              * permission checkboxes on other pages will not be submitted and will
              * therefore be cleared. This code gets all the inputs in the datatable
              * and appends them to the form manually */
-            const $inputs = $permissionTable.DataTable().$('input,select,textarea');
+            const $inputs = $permissionTable.DataTable().$("input,select,textarea");
             $inputs.hide(); // Stop them appearing to the user in a strange format
             $permissionTable.remove();
             $form.append($inputs);
@@ -131,7 +131,7 @@ export default class SubmitFieldButton {
      * @returns {string} The URL for the tree API
      */
     private getURL(data: JQuery.PlainObject): string {
-        if (window.test) return '';
+        if (window.test) return "";
 
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;
 

@@ -1,5 +1,5 @@
-import { Component } from 'component';
-import 'jQuery-QueryBuilder/dist/js/query-builder.standalone';
+import { Component } from "component";
+import "jQuery-QueryBuilder/dist/js/query-builder.standalone";
 
 declare global {
     // Global interface for the window object to include the UpdatePeopleFilter method.
@@ -75,8 +75,8 @@ class PeopleFilterComponent extends Component {
      * Initialize the people filter component.
      */
     init() {
-        const elementData = $(this.element).data('filters');
-        const peopleDisplayData = $('#people-display').data('filter-base64');
+        const elementData = $(this.element).data("filters");
+        const peopleDisplayData = $("#people-display").data("filter-base64");
 
         if (!elementData || !peopleDisplayData) return;
 
@@ -85,8 +85,8 @@ class PeopleFilterComponent extends Component {
         const settings: FilterSettings = {
             filters: filters,
             operators: [
-                'equal', 'not_equal', 'contains', 'not_contains',
-                'begins_with', 'ends_with', 'is_empty', 'is_not_empty'
+                "equal", "not_equal", "contains", "not_contains",
+                "begins_with", "ends_with", "is_empty", "is_not_empty"
             ],
             allow_empty: true
         };
@@ -95,14 +95,14 @@ class PeopleFilterComponent extends Component {
         el.queryBuilder(settings);
 
         try {
-            if (Object.keys(values).length > 0) el.queryBuilder('setRules', values);
+            if (Object.keys(values).length > 0) el.queryBuilder("setRules", values);
             window.UpdatePeopleFilter = (builder, ev) => {
-                if (!builder.queryBuilder('validate')) ev.preventDefault();
-                const query = builder.queryBuilder('getRules');
-                $('#people-display').val(JSON.stringify(query, null, 2));
+                if (!builder.queryBuilder("validate")) ev.preventDefault();
+                const query = builder.queryBuilder("getRules");
+                $("#people-display").val(JSON.stringify(query, null, 2));
             };
         } catch (e) {
-            console.error('Error:', e);
+            console.error("Error:", e);
         }
     }
 }

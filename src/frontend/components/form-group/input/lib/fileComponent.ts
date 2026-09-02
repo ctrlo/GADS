@@ -1,7 +1,7 @@
-import { logging } from 'logging';
-import { FileDropEvent } from 'util/filedrag';
-import { formdataMapper } from 'util/mapper/formdataMapper';
-import { upload } from 'util/upload/UploadControl';
+import { logging } from "logging";
+import { FileDropEvent } from "util/filedrag";
+import { formdataMapper } from "util/mapper/formdataMapper";
+import { upload } from "util/upload/UploadControl";
 
 /**
  * FileComponent class for handling file upload functionality.
@@ -13,7 +13,7 @@ class FileComponent {
     fileDelete: JQuery<HTMLElement>;
     inputFileLabel: JQuery<HTMLElement>;
 
-    protected readonly type = 'file';
+    protected readonly type = "file";
 
     /**
      * Create a new FileComponent.
@@ -21,30 +21,30 @@ class FileComponent {
      */
     constructor(el: HTMLElement | JQuery<HTMLElement>) {
         this.el = el instanceof HTMLElement ? $(el) : el;
-        this.fileInput = this.el.find('.form-control-file') as JQuery<HTMLInputElement>;
-        this.fileName = this.el.find('.file__name');
-        this.fileDelete = this.el.find('.file__delete');
-        this.inputFileLabel = this.el.find('.input__file-label');
+        this.fileInput = this.el.find(".form-control-file") as JQuery<HTMLInputElement>;
+        this.fileName = this.el.find(".file__name");
+        this.fileDelete = this.el.find(".file__delete");
+        this.inputFileLabel = this.el.find(".input__file-label");
     }
 
     /**
      * Initialize the file component by setting up event listeners and drag-and-drop functionality.
      */
     init() {
-        const dropTarget = this.el.closest('.file-upload');
+        const dropTarget = this.el.closest(".file-upload");
         if (dropTarget) {
             const dragOptions = { allowMultiple: true };
-            dropTarget.filedrag(dragOptions).on('fileDrop', ({ file, index, length }: FileDropEvent) => {
+            dropTarget.filedrag(dragOptions).on("fileDrop", ({ file, index, length }: FileDropEvent) => {
                 this.handleFormUpload(file, index, length);
             });
         } else {
-            throw new Error('Could not find file-upload element');
+            throw new Error("Could not find file-upload element");
         }
 
-        this.fileInput.on('change', this.changeFile);
-        this.inputFileLabel.on('keyup', this.uploadFile);
-        this.fileDelete.addClass('hidden');
-        this.fileDelete.on('click', this.deleteFile);
+        this.fileInput.on("change", this.changeFile);
+        this.inputFileLabel.on("keyup", this.uploadFile);
+        this.fileDelete.addClass("hidden");
+        this.fileDelete.on("click", this.deleteFile);
     }
 
     /**
@@ -54,27 +54,27 @@ class FileComponent {
      * @param {number} length The total number of files in the upload queue.
      */
     handleFormUpload = (file: File, index:number, length: number) => {
-        if (!file) throw new Error('No file provided');
+        if (!file) throw new Error("No file provided");
 
-        const form = this.el.closest('form');
-        const action = form.attr('action') ? window.location.href + form.attr('action') : window.location.href;
-        const method = (form.attr('method') || 'GET').toUpperCase();
-        const tokenField = form.find('input[name="csrf_token"]');
+        const form = this.el.closest("form");
+        const action = form.attr("action") ? window.location.href + form.attr("action") : window.location.href;
+        const method = (form.attr("method") || "GET").toUpperCase();
+        const tokenField = form.find("input[name=\"csrf_token\"]");
         const csrf_token = tokenField.val() as string ?? tokenField.val()?.toString();
         const formData = formdataMapper({ file, csrf_token });
 
-        if (method === 'POST') {
+        if (method === "POST") {
             logging.info(`Uploading file: ${file.name} (${index} of ${length}) to ${action} using POST method`);
-            const uploadPromise = upload(action, formData, 'POST');
+            const uploadPromise = upload(action, formData, "POST");
             if(index === length-1) {
                 uploadPromise.then(() => {
-                    logging.info('File upload complete, reloading page');
+                    logging.info("File upload complete, reloading page");
                     window.location.reload();
                 });
             }
             uploadPromise.catch(console.error);
         } else {
-            throw new Error('Method not supported');
+            throw new Error("Method not supported");
         }
     };
 
@@ -87,8 +87,8 @@ class FileComponent {
         const { name: fileName } = file;
 
         this.fileName.text(fileName);
-        this.fileName.attr('title', fileName);
-        this.fileDelete.removeClass('hidden');
+        this.fileName.attr("title", fileName);
+        this.fileDelete.removeClass("hidden");
     };
 
     /**
@@ -97,7 +97,7 @@ class FileComponent {
      */
     uploadFile = (ev: JQuery.KeyUpEvent) => {
         if (ev.which === 32 || ev.which === 13) {
-            this.fileInput.trigger('click');
+            this.fileInput.trigger("click");
         }
     };
 
@@ -106,10 +106,10 @@ class FileComponent {
      * @todo set focus back to input__file-label without triggering keyup event on it
      */
     deleteFile = () => {
-        this.fileName.text('No file chosen');
-        this.fileName.attr('title', '');
-        this.fileInput.val('');
-        this.fileDelete.addClass('hidden');
+        this.fileName.text("No file chosen");
+        this.fileName.attr("title", "");
+        this.fileInput.val("");
+        this.fileDelete.addClass("hidden");
     };
 }
 

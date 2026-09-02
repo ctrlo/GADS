@@ -1,4 +1,4 @@
-import { DangerAlert } from 'components/alert/lib/dangerAlert';
+import { DangerAlert } from "components/alert/lib/dangerAlert";
 
 /**
  * Bind events to a field to trigger validation
@@ -6,103 +6,103 @@ import { DangerAlert } from 'components/alert/lib/dangerAlert';
  */
 const initValidationOnField = (field) => {
     // Input
-    if (field.hasClass('input--required')) {
-        const $fileButton = field.find('.input__file-label');
+    if (field.hasClass("input--required")) {
+        const $fileButton = field.find(".input__file-label");
 
         // Document
-        if (field.hasClass('input--document')) {
-            const $checkboxGroup = field.find('.list');
-            const $checkBoxes = $checkboxGroup.find('input[type="checkbox"]');
-            const $inputEl = field.find('.form-control-file');
+        if (field.hasClass("input--document")) {
+            const $checkboxGroup = field.find(".list");
+            const $checkBoxes = $checkboxGroup.find("input[type=\"checkbox\"]");
+            const $inputEl = field.find(".form-control-file");
 
-            $fileButton.on('blur', () => { validateCheckboxGroup($checkboxGroup); });
-            $inputEl.on('change', () => { validateCheckboxGroup($checkboxGroup); });
-            $checkBoxes.on('blur change', () => { validateCheckboxGroup($checkboxGroup); });
+            $fileButton.on("blur", () => { validateCheckboxGroup($checkboxGroup); });
+            $inputEl.on("change", () => { validateCheckboxGroup($checkboxGroup); });
+            $checkBoxes.on("blur change", () => { validateCheckboxGroup($checkboxGroup); });
 
             // Other input types
         } else {
-            const $inputEl = field.find('input[required]');
-            const $fileButton = field.find('.input__file-label');
+            const $inputEl = field.find("input[required]");
+            const $fileButton = field.find(".input__file-label");
 
-            $inputEl.on('blur change', () => { setTimeout(() => { validateInput(field); }, 300); });
-            $fileButton.on('blur', () => { validateInput(field); });
+            $inputEl.on("blur change", () => { setTimeout(() => { validateInput(field); }, 300); });
+            $fileButton.on("blur", () => { validateInput(field); });
         }
 
     // Textarea
-    } else if (field.hasClass('textarea--required')) {
-        const $textareaEl = field.find('textarea[required]');
-        $textareaEl.on('blur change', () => { setTimeout(() => { validateInput(field); }, 300); });
+    } else if (field.hasClass("textarea--required")) {
+        const $textareaEl = field.find("textarea[required]");
+        $textareaEl.on("blur change", () => { setTimeout(() => { validateInput(field); }, 300); });
 
     // Select
-    } else if (field.hasClass('select--required')) {
-        const $button = field.find('button');
-        const $inputEl = field.find('input[required]');
+    } else if (field.hasClass("select--required")) {
+        const $button = field.find("button");
+        const $inputEl = field.find("input[required]");
 
-        $button.on('blur', () => { setTimeout(() => { validateInput(field); }, 300); });
-        $inputEl.on('change', () => { validateInput(field); });
+        $button.on("blur", () => { setTimeout(() => { validateInput(field); }, 300); });
+        $inputEl.on("change", () => { validateInput(field); });
 
     // Radio-group
-    } else if (field.hasClass('radio-group--required')) {
-        const $radioButtons = field.find('input[required]');
-        $radioButtons.on('blur change', () => { setTimeout(() => { validateRadioGroup(field); }, 300); });
+    } else if (field.hasClass("radio-group--required")) {
+        const $radioButtons = field.find("input[required]");
+        $radioButtons.on("blur change", () => { setTimeout(() => { validateRadioGroup(field); }, 300); });
 
     // Select-widget
-    } else if (field.hasClass('select-widget--required')) {
+    } else if (field.hasClass("select-widget--required")) {
     // Single select-widget
-        if (!field.hasClass('multi')) {
-            const $inputSearch = field.find('.form-control-search');
-            const $radioButtons = field.find('input[required]');
+        if (!field.hasClass("multi")) {
+            const $inputSearch = field.find(".form-control-search");
+            const $radioButtons = field.find("input[required]");
             /** @type {NodeJS.Timeout} */
             let inputBlurTimer;
 
-            $radioButtons.on('blur change', () => {
+            $radioButtons.on("blur change", () => {
                 inputBlurTimer = setTimeout(() => {
                     validateRadioGroup(field);
                 }, 300);
             });
 
-            $inputSearch.on('blur', () => {
+            $inputSearch.on("blur", () => {
                 inputBlurTimer = setTimeout(() => {
                     validateRadioGroup(field);
                 }, 300);
             });
 
-            $radioButtons.on('focus', () => { clearTimeout(inputBlurTimer); });
+            $radioButtons.on("focus", () => { clearTimeout(inputBlurTimer); });
 
             // Multi select-widget
         } else {
-            const $inputSearch = field.find('.form-control-search');
-            const $checkBoxes = field.find('input[type="checkbox"]');
+            const $inputSearch = field.find(".form-control-search");
+            const $checkBoxes = field.find("input[type=\"checkbox\"]");
             let inputBlurTimer;
 
-            $checkBoxes.on('blur change', () => {
+            $checkBoxes.on("blur change", () => {
                 inputBlurTimer = setTimeout(() => {
                     validateCheckboxGroup(field);
                 }, 300);
             });
 
-            $inputSearch.on('blur', () => {
+            $inputSearch.on("blur", () => {
                 inputBlurTimer = setTimeout(() => {
                     validateCheckboxGroup(field);
                 }, 300);
             });
 
-            $checkBoxes.on('focus', () => { clearTimeout(inputBlurTimer); });
+            $checkBoxes.on("focus", () => { clearTimeout(inputBlurTimer); });
 
         }
 
     // Tree
-    } else if (field.hasClass('tree--required')) {
-        const $jsTreeAnchors = field.find('.jstree-anchor');
+    } else if (field.hasClass("tree--required")) {
+        const $jsTreeAnchors = field.find(".jstree-anchor");
         let anchorBlurTimer;
 
-        $jsTreeAnchors.on('blur change', () => {
+        $jsTreeAnchors.on("blur change", () => {
             anchorBlurTimer = setTimeout(() => {
                 validateTree(field);
             }, 300);
         });
 
-        $jsTreeAnchors.on('focus', () => { clearTimeout(anchorBlurTimer); });
+        $jsTreeAnchors.on("focus", () => { clearTimeout(anchorBlurTimer); });
 
     }
 };
@@ -115,30 +115,30 @@ const initValidationOnField = (field) => {
 const validateRequiredFields = (form) => {
     let isValidForm = true;
 
-    form.find('.input--required:not(.input--document), .textarea--required, .select--required').each((i, field) => {
+    form.find(".input--required:not(.input--document), .textarea--required, .select--required").each((i, field) => {
         if (!validateInput($(field))) {
             expandCardValidate(field);
             isValidForm = false;
         }
     });
 
-    form.find('.input--document.input--required').each((i, field) => {
-        if (!validateCheckboxGroup($(field).closest('.fieldset')
-            .find('.list'))) {
+    form.find(".input--document.input--required").each((i, field) => {
+        if (!validateCheckboxGroup($(field).closest(".fieldset")
+            .find(".list"))) {
             expandCardValidate(field);
             isValidForm = false;
         }
     });
 
-    form.find('.radio-group--required').each((i, field) => {
+    form.find(".radio-group--required").each((i, field) => {
         if (!validateRadioGroup($(field))) {
             expandCardValidate(field);
             isValidForm = false;
         }
     });
 
-    form.find('.select-widget--required').each((i, field) => {
-        if (!$(field).hasClass('multi')) {
+    form.find(".select-widget--required").each((i, field) => {
+        if (!$(field).hasClass("multi")) {
             if (!validateRadioGroup($(field))) {
                 expandCardValidate(field);
                 isValidForm = false;
@@ -152,23 +152,23 @@ const validateRequiredFields = (form) => {
 
     });
 
-    form.find('.tree--required').each((i, field) => {
+    form.find(".tree--required").each((i, field) => {
         if (!validateTree($(field))) {
-            $(field).closest('.card--expandable')
-                .find('.collapse')
-                .collapse('show');
+            $(field).closest(".card--expandable")
+                .find(".collapse")
+                .collapse("show");
             isValidForm = false;
         }
     });
 
 
-    form.find('.checkbox-fieldset--required').each((i, field) => {
+    form.find(".checkbox-fieldset--required").each((i, field) => {
         if (!validateRequiredFieldsetCheckboxes($(field))) {
-            addErrorMessage($(field), $(field).find('.fieldset__legend legend')
-                .text(), $(field).attr('id'));
-            $(field).addClass('invalid');
-            $(field).closest('.fieldset--required')
-                .addClass('fieldset--invalid');
+            addErrorMessage($(field), $(field).find(".fieldset__legend legend")
+                .text(), $(field).attr("id"));
+            $(field).addClass("invalid");
+            $(field).closest(".fieldset--required")
+                .addClass("fieldset--invalid");
             isValidForm = false;
         }
     });
@@ -183,8 +183,8 @@ const validateRequiredFields = (form) => {
  */
 const validateRequiredFieldsetCheckboxes = (fieldset) => {
     let isValid = false;
-    fieldset.find('input[type=checkbox]').each((i, field) => {
-        if (field.isChecked || $(field).is(':checked')) {
+    fieldset.find("input[type=checkbox]").each((i, field) => {
+        if (field.isChecked || $(field).is(":checked")) {
             isValid = true;
             return true;
         }
@@ -200,7 +200,7 @@ const validateRequiredFieldsetCheckboxes = (fieldset) => {
  * @param {boolean} raw If true, the name will be used as the error message, otherwise a default message will be used
  */
 const addErrorMessage = (field, name, id, raw = false) => {
-    const $errorDiv = $('<div class="error">');
+    const $errorDiv = $("<div class=\"error\">");
     let $span = $(`<span id="${id}-err" class="form-text form-text--error" aria-live="off"></span>`);
     $span.text(raw ? name : `${name} is a required field.`);
     $errorDiv.html($span);
@@ -212,7 +212,7 @@ const addErrorMessage = (field, name, id, raw = false) => {
  * @param {JQuery} field The field from which the error message will be removed
  */
 const removeErrorMessage = (field) => {
-    field.find('.error').remove();
+    field.find(".error").remove();
 };
 
 /**
@@ -221,7 +221,7 @@ const removeErrorMessage = (field) => {
  * @returns {boolean} Returns true if the field is hidden due to a dependency, false otherwise
  */
 const isHiddenDependentField = (field) => {
-    return (field.closest('.form-group[data-has-dependency=\'1\'][style*=\'display: none\']').length > 0);
+    return (field.closest(".form-group[data-has-dependency='1'][style*='display: none']").length > 0);
 };
 
 /**
@@ -230,37 +230,37 @@ const isHiddenDependentField = (field) => {
  * @returns {boolean} Returns true if the input is valid, false otherwise
  */
 const validateInput = (field) => {
-    const $inputEl = field.find('[required]');
-    const strFieldName = field.find('label').text() || '';
-    const strID = $inputEl.attr('id') || '';
+    const $inputEl = field.find("[required]");
+    const strFieldName = field.find("label").text() || "";
+    const strID = $inputEl.attr("id") || "";
 
     removeErrorMessage($(field));
 
-    const maxEl = field.find('[data-max]');
+    const maxEl = field.find("[data-max]");
     if(maxEl && maxEl.length) {
-        const maxLen = maxEl.data('max');
+        const maxLen = maxEl.data("max");
         const fieldLen = maxEl.val().length;
         if(fieldLen > maxLen) {
-            maxEl.attr('aria-invalid', true);
+            maxEl.attr("aria-invalid", true);
             addErrorMessage(field, `${strFieldName} must be ${maxLen} characters or less`, strID, true);
-            field.addClass('invalid');
-            field.closest('.fieldset--required').addClass('fieldset--invalid');
+            field.addClass("invalid");
+            field.closest(".fieldset--required").addClass("fieldset--invalid");
             return false;
         }
     }
 
-    if (($inputEl.val() === '') && (!isHiddenDependentField(field))) {
-        $inputEl.attr('aria-invalid', true);
+    if (($inputEl.val() === "") && (!isHiddenDependentField(field))) {
+        $inputEl.attr("aria-invalid", true);
         addErrorMessage(field, strFieldName, strID);
-        field.addClass('invalid');
-        field.closest('.fieldset--required').addClass('fieldset--invalid');
+        field.addClass("invalid");
+        field.closest(".fieldset--required").addClass("fieldset--invalid");
         return false;
 
     } else {
-        $inputEl.removeAttr('aria-invalid');
+        $inputEl.removeAttr("aria-invalid");
         removeErrorMessage(field);
-        field.removeClass('invalid');
-        field.closest('.fieldset--required').removeClass('fieldset--invalid');
+        field.removeClass("invalid");
+        field.closest(".fieldset--required").removeClass("fieldset--invalid");
         return true;
 
     }
@@ -272,32 +272,32 @@ const validateInput = (field) => {
  * @returns {boolean} Returns true if the radio group is valid, false otherwise
  */
 const validateRadioGroup = (field) => {
-    const $radioButtons = field.find('input[required]');
-    const $fieldSet = field.closest('.fieldset--required');
-    const strFieldName = $fieldSet.find('.fieldset__legend legend').text() || '';
-    const strID = field.attr('id') || '';
+    const $radioButtons = field.find("input[required]");
+    const $fieldSet = field.closest(".fieldset--required");
+    const strFieldName = $fieldSet.find(".fieldset__legend legend").text() || "";
+    const strID = field.attr("id") || "";
     let isChecked = false;
 
     removeErrorMessage($(field));
 
     $radioButtons.each((i, radioButton) => {
-        if ($(radioButton).is(':checked')) {
+        if ($(radioButton).is(":checked")) {
             isChecked = true;
         }
     });
 
     if ((!isChecked) && (!isHiddenDependentField(field))) {
-        $radioButtons.attr('aria-invalid', true);
+        $radioButtons.attr("aria-invalid", true);
         addErrorMessage(field, strFieldName, strID);
-        field.addClass('invalid');
-        field.closest('.fieldset--required').addClass('fieldset--invalid');
+        field.addClass("invalid");
+        field.closest(".fieldset--required").addClass("fieldset--invalid");
         return false;
 
     } else {
-        $radioButtons.removeAttr('aria-invalid');
+        $radioButtons.removeAttr("aria-invalid");
         removeErrorMessage(field);
-        field.removeClass('invalid');
-        field.closest('.fieldset--required').removeClass('fieldset--invalid');
+        field.removeClass("invalid");
+        field.closest(".fieldset--required").removeClass("fieldset--invalid");
         return true;
 
     }
@@ -309,30 +309,30 @@ const validateRadioGroup = (field) => {
  * @returns {boolean} Returns true if at least one checkbox is checked, false otherwise
  */
 const validateCheckboxGroup = (field) => {
-    const $checkBoxes = field.find('input[type="checkbox"]');
-    const $fieldSet = field.closest('.fieldset--required');
-    const strFieldName = $fieldSet.find('.fieldset__legend legend').text() || '';
-    const strID = field.attr('id') || '';
+    const $checkBoxes = field.find("input[type=\"checkbox\"]");
+    const $fieldSet = field.closest(".fieldset--required");
+    const strFieldName = $fieldSet.find(".fieldset__legend legend").text() || "";
+    const strID = field.attr("id") || "";
     let isChecked = false;
 
     removeErrorMessage($(field));
 
     $checkBoxes.each((i, checkBox) => {
-        if ($(checkBox).is(':checked')) {
+        if ($(checkBox).is(":checked")) {
             isChecked = true;
         }
     });
 
     if ((!isChecked) && (!isHiddenDependentField(field))) {
         addErrorMessage(field, strFieldName, strID);
-        field.addClass('invalid');
-        field.closest('.fieldset--required').addClass('fieldset--invalid');
+        field.addClass("invalid");
+        field.closest(".fieldset--required").addClass("fieldset--invalid");
         return false;
 
     } else {
         removeErrorMessage(field);
-        field.removeClass('invalid');
-        field.closest('.fieldset--required').removeClass('fieldset--invalid');
+        field.removeClass("invalid");
+        field.closest(".fieldset--required").removeClass("fieldset--invalid");
         return true;
     }
 
@@ -344,26 +344,26 @@ const validateCheckboxGroup = (field) => {
  * @returns {boolean} Returns true if the tree is valid, false otherwise
  */
 const validateTree = (field) => {
-    const $inputEl = field.find('input[type="hidden"]');
-    const $fieldSet = field.closest('.fieldset--required');
+    const $inputEl = field.find("input[type=\"hidden\"]");
+    const $fieldSet = field.closest(".fieldset--required");
     if (!$fieldSet || !$fieldSet.length) return;
-    const strFieldName = $fieldSet.find('.fieldset__legend legend').text() || '';
-    const strID = field.attr('id') || '';
+    const strFieldName = $fieldSet.find(".fieldset__legend legend").text() || "";
+    const strID = field.attr("id") || "";
 
     removeErrorMessage($(field));
 
-    if (((!$inputEl.length) || ($inputEl.val() === '')) && (!isHiddenDependentField(field))) {
-        $inputEl.attr('aria-invalid', true);
+    if (((!$inputEl.length) || ($inputEl.val() === "")) && (!isHiddenDependentField(field))) {
+        $inputEl.attr("aria-invalid", true);
         addErrorMessage(field, strFieldName, strID);
-        field.addClass('invalid');
-        field.closest('.fieldset--required').addClass('fieldset--invalid');
+        field.addClass("invalid");
+        field.closest(".fieldset--required").addClass("fieldset--invalid");
         return false;
 
     } else {
-        $inputEl.removeAttr('aria-invalid');
+        $inputEl.removeAttr("aria-invalid");
         removeErrorMessage(field);
-        field.removeClass('invalid');
-        field.closest('.fieldset--required').removeClass('fieldset--invalid');
+        field.removeClass("invalid");
+        field.closest(".fieldset--required").removeClass("fieldset--invalid");
         return true;
 
     }
@@ -376,13 +376,13 @@ const validateTree = (field) => {
  */
 const validateQueryBuilder = (field) => {
     if(!(field && field.length)) return;
-    const result = field.queryBuilder('validate');
+    const result = field.queryBuilder("validate");
     if(!result) {
-        if($('.display-conditions-error').length) return false;
-        const danger = new DangerAlert('There are errors in the conditions you have set, please fix these before submitting the form');
+        if($(".display-conditions-error").length) return false;
+        const danger = new DangerAlert("There are errors in the conditions you have set, please fix these before submitting the form");
         const banner = danger.render();
-        banner.classList.add('mb-3', 'mt-0', 'display-conditions-error');
-        field.closest('.card__content').prepend(banner);
+        banner.classList.add("mb-3", "mt-0", "display-conditions-error");
+        field.closest(".card__content").prepend(banner);
         return false;
     }
     return true;
@@ -393,26 +393,26 @@ const validateQueryBuilder = (field) => {
  * @param {JQuery} field The field to expand the card for
  */
 const expandCardValidate = (field) => {
-    const $collapse = $(field).closest('.card--expandable')
-        .find('.collapse');
+    const $collapse = $(field).closest(".card--expandable")
+        .find(".collapse");
     if (!$collapse || !$collapse.collapse) return;
-    const $label = $(field).closest('.form-group')
-        .find('legend, label');
+    const $label = $(field).closest(".form-group")
+        .find("legend, label");
     // Turn into edit mode if the topic is now in view mode
-    $collapse.prev().find('.btn-edit:visible')
-        .trigger('click');
+    $collapse.prev().find(".btn-edit:visible")
+        .trigger("click");
     // If the card is already expanded then just scroll straight to the field
-    if ($collapse.hasClass('show')) {
+    if ($collapse.hasClass("show")) {
         $label[0].scrollIntoView();
     } else {
     // Otherwise add an event handler to scroll to the field, but only once the
     // card has finished expanding (otherwise the scroll will happen before
     // the card has finished expanding and it won't work)
-        $collapse.on('shown.bs.collapse.foobar', function () {
+        $collapse.on("shown.bs.collapse.foobar", function () {
             $label[0].scrollIntoView();
-            $(this).off('shown.bs.collapse.foobar');
+            $(this).off("shown.bs.collapse.foobar");
         });
-        $collapse.collapse('show');
+        $collapse.collapse("show");
     }
 };
 

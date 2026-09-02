@@ -1,5 +1,5 @@
-import { Component } from 'component';
-import { getFieldValues } from 'get-field-values';
+import { Component } from "component";
+import { getFieldValues } from "get-field-values";
 
 /**
  * Component to handle calculation fields that depend on other fields.
@@ -28,16 +28,16 @@ class CalcFieldsComponent extends Component {
      */
     getFieldCalc() {
 
-        const dependency = $(this.element).data('calc-depends-on');
+        const dependency = $(this.element).data("calc-depends-on");
         const depends_on_ids = JSON.parse(atob(dependency));
         const depends_on = jQuery.map(depends_on_ids, function (id) {
-            return $('[data-column-id="' + id + '"]');
+            return $("[data-column-id=\"" + id + "\"]");
         });
 
         return {
             field: $(this.element),
-            code: atob($(this.element).data('code')).toString(),
-            params: JSON.parse(atob($(this.element).data('code-params'))),
+            code: atob($(this.element).data("code")).toString(),
+            params: JSON.parse(atob($(this.element).data("code-params"))),
             depends_on: depends_on
         };
 
@@ -55,15 +55,15 @@ class CalcFieldsComponent extends Component {
         // Change standard backend code format to a format that works for
         // evaluating in the browser
         var re = /^function\s+evaluate\s+/gi;
-        code = code.replace(re, 'function ');
-        code = 'return ' + code;
+        code = code.replace(re, "function ");
+        code = "return " + code;
 
         depends_on.forEach(function ($depend_on) {
 
             // Standard change of visible form field that this calc depends on.  When
             // it changes get all the values this code depends on and evaluate the
             // code
-            $depend_on.on('change', function () {
+            $depend_on.on("change", function () {
 
                 // Recursively shift all the array fields in an object to start at index 1
                 const shiftFields = (obj) => {
@@ -80,7 +80,7 @@ class CalcFieldsComponent extends Component {
                         obj = obj2;
                     } else {
                         // If the field is an object, recursively shift its fields
-                        if (typeof obj === 'object') {
+                        if (typeof obj === "object") {
                             for (const field in obj) {
                                 obj[field] = shiftFields(obj[field]);
                             }
@@ -91,7 +91,7 @@ class CalcFieldsComponent extends Component {
 
                 // All the values
                 var vars = params.map(function (value) {
-                    var $depends = $('.linkspace-field[data-name-short="' + value + '"]');
+                    var $depends = $(".linkspace-field[data-name-short=\"" + value + "\"]");
                     let ret = getFieldValues($depends, false, true);
                     shiftFields(ret);
 
@@ -106,15 +106,15 @@ class CalcFieldsComponent extends Component {
                 // first needs to be passed separately so shift it off and do so
                 var returnval = func.apply(first, vars);
 
-                const $textArea = $field.find('textarea');
+                const $textArea = $field.find("textarea");
                 // If the value in the textarea isn't the same as the return value, update it
                 if ($textArea.val() != returnval) {
                     // Update the field holding the code's value
                     $textArea.val(returnval);
                     // And trigger a change on its parent div to trigger any display
                     // conditions
-                    $field.closest('.linkspace-field').trigger('change');
-                    $textArea.trigger('change');
+                    $field.closest(".linkspace-field").trigger("change");
+                    $textArea.trigger("change");
                 }
             });
         });

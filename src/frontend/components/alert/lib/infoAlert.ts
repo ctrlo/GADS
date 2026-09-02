@@ -1,4 +1,4 @@
-import { AlertBase } from './alertBase';
+import { AlertBase } from "./alertBase";
 
 /**
  * InfoAlert class represents an informational alert in the application.
@@ -14,6 +14,6 @@ export class InfoAlert extends AlertBase {
      * @param {string} message - The message to be displayed in the info alert.
      */
     constructor(message: string) {
-        super(message, 'info');
+        super(message, "info");
     }
 }

@@ -1,4 +1,4 @@
-import { fromJson } from 'util/common';
+import { fromJson } from "util/common";
 
 /**
  * Type to represent a function that is called when the upload progress changes
@@ -10,7 +10,7 @@ type ProgressFunction = (loaded: number, total: number) => void;
 /**
  * Type to represent the HTTP request methods that can be used for uploading data
  */
-type RequestMethod = 'PUT' | 'POST' | 'GET' | 'DELETE' | 'PATCH';
+type RequestMethod = "PUT" | "POST" | "GET" | "DELETE" | "PATCH";
 
 /**
  * Type to represent an object similar to an XMLHttpRequest object
@@ -40,7 +40,7 @@ type XmlHttpRequestLike = {
  * @param { ProgressFunction } onProgress A callback that is called when the upload progress changes
  * @returns { Promise<T> } The JSON response from the server
  */
-async function upload<T = unknown>(url: string | URL, data?: FormData | object, method: RequestMethod = 'POST', onProgress: ProgressFunction = () => { }): Promise<T> {
+async function upload<T = unknown>(url: string | URL, data?: FormData | object, method: RequestMethod = "POST", onProgress: ProgressFunction = () => { }): Promise<T> {
     const uploader = new Uploader(url, method);
     uploader.onProgress(onProgress);
     return uploader.upload(data);
@@ -82,8 +82,8 @@ class Uploader {
         return new Promise((resolve, reject) => {
             const request: XmlHttpRequestLike & XMLHttpRequest = new XMLHttpRequest();
             request.open(this.method, this.url.toString());
-            request.onabort = () => reject('aborted');
-            request.onerror = () => reject('error');
+            request.onabort = () => reject("aborted");
+            request.onerror = () => reject("error");
             request.upload.onprogress = (e: ProgressEvent) => {
                 if(!e.lengthComputable) this.onProgressCallback?.(e.loaded, 0);
                 this.onProgressCallback?.(e.loaded, e.total);
@@ -101,7 +101,7 @@ class Uploader {
             if (data instanceof FormData) {
                 request.send(data);
             } else {
-                request.setRequestHeader('Content-Type', 'application/json');
+                request.setRequestHeader("Content-Type", "application/json");
                 request.send(JSON.stringify(data));
             }
         });

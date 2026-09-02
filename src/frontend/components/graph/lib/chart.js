@@ -6,7 +6,7 @@
 const do_plot = (plotData, options_in) => {
     const ticks = plotData.xlabels;
     let plotOptions = {};
-    const showmarker = options_in.type == 'line' ? true : false;
+    const showmarker = options_in.type == "line" ? true : false;
 
     plotOptions.highlighter = {
         showMarker: showmarker,
@@ -21,7 +21,7 @@ const do_plot = (plotData, options_in) => {
         plotOptions.seriesDefaults = seriesDefaults.default;
     }
 
-    if (options_in.type != 'donut' && options_in.type != 'pie') {
+    if (options_in.type != "donut" && options_in.type != "pie") {
         plotOptions.series = plotData.labels;
         plotOptions.axes = {
             xaxis: {
@@ -42,7 +42,7 @@ const do_plot = (plotData, options_in) => {
 
         if (plotData.options.is_metric) {
             plotOptions.axes.yaxis.tickOptions = {
-                formatString: '%d%'
+                formatString: "%d%"
             };
         }
 
@@ -50,7 +50,7 @@ const do_plot = (plotData, options_in) => {
             tickRenderer: $.jqplot.CanvasAxisTickRenderer,
             tickOptions: {
                 angle: -30,
-                fontSize: '8pt'
+                fontSize: "8pt"
             }
         };
     }
@@ -58,11 +58,11 @@ const do_plot = (plotData, options_in) => {
     plotOptions.legend = {
         renderer: $.jqplot.EnhancedLegendRenderer,
         show: options_in.showlegend,
-        location: 'ne',
-        placement: 'inside'
+        location: "ne",
+        placement: "inside"
     };
     plotOptions.grid = {
-        background: '#ffffff',
+        background: "#ffffff",
         shadow: false
     };
     $(`[data-chart-id=${options_in.id}]`).jqplot(plotData.points, plotOptions);
@@ -105,7 +105,7 @@ const makeSeriesDefaults = () => ({
         rendererOptions: {
             sliceMargin: 3,
             showDataLabels: true,
-            dataLabels: 'value',
+            dataLabels: "value",
             shadow: false
         }
     },
@@ -114,7 +114,7 @@ const makeSeriesDefaults = () => ({
         rendererOptions: {
             showDataLabels: true,
             startAngle: -90,
-            dataLabels: 'value',
+            dataLabels: "value",
             shadow: false
         }
     },

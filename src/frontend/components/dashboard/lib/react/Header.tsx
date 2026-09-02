@@ -1,7 +1,7 @@
-import React from 'react';
-import { HeaderProps } from './types';
-import MenuItem from './Menu/MenuItem';
-import { Nav } from 'react-bootstrap';
+import React from "react";
+import { HeaderProps } from "./types";
+import MenuItem from "./Menu/MenuItem";
+import { Nav } from "react-bootstrap";
 
 /**
  * Render the header for the dashboard
@@ -11,7 +11,7 @@ import { Nav } from 'react-bootstrap';
  */
 export default function Header ({ hMargin, dashboards, currentDashboard, includeH1 }: HeaderProps): React.JSX.Element {
     return (
-        <div style={{ marginLeft: hMargin, marginRight: hMargin, marginTop: '10px' }}>
+        <div style={{ marginLeft: hMargin, marginRight: hMargin, marginTop: "10px" }}>
             <Nav variant="pills" className="pb-3 mb-3 content-block__navigation justify-content-start">
                 {dashboards.map((dashboard, index) => (
                     <MenuItem dashboard={dashboard} currentDashboard={currentDashboard} includeH1={includeH1} key={index} />

@@ -9,14 +9,14 @@
  * @param {JQuery} tableElement The jQuery element of the table to bind click handlers to.
  */
 const bindToggleTableClickHandlers = (tableElement) => {
-    if (tableElement.hasClass('table-toggle')) {
-        const fields = tableElement.find('tbody tr');
-        fields.off('click', toggleRow);
-        fields.on('click', toggleRow);
+    if (tableElement.hasClass("table-toggle")) {
+        const fields = tableElement.find("tbody tr");
+        fields.off("click", toggleRow);
+        fields.on("click", toggleRow);
 
-        const buttons = tableElement.find('tbody btn');
-        buttons.off('click', toggleRow);
-        buttons.on('click', toggleRow);
+        const buttons = tableElement.find("tbody btn");
+        buttons.off("click", toggleRow);
+        buttons.on("click", toggleRow);
     }
 };
 
@@ -26,9 +26,9 @@ const bindToggleTableClickHandlers = (tableElement) => {
  */
 const toggleRow = (ev) => {
     ev.preventDefault();
-    const clickedRow = $(ev.target).closest('tr')[0];
-    const clickedSourceTable = $(ev.target).closest('table');
-    const destinationTableID = clickedSourceTable.data('destination');
+    const clickedRow = $(ev.target).closest("tr")[0];
+    const clickedSourceTable = $(ev.target).closest("table");
+    const destinationTableID = clickedSourceTable.data("destination");
 
     toggleRowInTable(clickedRow, clickedSourceTable, destinationTableID);
 };
@@ -44,8 +44,8 @@ const toggleRow = (ev) => {
 const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceCheck = null) => {
     // Retrieve the destination table
     const destinationTable = $(destinationTableID);
-    if (typeof destinationTable == 'undefined') {
-        console.error(`Failed to toggle row; missing 'toggle-destination' data attribute for table '${sourceTable.attr('id')}'`);
+    if (typeof destinationTable == "undefined") {
+        console.error(`Failed to toggle row; missing 'toggle-destination' data attribute for table '${sourceTable.attr("id")}'`);
         return;
     }
 
@@ -59,10 +59,10 @@ const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceChec
     }
 
     // Toggle checkbox in source table
-    const sourceRowCheckbox = clickedRow.querySelector('input');
+    const sourceRowCheckbox = clickedRow.querySelector("input");
     if (sourceRowCheckbox) {
 
-        if (typeof forceCheck == 'boolean') {
+        if (typeof forceCheck == "boolean") {
             // Set the checkbox
             sourceRowCheckbox.checked = !forceCheck;
         } else {
@@ -72,9 +72,9 @@ const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceChec
     }
 
     // Change the checkbox in destination table
-    const destinationRowCheckbox = destinationRow.node().querySelector('input');
+    const destinationRowCheckbox = destinationRow.node().querySelector("input");
     if (destinationRowCheckbox) {
-        if (typeof forceCheck == 'boolean') {
+        if (typeof forceCheck == "boolean") {
             // Set the checkbox
             destinationRowCheckbox.checked = forceCheck;
         } else {
@@ -86,25 +86,25 @@ const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceChec
     // Change data-field-is-toggled in destination table
     const destinationRowDataAttribute = destinationRow.node().dataset.fieldIsToggled;
     if (destinationRowDataAttribute) {
-        if (typeof forceCheck == 'boolean') {
+        if (typeof forceCheck == "boolean") {
             // Set the attribute
             destinationRow.node().dataset.fieldIsToggled = forceCheck.toString();
         } else {
             // Toggle the attribute
-            destinationRow.node().dataset.fieldIsToggled = destinationRowDataAttribute == 'true' ? 'false' : 'true';
+            destinationRow.node().dataset.fieldIsToggled = destinationRowDataAttribute == "true" ? "false" : "true";
         }
 
     }
 
     // Toggle data-field-is-toggled in source table
     const sourceRowDataAttribute = clickedRow.dataset.fieldIsToggled;
-    if (typeof sourceRowDataAttribute != 'undefined') {
-        if (typeof forceCheck == 'boolean') {
+    if (typeof sourceRowDataAttribute != "undefined") {
+        if (typeof forceCheck == "boolean") {
             // Set the attribute
             clickedRow.dataset.fieldIsToggled = !forceCheck.toString();
         } else {
             // Toggle the attribute
-            clickedRow.dataset.fieldIsToggled = sourceRowDataAttribute == 'true' ? 'false' : 'true';
+            clickedRow.dataset.fieldIsToggled = sourceRowDataAttribute == "true" ? "false" : "true";
         }
     }
 };

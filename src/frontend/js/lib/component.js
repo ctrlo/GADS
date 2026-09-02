@@ -1,7 +1,7 @@
 /**
  * Base attribute name that's set on a component that's initialized
  */
-const componentInitializedAttr = 'data-component-initialized';
+const componentInitializedAttr = "data-component-initialized";
 
 /**
  * The actual attribute name that's set on a component that's initialized.
@@ -10,7 +10,7 @@ const componentInitializedAttr = 'data-component-initialized';
  * @returns {string} The attribute name for the component
  */
 const componentInitializedAttrName = (component_name) => {
-    return componentInitializedAttr + '-' + component_name;
+    return componentInitializedAttr + "-" + component_name;
 };
 
 /**
@@ -48,7 +48,7 @@ class Component {
     constructor(element) {
         if (!(element instanceof HTMLElement)) {
             throw new Error(
-                'Components can only be initialized with an HTMLElement as argument to the constructor'
+                "Components can only be initialized with an HTMLElement as argument to the constructor"
             );
         }
 
@@ -108,14 +108,14 @@ const getComponentElements = (scope, selector) => {
 const initializeComponent = (scope, selector, ComponentClass) => {
     if (!(ComponentClass.prototype instanceof Component)) {
         throw new Error(
-            'Components can only be initialized when they inherit the basecomponent'
+            "Components can only be initialized when they inherit the basecomponent"
         );
     }
 
     const scopes = (scope instanceof jQuery) ? scope.get() : [scope];
 
     const elements = scopes.flatMap(
-        (scope) => typeof (selector) === 'function' ? selector(scope) : getComponentElements(scope, selector)
+        (scope) => typeof (selector) === "function" ? selector(scope) : getComponentElements(scope, selector)
     );
 
     if (!elements.length) {

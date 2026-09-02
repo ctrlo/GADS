@@ -1,11 +1,11 @@
-import { Component } from 'component';
-import passwordComponent from './passwordComponent';
-import logoComponent from './logoComponent';
-import documentComponent from './documentComponent';
-import fileComponent from './fileComponent';
-import dateComponent from './dateComponent';
-import autocompleteComponent from './autocompleteComponent';
-import { initValidationOnField } from 'validation';
+import { Component } from "component";
+import passwordComponent from "./passwordComponent";
+import logoComponent from "./logoComponent";
+import documentComponent from "./documentComponent";
+import fileComponent from "./fileComponent";
+import dateComponent from "./dateComponent";
+import autocompleteComponent from "./autocompleteComponent";
+import { initValidationOnField } from "validation";
 
 /**
  * ComponentInitializer type for functions that initialize specific input components.
@@ -26,12 +26,12 @@ class InputComponent extends Component {
      * @static
      */
     private static componentMap: { [key: string]: ComponentInitializer } = {
-        'input--password': passwordComponent,
-        'input--logo': logoComponent,
-        'input--document': documentComponent,
-        'input--file': fileComponent,
-        'input--datepicker': dateComponent,
-        'input--autocomplete': autocompleteComponent
+        "input--password": passwordComponent,
+        "input--logo": logoComponent,
+        "input--document": documentComponent,
+        "input--file": fileComponent,
+        "input--datepicker": dateComponent,
+        "input--autocomplete": autocompleteComponent
     };
 
     /**
@@ -64,7 +64,7 @@ class InputComponent extends Component {
     private initializeValidation() {
         const $el = $(this.element);
 
-        if ($el.hasClass('input--required')) {
+        if ($el.hasClass("input--required")) {
             initValidationOnField($el);
         }
     }

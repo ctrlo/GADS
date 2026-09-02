@@ -5,8 +5,8 @@
  * @param {number} triggerHeight The height of the trigger element
  */
 const positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
-    const left = offsetLeft + 'px';
-    const top = offsetTop + triggerHeight + 'px';
+    const left = offsetLeft + "px";
+    const top = offsetTop + triggerHeight + "px";
 
     this.css({
         left: left,
@@ -18,7 +18,7 @@ const positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
         const windowOffset = document.body.clientWidth - this.get(0).getBoundingClientRect().right;
         if (windowOffset < 0) {
             this.css({
-                left: offsetLeft + windowOffset + 'px'
+                left: offsetLeft + windowOffset + "px"
             });
         }
     }
@@ -32,20 +32,20 @@ const positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
  * @param {boolean} permanent Whether the disclosure should remain expanded permanently
  */
 const toggleDisclosure = function (e, $trigger, state, permanent) {
-    $trigger.attr('aria-expanded', state);
-    $trigger.toggleClass('expanded--permanent', state && permanent);
+    $trigger.attr("aria-expanded", state);
+    $trigger.toggleClass("expanded--permanent", state && permanent);
 
-    const expandedLabel = $trigger.data('label-expanded');
-    const collapsedLabel = $trigger.data('label-collapsed');
+    const expandedLabel = $trigger.data("label-expanded");
+    const collapsedLabel = $trigger.data("label-collapsed");
 
     if (collapsedLabel && expandedLabel) {
         $trigger.text(state ? expandedLabel : collapsedLabel);
     }
 
-    const $disclosure = $trigger.siblings('.expandable').first();
-    $disclosure.toggleClass('expanded', state);
+    const $disclosure = $trigger.siblings(".expandable").first();
+    $disclosure.toggleClass("expanded", state);
 
-    if ($disclosure.hasClass('popover')) {
+    if ($disclosure.hasClass("popover")) {
         const offset = $trigger.offset();
         let top = offset.top;
         let left = offset.left;
@@ -59,7 +59,7 @@ const toggleDisclosure = function (e, $trigger, state, permanent) {
         positionDisclosure.call($disclosure, top, left, $trigger.outerHeight() + 6);
     }
 
-    $trigger.trigger(state ? 'expand' : 'collapse', $disclosure);
+    $trigger.trigger(state ? "expand" : "collapse", $disclosure);
 
     // If this element is within another element that also has a handler, then
     // stop that second handler also doing its action. E.g. for a more-less
@@ -74,7 +74,7 @@ const toggleDisclosure = function (e, $trigger, state, permanent) {
  */
 const onDisclosureClick = function (e) {
     const $trigger = $(this);
-    const currentlyPermanentExpanded = $trigger.hasClass('expanded--permanent');
+    const currentlyPermanentExpanded = $trigger.hasClass("expanded--permanent");
     toggleDisclosure(e, $trigger, !currentlyPermanentExpanded, true);
 };
 
@@ -84,7 +84,7 @@ const onDisclosureClick = function (e) {
  */
 const onDisclosureMouseover = function (e) {
     const $trigger = $(this);
-    const currentlyExpanded = $trigger.attr('aria-expanded') === 'true';
+    const currentlyExpanded = $trigger.attr("aria-expanded") === "true";
 
     if (!currentlyExpanded) {
         toggleDisclosure(e, $trigger, true, false);
@@ -97,8 +97,8 @@ const onDisclosureMouseover = function (e) {
  */
 const onDisclosureMouseout = function (e) {
     const $trigger = $(this);
-    const currentlyExpanded = $trigger.attr('aria-expanded') === 'true';
-    const currentlyPermanentExpanded = $trigger.hasClass('expanded--permanent');
+    const currentlyExpanded = $trigger.attr("aria-expanded") === "true";
+    const currentlyPermanentExpanded = $trigger.hasClass("expanded--permanent");
 
     if (currentlyExpanded && !currentlyPermanentExpanded) {
         toggleDisclosure(e, $trigger, false, false);
@@ -110,16 +110,16 @@ const onDisclosureMouseout = function (e) {
  * @param {string | JQuery} context The context in which to set up the disclosure widgets
  */
 const setupDisclosureWidgets = function (context) {
-    $('.trigger[aria-expanded]', context).on('click keydown', function (ev) {
-        if (ev.type === 'click' || (ev.type === 'keydown' && (ev.which === 13 || ev.which === 32))) {
+    $(".trigger[aria-expanded]", context).on("click keydown", function (ev) {
+        if (ev.type === "click" || (ev.type === "keydown" && (ev.which === 13 || ev.which === 32))) {
             ev.preventDefault();
             onDisclosureClick.call(this, ev);
         }
     });
 
     // Also show/hide disclosures on hover for widgets with the data-expand-on-hover attribute set to true
-    $('.trigger[aria-expanded][data-expand-on-hover=true]', context).on('mouseover', onDisclosureMouseover);
-    $('.trigger[aria-expanded][data-expand-on-hover=true]', context).on('mouseout', onDisclosureMouseout);
+    $(".trigger[aria-expanded][data-expand-on-hover=true]", context).on("mouseover", onDisclosureMouseover);
+    $(".trigger[aria-expanded][data-expand-on-hover=true]", context).on("mouseout", onDisclosureMouseout);
 };
 
 export { setupDisclosureWidgets, onDisclosureClick };

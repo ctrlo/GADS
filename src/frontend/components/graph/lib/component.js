@@ -1,13 +1,13 @@
-import { Component } from 'component';
-import '../../../js/lib/jqplot/jquery.jqplot.min';
-import '../../../js/lib/jqplot/jqplot.barRenderer';
-import '../../../js/lib/jqplot/jqplot.pieRenderer';
-import '../../../js/lib/jqplot/jqplot.donutRenderer';
-import '../../../js/lib/jqplot/jqplot.canvasTextRenderer';
-import '../../../js/lib/jqplot/jqplot.categoryAxisRenderer';
-import '../../../js/lib/jqplot/jqplot.canvasAxisLabelRenderer';
-import '../../../js/lib/jqplot/jqplot.canvasAxisTickRenderer';
-import '../../../js/lib/jqplot/jqplot.highlighter';
+import { Component } from "component";
+import "../../../js/lib/jqplot/jquery.jqplot.min";
+import "../../../js/lib/jqplot/jqplot.barRenderer";
+import "../../../js/lib/jqplot/jqplot.pieRenderer";
+import "../../../js/lib/jqplot/jqplot.donutRenderer";
+import "../../../js/lib/jqplot/jqplot.canvasTextRenderer";
+import "../../../js/lib/jqplot/jqplot.categoryAxisRenderer";
+import "../../../js/lib/jqplot/jqplot.canvasAxisLabelRenderer";
+import "../../../js/lib/jqplot/jqplot.canvasAxisTickRenderer";
+import "../../../js/lib/jqplot/jqplot.highlighter";
 
 /**
  * Graph component that handles rendering of various types of graphs
@@ -19,7 +19,7 @@ class GraphComponent extends Component {
      */
     constructor(element) {
         super(element);
-        this.graphContainer = $(this.element).find('.graph__container');
+        this.graphContainer = $(this.element).find(".graph__container");
 
         if (this.graphContainer.length) {
             this.initGraph();
@@ -53,9 +53,9 @@ class GraphComponent extends Component {
     getURL(data) {
         let devEndpoint;
 
-        if (['bar', 'line', 'scatter'].indexOf(data.graphType) > -1) {
+        if (["bar", "line", "scatter"].indexOf(data.graphType) > -1) {
             devEndpoint = window.siteConfig && window.siteConfig.urls.barApi;
-        } else if (['donut', 'pie'].indexOf(data.graphType) > -1) {
+        } else if (["donut", "pie"].indexOf(data.graphType) > -1) {
             devEndpoint = window.siteConfig && window.siteConfig.urls.pieApi;
         }
 
@@ -78,7 +78,7 @@ class GraphComponent extends Component {
         $.ajax({
             async: false,
             url: url,
-            dataType: 'json',
+            dataType: "json",
             success: function(data) {
                 ret = data;
             }
@@ -94,7 +94,7 @@ class GraphComponent extends Component {
     do_plot(plotData, options_in) {
         const ticks = plotData.xlabels;
         let plotOptions = {};
-        const showmarker = options_in.type == 'line' ? true : false;
+        const showmarker = options_in.type == "line" ? true : false;
 
         plotOptions.highlighter = {
             showMarker: showmarker,
@@ -109,7 +109,7 @@ class GraphComponent extends Component {
             plotOptions.seriesDefaults = seriesDefaults.default;
         }
 
-        if (options_in.type != 'donut' && options_in.type != 'pie') {
+        if (options_in.type != "donut" && options_in.type != "pie") {
             plotOptions.series = plotData.labels;
             plotOptions.axes = {
                 xaxis: {
@@ -130,7 +130,7 @@ class GraphComponent extends Component {
 
             if (plotData.options.is_metric) {
                 plotOptions.axes.yaxis.tickOptions = {
-                    formatString: '%d%'
+                    formatString: "%d%"
                 };
             }
 
@@ -138,7 +138,7 @@ class GraphComponent extends Component {
                 tickRenderer: $.jqplot.CanvasAxisTickRenderer,
                 tickOptions: {
                     angle: -30,
-                    fontSize: '8pt'
+                    fontSize: "8pt"
                 }
             };
         }
@@ -146,11 +146,11 @@ class GraphComponent extends Component {
         plotOptions.legend = {
             renderer: $.jqplot.EnhancedLegendRenderer,
             show: options_in.showlegend,
-            location: 'ne',
-            placement: 'inside'
+            location: "ne",
+            placement: "inside"
         };
         plotOptions.grid = {
-            background: '#ffffff',
+            background: "#ffffff",
             shadow: false
         };
         $(`[data-chart-id=${options_in.id}]`).jqplot(plotData.points, plotOptions);
@@ -178,7 +178,7 @@ class GraphComponent extends Component {
             rendererOptions: {
                 sliceMargin: 3,
                 showDataLabels: true,
-                dataLabels: 'value',
+                dataLabels: "value",
                 shadow: false
             }
         },
@@ -187,7 +187,7 @@ class GraphComponent extends Component {
             rendererOptions: {
                 showDataLabels: true,
                 startAngle: -90,
-                dataLabels: 'value',
+                dataLabels: "value",
                 shadow: false
             }
         },

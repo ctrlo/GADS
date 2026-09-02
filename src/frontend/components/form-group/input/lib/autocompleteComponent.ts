@@ -2,7 +2,7 @@
  * A component for handling typeahead functionality
  */
 class AutocompleteComponent {
-    readonly type = 'autocomplete';
+    readonly type = "autocomplete";
     input: JQuery<HTMLInputElement>;
     el: JQuery<HTMLElement>;
 
@@ -12,7 +12,7 @@ class AutocompleteComponent {
      */
     constructor(el: HTMLElement | JQuery<HTMLElement>) {
         this.el = $(el);
-        this.input = this.el.find<HTMLInputElement>('.form-control');
+        this.input = this.el.find<HTMLInputElement>(".form-control");
     }
 
     /**
@@ -20,10 +20,10 @@ class AutocompleteComponent {
      */
     init() {
         const suggestionCallback = (suggestion: { id: number, name: string }) => {
-            this.el.find('input[type="hidden"]').val(suggestion.id);
+            this.el.find("input[type=\"hidden\"]").val(suggestion.id);
         };
 
-        import(/* webpackChunkName: "typeahead" */ 'util/typeahead')
+        import(/* webpackChunkName: "typeahead" */ "util/typeahead")
             .then(({ default: TypeaheadBuilder }) => {
                 const builder = new TypeaheadBuilder();
                 builder
@@ -31,7 +31,7 @@ class AutocompleteComponent {
                     .withCallback(suggestionCallback)
                     .withAjaxSource(this.getURL())
                     .withAppendQuery()
-                    .withName('users')
+                    .withName("users")
                     .build();
             });
     }
@@ -43,9 +43,9 @@ class AutocompleteComponent {
     getURL(): string {
         //@ts-expect-error "Testing code used by Digitpaint."
         const devEndpoint = window.siteConfig?.urls?.autocompleteApi;
-        const layoutIdentifier = $('body').data('layout-identifier');
+        const layoutIdentifier = $("body").data("layout-identifier");
 
-        return devEndpoint ?? `/${layoutIdentifier ? layoutIdentifier + '/' : ''}match/user/?q=`;
+        return devEndpoint ?? `/${layoutIdentifier ? layoutIdentifier + "/" : ""}match/user/?q=`;
     }
 }
 

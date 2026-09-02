@@ -1,5 +1,5 @@
-import { modal } from '../../../lib/modal';
-import ModalComponent from '../../../lib/component';
+import { modal } from "../../../lib/modal";
+import ModalComponent from "../../../lib/component";
 
 /**
  * Modal component for user management
@@ -13,8 +13,8 @@ class UserModalComponent extends ModalComponent {
     constructor(element) {
         super(element);
         this.el = $(this.element);
-        this.emailField = this.el.find('input[name="email"]');
-        this.emailText = this.el.find('.js-email');
+        this.emailField = this.el.find("input[name=\"email\"]");
+        this.emailText = this.el.find(".js-email");
 
         this.initUserModal();
     }
@@ -23,11 +23,11 @@ class UserModalComponent extends ModalComponent {
      * Initialize the user modal
      */
     initUserModal() {
-        this.el.on('show.bs.modal', (ev) => {
+        this.el.on("show.bs.modal", (ev) => {
             this.toggleContent(ev);
             modal.validate();
             this.updateEmail();
-            this.emailField.on('keyup', () => { this.updateEmail(); });
+            this.emailField.on("keyup", () => { this.updateEmail(); });
         });
     }
 
@@ -37,22 +37,22 @@ class UserModalComponent extends ModalComponent {
      */
     toggleContent(ev) {
         this.target = $(ev.relatedTarget);
-        if (this.target.hasClass('btn-add')) {
+        if (this.target.hasClass("btn-add")) {
             modal.clear();
-            this.el.find('.js-approve-account').hide();
-            this.el.find('.js-add-user').show();
-            this.el.find('.btn-js-reject-request').hide();
-            this.el.find('.btn-js-save .btn__title').html('Create account');
-            this.el.find('input[name="approve-account"]').val('false');
+            this.el.find(".js-approve-account").hide();
+            this.el.find(".js-add-user").show();
+            this.el.find(".btn-js-reject-request").hide();
+            this.el.find(".btn-js-save .btn__title").html("Create account");
+            this.el.find("input[name=\"approve-account\"]").val("false");
         } else {
-            this.el.find('.js-add-user').hide();
-            this.el.find('.js-approve-account').show();
-            this.el.find('.btn-js-reject-request').show()
-                .on('click', () => {
+            this.el.find(".js-add-user").hide();
+            this.el.find(".js-approve-account").show();
+            this.el.find(".btn-js-reject-request").show()
+                .on("click", () => {
                     this.activateFrame(4);
                 });
-            this.el.find('.btn-js-save .btn__title').html('Approve account');
-            this.el.find('input[name="approve-account"]').val('true');
+            this.el.find(".btn-js-save .btn__title").html("Approve account");
+            this.el.find("input[name=\"approve-account\"]").val("true");
         }
     }
 
@@ -74,23 +74,23 @@ class UserModalComponent extends ModalComponent {
             groups: []
         };
 
-        this.el.find('input, textarea').each((i, field) => {
-            if (($(field).prop('type') === 'radio' || $(field).prop('type') === 'checkbox')) {
-                if ($(field).prop('checked')) {
+        this.el.find("input, textarea").each((i, field) => {
+            if (($(field).prop("type") === "radio" || $(field).prop("type") === "checkbox")) {
+                if ($(field).prop("checked")) {
                     const fieldValue = isNaN($(field).val()) ? $(field).val() : parseInt($(field).val());
-                    if (Array.isArray(data[$(field).attr('name')])) {
-                        data[$(field).attr('name')].push(fieldValue);
+                    if (Array.isArray(data[$(field).attr("name")])) {
+                        data[$(field).attr("name")].push(fieldValue);
                     } else {
-                        data[$(field).attr('name')] = fieldValue;
+                        data[$(field).attr("name")] = fieldValue;
                     }
                 }
             } else if ($(field).val() || $(field).value) {
                 const fieldValue = $(field).val() || $(field).value;
                 const fieldParsedValue = isNaN(fieldValue) ? this.parseValue(fieldValue) : parseInt(fieldValue);
-                if (Array.isArray(data[$(field).attr('name')])) {
-                    data[$(field).attr('name')].push(fieldParsedValue);
+                if (Array.isArray(data[$(field).attr("name")])) {
+                    data[$(field).attr("name")].push(fieldParsedValue);
                 } else {
-                    data[$(field).attr('name')] = fieldParsedValue;
+                    data[$(field).attr("name")] = fieldParsedValue;
                 }
             }
         });
@@ -104,7 +104,7 @@ class UserModalComponent extends ModalComponent {
      * @returns {boolean|string} The parsed value, converting 'true'/'false' strings to boolean or returning the original value if not a boolean string
      */
     parseValue(val) {
-        return val === 'true' ? true : val === 'false' ? false : val;
+        return val === "true" ? true : val === "false" ? false : val;
     }
 
     /**
@@ -119,7 +119,7 @@ class UserModalComponent extends ModalComponent {
      */
     handleClose() {
         super.handleClose();
-        this.emailText.html('USER');
+        this.emailText.html("USER");
     }
 
     /**
@@ -127,9 +127,9 @@ class UserModalComponent extends ModalComponent {
      */
     handleBack() {
         super.handleBack();
-        if (this.target.hasClass('btn-add')) return;
-        this.el.find('.btn-js-reject-request').off()
-            .on('click', () => {
+        if (this.target.hasClass("btn-add")) return;
+        this.el.find(".btn-js-reject-request").off()
+            .on("click", () => {
                 this.activateFrame(4);
             });
     }
@@ -139,9 +139,9 @@ class UserModalComponent extends ModalComponent {
      */
     handleNext() {
         super.handleNext();
-        if (this.target.hasClass('btn-add')) return;
-        this.el.find('.btn-js-reject-request').off()
-            .on('click', () => {
+        if (this.target.hasClass("btn-add")) return;
+        this.el.find(".btn-js-reject-request").off()
+            .on("click", () => {
                 this.activateFrame(4);
             });
     }

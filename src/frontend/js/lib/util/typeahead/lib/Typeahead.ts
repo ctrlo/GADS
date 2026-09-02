@@ -1,7 +1,7 @@
-import 'typeahead.js';
-import Bloodhound from 'typeahead.js/dist/bloodhound';
-import { TypeaheadSourceOptions } from './TypeaheadSourceOptions';
-import { MappedResponse } from 'util/mapper/mapper';
+import "typeahead.js";
+import Bloodhound from "typeahead.js/dist/bloodhound";
+import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
+import { MappedResponse } from "util/mapper/mapper";
 
 /**
  * Typeahead class for creating a typeahead
@@ -26,12 +26,12 @@ export class Typeahead {
             datumTokenizer: Bloodhound.tokenizers.whitespace,
             queryTokenizer: Bloodhound.tokenizers.whitespace,
             remote: {
-                url: ajaxSource + (appendQuery ? '%QUERY' : ''),
-                wildcard: '%QUERY',
+                url: ajaxSource + (appendQuery ? "%QUERY" : ""),
+                wildcard: "%QUERY",
                 transform: (response) => {
                     return mapper(response);
                 },
-                rateLimitBy: 'debounce',
+                rateLimitBy: "debounce",
                 rateLimitWait: 300,
                 cache: false,
                 // Using composite typing here because the first three properties are required by typeahead.js, whereas the rest are specific to this implementation
@@ -41,7 +41,7 @@ export class Typeahead {
                     $.ajax(request)
                         .done(success)
                         .fail((jqXHR, textStatus, errorThrown) => {
-                            console.error('Typeahead ajax request failed:', textStatus, errorThrown, jqXHR.responseText);
+                            console.error("Typeahead ajax request failed:", textStatus, errorThrown, jqXHR.responseText);
                             error(errorThrown);
                         });
                 }
@@ -55,22 +55,22 @@ export class Typeahead {
         }, {
             name: name,
             source: bloodhound,
-            display: 'name',
+            display: "name",
             limit: 20,
             templates: {
                 suggestion: (item: MappedResponse) => {
                     return `<div>${item.name}</div>`;
                 },
                 pending: () => {
-                    return '<div>Loading...</div>';
+                    return "<div>Loading...</div>";
                 },
                 notFound: () => {
-                    return '<div>No results found</div>';
+                    return "<div>No results found</div>";
                 }
             }
         });
 
-        this.$input.on('typeahead:select', (ev: JQuery.TriggeredEvent, suggestion: MappedResponse) => {
+        this.$input.on("typeahead:select", (ev: JQuery.TriggeredEvent, suggestion: MappedResponse) => {
             this.callback(suggestion);
         });
     }

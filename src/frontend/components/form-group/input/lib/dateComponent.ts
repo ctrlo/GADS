@@ -1,10 +1,10 @@
-import initDateField from '../../../datepicker/lib/helper';
+import initDateField from "../../../datepicker/lib/helper";
 
 /**
  * DateComponent class to handle date input fields.
  */
 class DateComponent {
-    readonly type = 'date';
+    readonly type = "date";
     el: JQuery<HTMLElement>;
     input: JQuery<HTMLInputElement>;
 
@@ -14,7 +14,7 @@ class DateComponent {
      */
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
         this.el = el instanceof HTMLElement ? $(el) : el;
-        this.input = this.el.find<HTMLInputElement>('.form-control');
+        this.input = this.el.find<HTMLInputElement>(".form-control");
     }
 
     /**
