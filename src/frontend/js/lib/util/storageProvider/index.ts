@@ -1,3 +1,3 @@
-import StorageProvider from './lib/storageProvider';
+import StorageProvider from "./lib/storageProvider";
 
 export default StorageProvider;

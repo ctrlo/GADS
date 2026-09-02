@@ -4,7 +4,7 @@
 %]
 <td [% cell_class %][% data_attr %]>
   [% IF button_type == "button" %]
-  <button type="button" class="[% button_class || 'btn btn-default' %]">
+  <button type="button" class="[% button_class || 'btn btn-primary' %]">
     <span class="btn__title">[% INCLUDE fields/sub/filter.tt value=label; %]</span>
   </button>
   [% ELSE %]

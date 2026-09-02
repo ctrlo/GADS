@@ -22,7 +22,7 @@
   #     checked => username
   #     tabindex => 2
   #   };
-  
+
   input_class = is_required AND ! input_class.match('input--required') ? input_class _ ' input--required' : input_class;
 -%]
 <div class="input input--file [% input_class %]"[% IF data_attributes; INCLUDE fields/sub/data_attributes.tt; END; %]>
@@ -34,7 +34,7 @@
   </div>
 
   [% INCLUDE fields/sub/label_file.tt; %]
-  
+
   <div class="input__field">
     <input
       type="file"

@@ -1,1 +1,1 @@
-export { encrypt, decrypt } from './lib/encryption';
+export { encrypt, decrypt } from "./lib/encryption";

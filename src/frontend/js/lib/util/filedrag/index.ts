@@ -8,8 +8,6 @@ export interface FileDropEvent extends JQuery.TriggeredEvent {
     length: number;
 }
 
-export { FileDragOptions }
-
 declare global {
     interface JQuery<TElement = HTMLElement> {
         filedrag(options: FileDragOptions): JQuery<TElement>;
@@ -18,7 +16,7 @@ declare global {
     }
 }
 
-export { }
+export { };
 
 if (typeof jQuery !== "undefined") {
     (function ($) {
@@ -33,10 +31,10 @@ if (typeof jQuery !== "undefined") {
                 new FileDrag(this, options, (file, index, length) => {
                     if(index === undefined) index = 1;
                     if(length === undefined) length = 1;
-                    if (options.debug) console.log("fileDrop", file, index, length);
+                    if (options.debug) console.debug("fileDrop", file, index, length);
                     const event = $.Event("fileDrop", { file, index, length });
                     this.trigger(event);
-                })
+                });
             }
 
             return this;

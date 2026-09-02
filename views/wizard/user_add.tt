@@ -20,7 +20,7 @@
 >
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header d-flex jusify-content-between">
         <div class="modal-header__content">
           <h3 class="modal-title" id="userModalLabel">
             <span class='js-add-user'>Add a user</span>
@@ -46,7 +46,7 @@
           </ol>
         </div>
 
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="btn close hidden" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true" class="hidden">Close</span>
         </button>
       </div>
@@ -146,7 +146,7 @@
                 value   = user.id
                 label   = "Reject request"
               }, {
-                class = "btn-default btn-disabled btn-js-next"
+                class = "btn-primary btn-disabled btn-js-next"
                 label = "Next"
               }];
           -%]
@@ -204,7 +204,7 @@
                         items = values.${field.name}
                         sub_field = sub_field
                         sub_params = sub_params;
-                        
+
                     ELSIF field.type == "textarea";
                       INCLUDE fields/textarea.tt
                         id=field.name
@@ -236,7 +236,7 @@
                 value   = user.id
                 label   = "Reject request"
               }, {
-                class = "btn-default btn-js-next"
+                class = "btn-primary btn-js-next"
                 label = "Next"
               }];
           -%]
@@ -287,7 +287,7 @@
                 value   = user.id
                 label   = "Reject request"
               }, {
-                class = "btn-default btn-js-save"
+                class = "btn-primary btn-js-save"
                 label = "Create account"
               }];
           -%]
