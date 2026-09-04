@@ -55,6 +55,10 @@
         INCLUDE navigation/dropdown_view_limits.tt;
       END;
 
+      IF views_limit_override.size;
+        INCLUDE navigation/dropdown_view_limits_override.tt;
+      END;
+
       UNLESS hide_view_menu;
         INCLUDE navigation/dropdown_manage_views.tt;
       END;

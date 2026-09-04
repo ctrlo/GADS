@@ -1104,14 +1104,15 @@ sub _get_records {
     my $length = $params->get('length') || 25;
 
     my %params = (
-        user                => $user,
-        schema              => schema,
-        view                => $view,
-        rows                => $length,
-        page                => 1 + ceil($start / $length),
-        layout              => $layout,
-        rewind              => session('rewind'),
-        view_limit_extra_id => current_view_limit_extra_id($user, $layout),
+        user                   => $user,
+        schema                 => schema,
+        view                   => $view,
+        rows                   => $length,
+        page                   => 1 + ceil($start / $length),
+        layout                 => $layout,
+        rewind                 => session('rewind'),
+        view_limit_extra_id    => current_view_limit_extra_id($user, $layout),
+        view_limit_override_id => GADS::current_view_limit_override_id($user, $layout),
     );
     $params{is_group} = 0
         if query_parameters->get('group_filter');

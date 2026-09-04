@@ -2224,15 +2224,16 @@ prefix '/:layout_name' => sub {
         my $view    = current_view($user, $layout);
 
         my $records = GADS::Records->new(
-            user                => $user,
-            layout              => $layout,
-            schema              => schema,
-            from                => $fromdt,
-            to                  => $todt,
-            max_results         => 1000,
-            view                => $view,
-            search              => session('search'),
-            view_limit_extra_id => current_view_limit_extra_id($user, $layout),
+            user                   => $user,
+            layout                 => $layout,
+            schema                 => schema,
+            from                   => $fromdt,
+            to                     => $todt,
+            max_results            => 1000,
+            view                   => $view,
+            search                 => session('search'),
+            view_limit_extra_id    => current_view_limit_extra_id($user, $layout),
+            view_limit_override_id => current_view_limit_override_id($user, $layout),
         );
 
         response_header "Cache-Control" => "max-age=0, must-revalidate, private";
@@ -2262,16 +2263,17 @@ prefix '/:layout_name' => sub {
         my $view    = current_view($user, $layout, $view_id);
 
         my $records = GADS::Records->new(
-            from                => $fromdt,
-            to                  => $todt,
-            exclusive           => param('exclusive'),
-            user                => $user,
-            layout              => $layout,
-            schema              => schema,
-            view                => $view,
-            search              => $is_dashboard ? undef : session('search'),
-            rewind              => $is_dashboard ? undef : session('rewind'),
-            view_limit_extra_id => current_view_limit_extra_id($user, $layout),
+            from                   => $fromdt,
+            to                     => $todt,
+            exclusive              => param('exclusive'),
+            user                   => $user,
+            layout                 => $layout,
+            schema                 => schema,
+            view                   => $view,
+            search                 => $is_dashboard ? undef : session('search'),
+            rewind                 => $is_dashboard ? undef : session('rewind'),
+            view_limit_extra_id    => current_view_limit_extra_id($user, $layout),
+            view_limit_override_id => current_view_limit_override_id($user, $layout),
         );
 
         response_header "Cache-Control" => "max-age=0, must-revalidate, private";
@@ -2342,14 +2344,15 @@ prefix '/:layout_name' => sub {
             forwardHome({ danger => "You do not have permission to bulk delete records"}, $layout->identifier.'/data')
                 unless $layout->user_can("bulk_delete");
             my %params = (
-                user                => $user,
-                search              => session('search'),
-                layout              => $layout,
-                schema              => schema,
-                rewind              => session('rewind'),
-                view                => current_view($user, $layout),
-                view_limit_extra_id => current_view_limit_extra_id($user, $layout),
-                additional_filters  => \@additional_filters,
+                user                   => $user,
+                search                 => session('search'),
+                layout                 => $layout,
+                schema                 => schema,
+                rewind                 => session('rewind'),
+                view                   => current_view($user, $layout),
+                view_limit_extra_id    => current_view_limit_extra_id($user, $layout),
+                view_limit_override_id => current_view_limit_override_id($user, $layout),
+                additional_filters     => \@additional_filters,
             );
             $params{limit_current_ids} = [body_parameters->get_all('delete_id')]
                 if body_parameters->get_all('delete_id');
@@ -2389,6 +2392,13 @@ prefix '/:layout_name' => sub {
         if (my $extra = $layout->user_can('view_limit_extra') && param('extra'))
         {
             session('persistent')->{view_limit_extra}->{$layout->instance_id} = $extra;
+        }
+
+        # Setting a new view limit override
+        if (defined param('view_limit_override'))
+        {
+            my $override = param('view_limit_override');
+            session('persistent')->{view_limit_override}->{$layout->instance_id} = $override;
         }
 
         my $new_view_id = param('view');
@@ -2556,15 +2566,16 @@ prefix '/:layout_name' => sub {
         elsif ($viewtype eq 'timeline')
         {
             my $records = GADS::Records->new(
-                user                => $user,
-                view                => $view,
-                search              => session('search'),
-                layout              => $layout,
+                user                   => $user,
+                view                   => $view,
+                search                 => session('search'),
+                layout                 => $layout,
                 # No "to" - will take appropriate number from today
-                from                => DateTime->now, # Default
-                schema              => schema,
-                rewind              => session('rewind'),
-                view_limit_extra_id => current_view_limit_extra_id($user, $layout),
+                from                   => DateTime->now, # Default
+                schema                 => schema,
+                rewind                 => session('rewind'),
+                view_limit_extra_id    => current_view_limit_extra_id($user, $layout),
+                view_limit_override_id => current_view_limit_override_id($user, $layout),
             );
             my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} ||= {};
             if (param 'modal_timeline')
@@ -2660,13 +2671,14 @@ prefix '/:layout_name' => sub {
             my $page = defined param('download') ? undef : session('page');
 
             my %params = (
-                user                => $user,
-                search              => session('search'),
-                layout              => $layout,
-                schema              => schema,
-                rewind              => session('rewind'),
-                additional_filters  => \@additional_filters,
-                view_limit_extra_id => current_view_limit_extra_id($user, $layout),
+                user                   => $user,
+                search                 => session('search'),
+                layout                 => $layout,
+                schema                 => schema,
+                rewind                 => session('rewind'),
+                additional_filters     => \@additional_filters,
+                view_limit_extra_id    => current_view_limit_extra_id($user, $layout),
+                view_limit_override_id => current_view_limit_override_id($user, $layout),
             );
 
             # If this is a filter from a group view, then disable the group for
@@ -2826,6 +2838,7 @@ prefix '/:layout_name' => sub {
 
         $params->{user_views}                   = $views->user_views;
         $params->{views_limit_extra}            = $views->views_limit_extra;
+        $params->{views_limit_override}         = $views->views_limit_override;
         $params->{current_view_limit_extra}     = current_view_limit_extra($user, $layout) || $layout->default_view_limit_extra;
         $params->{alerts}                       = $alert->all;
         $params->{views_other_user}             = session('views_other_user_id') && rset('User')->find(session('views_other_user_id')),
@@ -4119,14 +4132,15 @@ prefix '/:layout_name' => sub {
 
         # The records to update
         my %params = (
-            view                 => $view,
-            is_group             => 0,
-            search               => session('search'),
-            columns              => [map { $_->id } $layout->all], # Need all columns to be able to write updated records
-            schema               => schema,
-            user                 => $user,
-            layout               => $layout,
-            view_limit_extra_id  => current_view_limit_extra_id($user, $layout),
+            view                   => $view,
+            is_group               => 0,
+            search                 => session('search'),
+            columns                => [map { $_->id } $layout->all], # Need all columns to be able to write updated records
+            schema                 => schema,
+            user                   => $user,
+            layout                 => $layout,
+            view_limit_extra_id    => current_view_limit_extra_id($user, $layout),
+            view_limit_override_id => current_view_limit_override_id($user, $layout),
         );
         $params{limit_current_ids} = [query_parameters->get_all('id')]
             if query_parameters->get_all('id');
@@ -4575,6 +4589,24 @@ sub current_view_limit_extra_id
     $view ? $view->id : undef;
 }
 
+sub current_view_limit_override
+{   my ($user, $layout) = @_;
+    if (my $override_id = session('persistent')->{view_limit_override}->{$layout->instance_id})
+    {
+        # Check it's valid
+        my $override = schema->resultset('View')->find($override_id);
+        return $override
+            if $override && $override->instance_id == $override->instance_id && $override->is_limit_override;
+    }
+    return undef;
+}
+
+sub current_view_limit_override_id
+{   my ($user, $layout) = @_;
+    my $view = current_view_limit_override($user, $layout);
+    $view ? $view->id : undef;
+}
+
 sub forwardHome {
     my ($message, $page, %options) = @_;
 
@@ -4673,12 +4705,13 @@ sub _data_graph
     my $layout  = var 'layout';
     my $view    = current_view($user, $layout);
     my $records = GADS::RecordsGraph->new(
-        user                => $user,
-        search              => session('search'),
-        view_limit_extra_id => current_view_limit_extra_id($user, $layout),
-        rewind              => session('rewind'),
-        layout              => $layout,
-        schema              => schema,
+        user                   => $user,
+        search                 => session('search'),
+        view_limit_extra_id    => current_view_limit_extra_id($user, $layout),
+        view_limit_override_id => current_view_limit_override_id($user, $layout),
+        rewind                 => session('rewind'),
+        layout                 => $layout,
+        schema                 => schema,
     );
     GADS::Graph::Data->new(
         id      => $id,
