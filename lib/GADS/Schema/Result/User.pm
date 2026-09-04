@@ -115,6 +115,8 @@ __PACKAGE__->add_columns(
     datetime_undef_if_invalid => 1,
     is_nullable => 1,
   },
+  "created_by_id",
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "debug_login",
   { data_type => "smallint", default_value => 0, is_nullable => 1 },
   # All the following for MFA
@@ -173,6 +175,18 @@ __PACKAGE__->has_many(
             "$args->{foreign_alias}.datetime" => { '>'    => $formatted },
         };
     }
+);
+
+__PACKAGE__->belongs_to(
+  "created_by",
+  "GADS::Schema::Result::User",
+  { id => "created_by_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
 );
 
 __PACKAGE__->belongs_to(
@@ -636,7 +650,7 @@ sub update_user
           or error __x"The email address \"{email}\" is invalid", email => $params{email};
 
       my $msg = __x"User updated: ID {id}, username: {username}",
-          id => $self->id, username => $params{username};
+          id => $self->id, username => $params{username} ? $params{username} : $params{email};
       $msg .= __x", groups: {groups}", groups => join ', ', @{$params{groups}}
           if $params{groups};
       $msg .= __x", permissions: {permissions}", permissions => join ', ', @{$params{permissions}}
@@ -793,15 +807,13 @@ sub update_attributes
     {
         $self->update({ surname => $attributes->{$at}->[0] });
     }
-    my $value = _user_value({firstname => $self->firstname, surname => $self->surname});
-    $self->update({ value => $value });
+    $self->update({ value => $self->as_string });
 }
 
-sub _user_value
-{   my $user = shift;
-    return unless $user;
-    my $firstname = $user->{firstname} || '';
-    my $surname   = $user->{surname}   || '';
+sub as_string
+{   my $self = shift;
+    my $firstname = $self->firstname || '';
+    my $surname   = $self->surname   || '';
     my $value     = "$surname, $firstname";
     $value;
 }
@@ -835,6 +847,11 @@ sub for_data_table
             type   => 'string',
             name   => 'Created',
             values => [$self->created ? $self->created->ymd : 'Unknown'],
+        },
+        'Created by' => {
+            type   => 'string',
+            name   => 'Created By',
+            values => [$self->created_by ? $self->created_by->as_string : 'Unknown'],
         },
         'Last login' => {
             type   => 'string',
@@ -873,8 +890,6 @@ sub for_data_table
 
 sub validate
 {   my $self = shift;
-    # Update value field
-    $self->value(_user_value({firstname => $self->firstname, surname => $self->surname}));
 
     $self->username
         or error "Username required";
@@ -921,6 +936,7 @@ sub export_hash
         account_request       => $self->account_request,
         account_request_notes => $self->account_request_notes,
         created               => $self->created && $self->created->datetime,
+        created_by_id         => $self->created_by_id,
         groups                => [map $_->id, $self->groups],
         permissions           => [map $_->permission->name, $self->user_permissions],
     };

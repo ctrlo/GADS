@@ -29,8 +29,8 @@ sub active
 {   my ($self, %search) = @_;
 
     $self->search({
-        account_request => 0,
-        'me.deleted'    => undef,
+        'me.account_request' => 0,
+        'me.deleted'         => undef,
         %search,
     });
 }
@@ -41,11 +41,11 @@ sub summary
         columns => [
             'me.id', 'me.surname', 'me.firstname', 'title.name', 'me.email',
             'organisation.name', 'department.name', 'team.name', 'me.created',
-            'me.freetext1', 'me.freetext2',
-            'me.lastlogin', 'me.value',
+            'me.freetext1', 'me.freetext2', 'me.lastlogin', 'me.value',
+            'created_by.id', 'created_by.surname', 'created_by.firstname', 'created_by.email',
         ],
         join     => [
-            'organisation', 'department', 'team', 'title',
+            'organisation', 'department', 'team', 'title', 'created_by'
         ],
         order_by => 'me.value',
         collapse => 1,
@@ -118,14 +118,15 @@ sub create_user
         username              => $params{email},
         resetpw               => $code,
         created               => DateTime->now,
+        created_by_id         => $params{current_user}->id,
         account_request_notes => $params{notes},
     });
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $params{current_user});
 
     $audit->login_change(
-        __x"User created, id: {id}, username: {username}",
-            id => $user->id, username => $params{username}
+        __x"User created by {current_user}, id: {id}, username: {username}",
+            current_user => $params{current_user}->email, id => $user->id, username => $params{username} ? $params{username} : $params{email}
     );
 
     $user->update_user(%params);
@@ -264,7 +265,6 @@ sub upload
             groups                => $options{groups},
             permissions           => $options{permissions},
         );
-        $values{value} = _user_value(\%values);
 
         my $u = try { $self->create_user(
             current_user     => $options{current_user},
@@ -272,6 +272,9 @@ sub upload
             no_welcome_email => 1, # Send at end in case of failures
             %values);
         };
+        my $user_value = $u->as_string;
+        $u->update({ value => $user_value });
+        $values{value} = $user_value;
         if($@)
         {   push @errors, {
                 row   => join (',', @$row),
@@ -327,15 +330,6 @@ sub match
     } $result->all;
 }
 
-sub _user_value
-{   my $user = shift;
-    return unless $user;
-    my $firstname = $user->{firstname} || '';
-    my $surname   = $user->{surname}   || '';
-    my $value     = "$surname, $firstname";
-    $value;
-}
-
 sub import_hash
 {   my ($self, $user) = @_;
 
@@ -358,6 +352,7 @@ sub import_hash
             account_request       => $user->{account_request},
             account_request_notes => $user->{account_request_notes},
             created               => $user->{created} && DateTime::Format::ISO8601->parse_datetime($user->{created}),
+            created_by_id         => $user->{created_by_id},
         });
     }
 

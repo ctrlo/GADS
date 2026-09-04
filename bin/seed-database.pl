@@ -90,7 +90,11 @@ my $user = rset('User')->create({
     username => $initial_username,
     email    => $initial_username,
     site_id  => $site->id,
+    created  => DateTime->now,
 });
+# Set the created by for the first user to be the user itself, to be clear who
+# it was
+$user->update({ created_by => $user->id });
 
 say "Adding all permissions to initial username...";
 foreach my $perm (rset('Permission')->all)

@@ -84,6 +84,9 @@
     name      = "Created"
     orderable = 1
   }, {
+    name      = "Created by"
+    orderable = 1
+  }, {
     name      = "Last login"
     orderable = 1
   });
@@ -194,6 +197,10 @@
       type  = "link"
       label = user_row.created OR "Unknown"
       name  = "created"
+    }, {
+      type  = "link"
+      label = user_row.created_by. OR "Unknown"
+      name  = "createdby"
     }, {
       type  = "link"
       label = user_row.lastlogin OR "Never logged in"
