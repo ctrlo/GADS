@@ -66,13 +66,18 @@ after set_value => sub {
         if (@values == 1 && @old == 1)
         {
             my $old_value   = $self->schema->resultset('Fileval')->find($old[0]); # Only do one fetch here
-            my $old_content = $old_value->content;
-            my $old_name    = $old_value->name;
-            if(my $fl = $self->schema->resultset('Fileval')->search({
-                id      => $values[0],
-                name    => $old_name
-            })->next) {
-                $changed = 0 if $fl && $fl->content eq $old_content;
+            # Fix - if the data is originally purged, then the fileval record will have been deleted, so we need to account for that
+            my $old_content = $old_value ? $old_value->content : undef;
+            my $old_name    = $old_value ? $old_value->name : undef;
+            if (defined $old_content && defined $old_name) {
+                if (my $fl = $self->schema->resultset('Fileval')->search({
+                    id      => $values[0],
+                    name    => $old_name
+                })->next) {
+                    $changed = 0 if $fl && $fl->content eq $old_content;
+                }
+            } else {
+                $changed = 1;
             }
         }
     }
@@ -165,20 +170,6 @@ sub _build_files
     }
 
     return \@return;
-}
-
-sub _files_rs
-{   my $self = shift;
-    [$self->schema->resultset('File')->search({
-        record_id => $self->record_id,
-        layout_id => $self->column->id,
-    })->all];
-}
-
-sub is_purged {
-    my $self = shift;
-    my @files = @{$self->_files_rs};
-    return grep { $_->is_purged } @files;
 }
 
 sub _ids_to_files
@@ -280,7 +271,7 @@ around 'clone' => sub {
 sub for_table
 {   my $self = shift;
     my $return = $self->for_table_template;
-    $return->{values} = $self->files;
+    $return->{values} = $self->is_purged ? ["[purged]"] : $self->files;
     $return;
 }
 

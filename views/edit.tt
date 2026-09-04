@@ -7,6 +7,15 @@
 %]
 
 <div class="content-block__main">
+  [% IF record.has_purged %]
+    <div class="row">
+      <div class="col">
+        <div class="alert alert-info mb-3" role="alert">
+            This record has been archived. You can view the version history of the record to see its previous values, but you cannot edit or restore the record.
+        </div>
+      </div>
+    </div>
+  [% END %]
   <form
     class="[% IF edit_modal %]curval-edit-form[% ELSE %]form-edit[% END %]"
     method="post"
@@ -374,7 +383,7 @@
           </span>
         </button>
         <div class="card__header-right">
-          [% IF editable AND NOT record.new_entry AND NOT edit_modal AND topic.has_editable %]
+          [% IF editable AND NOT record.new_entry AND NOT edit_modal AND topic.has_editable AND NOT record.has_purged %]
           <button
             type="button"
             class="btn btn-edit btn-js-edit"
@@ -436,7 +445,7 @@
     }
   </style>
   [%
-    editable = record.user_can_edit AND NOT record.deleted AND NOT is_history AND NOT view_modal ? 1 : 0;
+    editable = NOT record.has_purged AND record.user_can_edit AND NOT record.deleted AND NOT is_history AND NOT view_modal ? 1 : 0;
     is_first_topic = 1;
     
     FOREACH topic IN record.topics;
@@ -457,7 +466,7 @@
             NEXT IF !is_history AND col_panel.data.dependent_not_shown;
             NEXT IF view_modal AND col.type == "autocur";
         %]
-        <li class="list__item[% IF col_panel.data.blank AND NOT layout.no_hide_blank %] list__item--blank[% END %] list-group-item">
+        <li class="list__item[% IF col_panel.data.blank AND NOT layout.no_hide_blank AND NOT col_panel.data.purged %] list__item--blank[% END %] list-group-item">
           <span class="list__key">[% col_panel.name | html_entity %]</span>
           <span class="list__value">[% render_datum(col_panel, 'full') %]</span>
         </li>

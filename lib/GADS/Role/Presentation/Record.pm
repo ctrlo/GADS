@@ -81,6 +81,12 @@ sub presentation {
     my @presentation_columns = $self->presentation_map_columns(%options, columns => \@columns);
     my @topics= $self->get_topics(\@presentation_columns);
 
+    my $has_purged = !!(grep {
+        defined $_->{data}->{purged} && $_->{data}->{purged}
+    } map {
+        @{$_->{columns}}
+    } @topics);
+
     my $version_datetime_col = $self->layout->column_by_name_short('_version_datetime');
     my $created_user_col     = $self->layout->column_by_name_short('_created_user');
     my $created_datetime_col = $self->layout->column_by_name_short('_created');
@@ -101,6 +107,7 @@ sub presentation {
         has_rag_column  => !!(grep { $_->type eq 'rag' } @columns),
         new_entry       => $self->new_entry,
         is_draft        => $self->is_draft,
+        has_purged      => $has_purged,
     };
 
     if ($options{edit})
