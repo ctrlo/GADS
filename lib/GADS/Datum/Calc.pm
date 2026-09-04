@@ -42,6 +42,8 @@ sub as_strings
           ? ''
           : ref $value eq 'DateTime'
           ? $self->date_as_string($value, $format)
+          : $self->column->return_type eq 'daterange'
+          ? $self->daterange_as_string($value, $format)
           : $self->column->return_type eq 'numeric'
           ? ( ($dc //= $self->column->decimal_places // 0)
             ? sprintf("%.${dc}f", $value)
@@ -58,15 +60,16 @@ sub as_string
     join ', ', $self->as_strings;
 }
 
-sub _parse_date
+sub parse_date
 {   my ($self, $val) = @_;
     $val or return;
-    if($val =~ / /) {
-        return $self->schema->storage->datetime_parser->parse_datetime($val);
-    }
-    else {
-        return $self->schema->storage->datetime_parser->parse_date($val);
-    }
+    return $self->schema->storage->datetime_parser->parse_date($val);
+}
+
+sub parse_datetime
+{   my ($self, $val) = @_;
+    $val or return;
+    return $self->schema->storage->datetime_parser->parse_datetime($val);
 }
 
 sub _convert_date

@@ -149,7 +149,6 @@ sub _write_unique
 
 sub _delete_unique
 {   my ($self, %values) = @_;
-    %values = map { $_ => $values{$_} } grep $values{$_}, keys %values;
     if (my $table = $self->column->table_unique)
     {
         $self->schema->resultset($table)->search({
@@ -319,8 +318,10 @@ sub _build_value
                 : $_
         } @{$self->init_value};
         @values = map {
-            $column->return_type eq 'date' || $column->return_type eq 'datetime'
-               ?  $self->_parse_date($_)
+            $column->return_type eq 'date'
+               ?  $self->parse_date($_)
+               : $column->return_type eq 'datetime'
+               ? $self->parse_datetime($_)
                : $column->return_type eq 'daterange'
                ? $self->parse_daterange($_, source => 'db')
                : $_;
