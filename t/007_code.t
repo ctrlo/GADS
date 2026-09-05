@@ -265,6 +265,16 @@ my @tests = (
         after  => '22'
     },
     {
+        name        => 'return type of date and time',
+        type        => 'Calc',
+        code        => qq(function evaluate (_created) \n return _created.epoch \nend),
+        return_type => 'datetime',
+        # Returned as timezone Europe/London and this date is always in the
+        # summer so BST
+        before      => '2014-10-22 02:00:00',
+        after       => '2014-10-22 02:00:00'
+    },
+    {
         name   => 'tree node',
         type   => 'Calc',
         code   => qq(function evaluate (L1tree1) \n return L1tree1.value \nend),
@@ -441,7 +451,7 @@ foreach my $test (@tests)
             $record_check = $record;
         }
         $before = qr/^$before$/ unless ref $before eq 'Regexp';
-        my $ref = $test->{return_type} && $test->{return_type} eq 'date' ? 'DateTime' : '';
+        my $ref = $test->{return_type} && $test->{return_type} =~ /date/ ? 'DateTime' : '';
         is(ref $_, $ref, "Return value is not a reference or correct reference")
             foreach @{$record_check->fields->{$code_col->id}->value};
         like( $record_check->fields->{$code_col->id}->as_string, $before, "Correct code value for test $test->{name} (before)" );

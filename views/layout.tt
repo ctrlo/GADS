@@ -838,6 +838,7 @@
                               items       = [
                                 {id = "string", name = "String"},
                                 {id = "date", name = "Date"},
+                                {id = "datetime", name = "Date and Time"},
                                 {id = "daterange", name = "range"},
                                 {id = "integer", name = "Integer"},
                                 {id = "numeric", name = "Decimal"},

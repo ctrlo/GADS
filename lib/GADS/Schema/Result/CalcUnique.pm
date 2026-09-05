@@ -21,6 +21,8 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_nullable => 1 },
   "value_date",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "value_datetime",
+  { data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "value_numeric",
   { data_type => "decimal", is_nullable => 1, size => [20, 5] },
   "value_date_from",
@@ -36,6 +38,7 @@ __PACKAGE__->add_unique_constraint("calc_unique_ux_layout_int", ["layout_id", "v
 __PACKAGE__->add_unique_constraint("calc_unique_ux_layout_date", ["layout_id", "value_date"]);
 __PACKAGE__->add_unique_constraint("calc_unique_ux_layout_numeric", ["layout_id", "value_numeric"]);
 __PACKAGE__->add_unique_constraint("calc_unique_ux_layout_daterange", ["layout_id", "value_date_from", "value_date_to"]);
+__PACKAGE__->add_unique_constraint("calc_unique_ux_layout_datetime", ["layout_id", "value_datetime"]);
 
 __PACKAGE__->belongs_to(
   "layout",
