@@ -49,6 +49,7 @@
                 placeholder = field.placeholder
                 items = values.${field.name}
                 sub_field = ""
+                filter = "html"
                 sub_params = {};
 
             ELSIF field.type == "textarea";
