@@ -272,9 +272,6 @@ sub upload
             no_welcome_email => 1, # Send at end in case of failures
             %values);
         };
-        my $user_value = $u->as_string;
-        $u->update({ value => $user_value });
-        $values{value} = $user_value;
         if($@)
         {   push @errors, {
                 row   => join (',', @$row),

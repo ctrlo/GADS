@@ -807,7 +807,6 @@ sub update_attributes
     {
         $self->update({ surname => $attributes->{$at}->[0] });
     }
-    $self->update({ value => $self->as_string });
 }
 
 sub as_string
@@ -915,6 +914,11 @@ sub validate
 
     !$self->mfa_type || $self->mfa_type =~ /^(otp|yub|sms)$/
         or error __x"Invalid MFA type: {type}", type => $self->mfa_type;
+}
+
+sub before_create_or_update
+{   my $self = shift;
+    $self->value($self->as_string);
 }
 
 sub export_hash
