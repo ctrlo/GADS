@@ -267,12 +267,14 @@ my @tests = (
     {
         name        => 'return type of date and time',
         type        => 'Calc',
-        code        => qq(function evaluate (_created) \n return _created.epoch \nend),
+        # Value needs to be fixed, as metadata fields such as created time
+        # continues to increase as tests run
+        code        => qq(function evaluate (_id) \n return 1781448310 \nend),
         return_type => 'datetime',
         # Returned as timezone Europe/London and this date is always in the
         # summer so BST
-        before      => '2014-10-22 02:00:00',
-        after       => '2014-10-22 02:00:00'
+        before      => '2026-06-14 15:45:10',
+        after       => '2026-06-14 15:45:10'
     },
     {
         name   => 'tree node',
