@@ -1,0 +1,41 @@
+[%
+    PROCESS snippets/datum.tt;
+    PROCESS snippets/record_readmore.tt;
+%]
+
+[%
+    FOREACH version IN record.chronology;
+    initial         = loop.first ? page == 1 : 0;
+    action_datetime = version.datetime.as_string;
+    final_page      = loop.last ? last_page : 0;
+    action_type     = initial ? 'Current Version' : final_page ? 'created' : 'updated';
+    action_by       = version.editor.id ? " by " _ version.editor.as_string : '';
+%]
+<div class="card card--header">
+    <h3 class="card__header">
+    [% IF initial %]
+        <span>Current Version</span>
+    [% ELSE %]
+        <span> [%  action_datetime _ " - " _ " record " _ action_type _ action_by | html %]</span>
+    [% END %]
+    </h3>
+
+    <div class="card__body row">
+    <div class="card__content">
+        <div class="list list--vertical list--key-value list--no-borders">
+        <ul class="list__items">
+            [%
+            FOREACH field IN version.changed;
+                label_changed_to = field.type == "curval" OR initial ? '' : final_page ? 'Set as ' : 'changed to ';
+            %]
+            <li class="list__item ">
+            <span class="list__key"> [% field.name | html %] </span>
+            <span class="list__value"> [% label_changed_to; render_datum(field); %]  </span>
+            </li>
+            [% END %]
+        </ul>
+        </div>
+    </div>
+    </div>
+</div>
+[% END %]

@@ -631,3 +631,8 @@ $btn-border-radius: 23px;
   @extend %icon-font;
   content: "\E80b";
 }
+
+// We want a margin between the chronology and the button
+.btn-js-load-chronology {
+  @extend .mt-3;
+}

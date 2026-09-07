@@ -26,4 +26,4 @@ export const fromJson = (json: String | object) => {
     } catch (e) {
         return {};
     }
-}
+};
