@@ -26,7 +26,7 @@
         <ul class="list__items">
             [%
             FOREACH field IN version.changed;
-                label_changed_to = field.type == "curval" OR initial ? '' : final_page ? 'Set as ' : 'changed to ';
+                label_changed_to = field.type == "curval" OR initial ? '' : final_page ? 'Set as: ' : 'Changed to: ';
             %]
             <li class="list__item ">
             <span class="list__key"> [% field.name | html %] </span>
