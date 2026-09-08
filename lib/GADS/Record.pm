@@ -1162,8 +1162,6 @@ sub _find
                         my %old_ids = map { $_->{id} => $_ } @{$last_datum->values};
                         my %new_ids = map { $_->{id} => $_ } @{$datum->values};
                         my @values;
-                        # Check each value for whether it is added, removed or changed.
-                        # Look through old values first
                         foreach my $id (keys %old_ids)
                         {
                             my $old_value = $old_ids{$id};
@@ -1171,7 +1169,7 @@ sub _find
                             # Removed?
                             if (!$new_ids{$id})
                             {
-                                $old_value->{status} = "removed";
+                                $old_value->{status} = "Removed";
                                 $old_value->{version_id} = $old_value->{record}->record_id;
                                 push @values, $old_value;
                             }
@@ -1191,7 +1189,7 @@ sub _find
                         foreach my $id (keys %new_ids)
                         {
                             my $new_value = $new_ids{$id};
-                            $new_value->{status} = "added";
+                            $new_value->{status} = "Added";
                             $new_value->{version_id} = $new_value->{record}->record_id;
                             push @values, $new_value;
                         }
@@ -1243,7 +1241,7 @@ sub _find
         }
         $self->_set_last_chronology_page($last_page // 0);
         $self->_set_last_chronology_record($last_record) if $last_record;
-        $self->_set_chronology(\@chronology);
+        $self->_set_chronology([@chronology]);
     }
 
     $self; # Allow chaining

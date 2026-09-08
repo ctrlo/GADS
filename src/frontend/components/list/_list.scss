@@ -129,6 +129,13 @@
 
     .list__value {
       flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+
+      & > * {
+        margin-left: 0.25rem;
+      }
     }
   }
 }
