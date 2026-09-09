@@ -105,6 +105,15 @@ sub _add_jp
     # Check whether join is already in store, if so update
     trace __x"Check to see if it's already in the store"
         if $debug;
+    if (my $parent = $options{parent})
+    {
+        # Make sure that parent join is added, otherwise field on its own
+        # is useless
+        my %options2 = %options;
+        delete $options2{parent};
+        $self->_add_jp($parent, %options2);
+    }
+
     foreach my $j ($self->_all_joins_recurse(@{$self->_jp_store}))
     {
         trace __x"Checking join {field}", field => $j->{column}->field
@@ -115,12 +124,13 @@ sub _add_jp
                 if $debug;
             if ( _compare_parents($options{parent}, $j->{parent}) )
             {
-                $j->{prefetch} ||= $prefetch;
-                $j->{search}   ||= $options{search};
-                $j->{linked}   ||= $options{linked};
-                $j->{sort}     ||= $options{sort};
-                $j->{group}    ||= $options{group};
-                $j->{drcol}    ||= $options{drcol};
+                $j->{prefetch}  ||= $prefetch;
+                $j->{search}    ||= $options{search};
+                $j->{linked}    ||= $options{linked};
+                $j->{sort}      ||= $options{sort};
+                $j->{group}     ||= $options{group};
+                $j->{drcol}     ||= $options{drcol};
+                $j->{aggregate} ||= $options{aggregate};
                 if ($column->is_curcommon && $prefetch)
                 {
                     $self->_add_children($j, $column, %options);
@@ -147,6 +157,7 @@ sub _add_jp
         drcol      => $options{drcol},  # Whether it's used as a daterange column on a graph x-axis
         column     => $column,
         parent     => $options{parent},
+        aggregate  => $options{aggregate},
     };
 
     # If it's a curval field then we need to account for any joins that are
@@ -214,6 +225,18 @@ sub add_linked_join
     $self->_add_jp(@_, linked => 1);
 }
 
+sub add_aggregate
+{   my ($self, $column, $operator, %options) = @_;
+    $self->_add_jp($column, aggregate => $operator, %options);
+    if ($column->is_curcommon)
+    {
+        # Add on all child fields if a curcommon field, so that the full value
+        # can be displayed (not just its ID)
+        $self->add_aggregate($_, 'max', %options, parent => $column)
+            foreach grep !$_->internal, @{$column->curval_fields_retrieve};
+    }
+}
+
 sub has_linked
 {   my ($self, %options) = @_;
     # Check all joins, regardless of options, as we still need to add a linked
@@ -267,6 +290,7 @@ sub _count_version_joins
                     ($options{search} && $_->{search} && $_->{parent} && !$is_curcommon) # Search in child of curval
                     || ($options{sort} && $_->{sort}) # sort is all children
                     || ($options{group} && $_->{group} && $_->{parent} && !$is_curcommon)
+                    || ($options{aggregate} && $_->{aggregate} && $_->{parent} && !$is_curcommon)
                     || ($options{drcol} && $_->{drcol})
                     # prefetch is all children, but not when the curval has no fields
                     || ($options{prefetch} && $_->{prefetch} && !$_->{parent} && @{$_->{children}})
@@ -365,7 +389,14 @@ sub _jpfetch
     foreach (@jpstore2)
     {
         next if exists $options{prefetch} && !$options{prefetch} && $_->{prefetch} && !$options{group} && !$options{drcol};
-        push @joins, $self->_jpfetch_add(options => \%options, join => $_,);
+        # Remove aggregate joins where the aggregate value is retrieved using a
+        # subquery instead. If it is also added as a join, not only is it
+        # unnecessary, it can also result in double-counting in totals.
+        # Note: this is the same condition as in get_aggregate(), in terms of
+        # whether to create a subquery or return the direct field selection.
+        next
+            if $options{aggregate} && !$_->{group} && ($_->{column}->multivalue || ($_->{parent} && $_->{parent}->multivalue));
+        push @joins, $self->_jpfetch_add(options => \%options, join => $_);
     }
     my @return;
     if ($options{limit} && @joins)
@@ -410,6 +441,7 @@ sub _jpfetch_add
         || ($options->{sort} && $join->{sort})
         || ($options->{group} && $join->{group})
         || ($options->{drcol} && $join->{drcol})
+        || ($options->{aggregate} && $join->{aggregate})
         || (
             # Include only aggregate columns if requested. This is used when a
             # records object has been built, but then only the aggregate columns
@@ -440,6 +472,7 @@ sub _jpfetch_add
                 || $options->{include_multivalue}
                 || $_->{group}
                 || $_->{drcol}
+                || $_->{aggregate}
             } @children
                 if $options->{prefetch};
             my $options = {
@@ -797,20 +830,101 @@ sub fqvalue
     "$tn." . $value_field;
 }
 
-has aggregate_fields => (
-    is      => 'ro',
-    lazy    => 1,
-    clearer => 1,
-    builder => sub { [] },
-);
+sub aggregate_fields
+{   my ($self, %options) = @_;
 
-sub add_aggregate
+    my @aggregate_fields;
+
+    # Don't use _jpfetch() here as we need to look for all aggregate fields
+    # regardless of conditions. This is because we include aggregate fields
+    # that are rendered as subqueries which are otherwise completely
+    # independent from the overall query.
+    foreach my $jp (grep $_->{aggregate}, @{$self->_jp_store})
+    {
+        my %opt = (
+            is_grouped => $jp->{group},
+            parent     => $jp->{parent},
+            group_cols => $options{group_cols},
+            rewind     => $options{rewind},
+        );
+
+        my $column = $jp->{column};
+        my $operator = $jp->{aggregate};
+        push @aggregate_fields, $self->get_aggregate($column, $operator, %opt);
+
+        # Also add linked column if required
+        push @aggregate_fields, $self->get_aggregate($column->link_parent, $operator, %opt,
+            is_linked  => $column,
+        ) if $column->link_parent;
+
+        if ($jp->{children} && @{$jp->{children}})
+        {
+            foreach my $child (@{$jp->{children}})
+            {
+                my $column2 = $child->{column};
+                push @aggregate_fields, $self->get_aggregate($column2, $child->{aggregate}, %opt, parent => $column)
+                    if $child->{aggregate};
+            }
+        }
+    }
+
+    @aggregate_fields;
+}
+
+# Function to return the name of an aggregate field in the sql query. This is
+# constructed of the parent ID (if applicable), then the field ID itself, then
+# the aggregate function.
+sub aggregate_name
+{   my ($self, $column, $parent, $operator) = @_;
+    my $name = $column->field;
+    $name = $parent->field."_".$name
+        if $parent;
+    # It's optional to supply an aggregate operator, in which case the one
+    # configured in the stored field is used.
+    if (!$operator)
+    {
+        my $internal_col;
+        # Need to search the whole store, as using a higher-level function will
+        # normally exclude some fields. This is because an aggregate name is
+        # needed even if the field is never part of the main query (e.g.
+        # subquery, in the same way as the aggregate_fields() function)
+        foreach my $j (@{$self->_jp_store})
+        {
+            if ($column->id == $j->{column}->id)
+            {
+                $internal_col = $j;
+            }
+            elsif ($parent && $parent->id == $j->{column}->id)
+            {
+                foreach my $child (@{$j->{children}})
+                {
+                    $internal_col = $child->{column}
+                        if $child->{column}->id == $column->id;
+                }
+            }
+        }
+        $operator = $internal_col->{aggregate}
+            if $internal_col;
+    }
+    # Operator is not added for "max" (which is just the value itself, not
+    # normally an actual aggregate operator)
+    $name .= "_".$operator
+        if $operator && $operator ne 'max';
+    $name;
+}
+
+sub get_aggregate
 {   my ($self, $column, $operator, %options) = @_;
 
+    $operator or panic "Missing operator";
+    # Througout the course of this function, the operator used in the query may
+    # be different to the operator required. For example, if a subquery is
+    # used, the actual operator may be in the subquery, but the value of the
+    # subquery retrieved using "max" (so as to not to double-count).
+    my $original_operator = $operator;
+
     # Whether this column appears in the group_by statement, therefore meaning
-    # it does not require a separate sql select statement. This can possibly be
-    # removed in the future by checking the fields that have been added as
-    # grouped.
+    # it does not require a separate sql select statement.
     my $is_grouped = delete $options{is_grouped};
     my $is_linked  = delete $options{is_linked};
     # Whether there are any group_by statements at all in the planned sql query
@@ -819,38 +933,23 @@ sub add_aggregate
     my $as_index   = $self->group_values_as_index;
     my $drcol      = !!$self->dr_column;
 
-    my ($existing) = grep {
-        $_->{column}->id == $column->id
-        && (
-            (!$_->{parent} && !$parent)
-            || ($_->{parent} && $parent && $_->{parent}->id == $parent->id)
-        )
-        && $_->{operator} ne $operator
-    } @{$self->aggregate_fields};
-
-    return $existing if $existing;
-
     my $select;
-    my $as = $is_linked ? $is_linked->field : $column->field;
-    $as = $as.'_count' if $operator eq 'count';
-    $as = $as.'_sum' if $operator eq 'sum';
-    $as = $as.'_distinct' if $operator eq 'distinct' && !$is_grouped;
-    $as = $as.'_link' if $is_linked;
 
     # The select statement to get this column's value varies depending on
     # what we want to retrieve. If we're selecting a field with multiple
     # values, then we have to run this as a separate subquery, otherwise if
     # there are more than one multiple-value retrieval then that aggregates
     # will be counting multiple times for each set of multiple values (due
-    # to the multiple joins)
+    # to the multiple joins).
 
-    # Field is either multivalue or its parent is
     if (($column->multivalue || ($parent && $parent->multivalue)) && !$is_grouped)
     {
-        # Assume curval if it's a parent - we need to search the curval
-        # table for all the curvals that are part of the records retrieved.
+        # Field is either multivalue or its parent is: construct a subquery
+        # rather than selecting from the main query.
         if ($parent)
         {
+            # Assume curval if it's a parent - we need to search the curval
+            # table for all the curvals that are part of the records retrieved.
             my $f_rs = $self->schema->resultset('Curval')->search({
                 'mecurval.record_id' => {
                     # Match against main query's records (use cvo_values as
@@ -863,7 +962,7 @@ sub add_aggregate
                 # If retrieving from a previous point in time then add
                 # required search criteria to only retrieve single correct
                 # record
-                $self->cvo_values ? () : ('record_later.id' => undef),
+                $self->cvo_values ? () : ('record_later_alternative.id' => undef),
                 $self->rewind_values ? ('record_single_alternative.created' => {
                     '<=' => $self->dt_parser->format_datetime($self->rewind_values)
                 }) : ()
@@ -877,7 +976,7 @@ sub add_aggregate
                             $column->tjoin(join_current_version => 1)
                         ])
                         : ('record_single_alternative' => [
-                            'record_later',
+                            'record_later_alternative',
                             $column->tjoin,
                         ])
                     },
@@ -914,54 +1013,53 @@ sub add_aggregate
         }
         # Otherwise a standard subquery select for that type of field
         else {
-            # Also need to add the main search query, otherwise if we take
-            # all the field's values for each record, then we won't be
-            # filtering the non-matched ones in the case of multivalue
-            # fields.
-            # Need to include "group" as an option to the subquery, to
-            # ensure that the grouping column is added to match to the main
-            # query's group column. This does not apply if doing an overall
-            # aggregate though, as there is only a need to retrieve the
-            # overall results, not for each matching grouped row. If the
-            # "group" option is included unnecessarily, then this can cause
-            # joins of multiple-value fields which can include too many
-            # results in the aggregate.
+            # For the subquery, we also need to add the main search query,
+            # otherwise if we take all the field's values for each record, then
+            # we won't be filtering the non-matched ones in the case of
+            # multivalue fields.
             my $has_grouped = @group_cols;
-            my $searchq = $self->search_query(%options,
-                search               => 1,
-                extra_column         => $column,
-                linked               => 0,
-                group                => $has_grouped,
+            # First start with only records in the current overall query. Add
+            # on the various parts of the query that are normally required for
+            # this type of query.
+            my $searchq = [{
+                'mefield.id' => { -in => $self->_current_ids_rs->as_query },
+            }];
+            push @$searchq, $self->record_later_search(
                 alt                  => 1,
-                alias                => 'mefield',
                 current_version_only => $self->cvo_values,
-                rewind               => $self->rewind_values,
+            );
+            push @$searchq, {$self->record_single_rewind(alt => 1, rewind => $options{rewind})}
+                if $options{rewind};
+            # Now add onto the query additional filters to only match the
+            # relevant group that it is a part of (one aggregate field can have
+            # multiple rows in the resultant query, one for each grouped
+            # column).
+            my %common = (
+                search               => 0,
+                sort                 => 0,
+                prefetch             => 0,
+                aggregate            => 0,
+                current_version_only => $self->cvo_values,
+                group                => $has_grouped,
+                # Overridden if required
+                linked               => 0,
+                drcol                => $drcol,
             );
             foreach my $group (@group_cols)
             {
                 push @$searchq, {
                     $self->fqvalue($group->{column},
-                        %options,
-                        search               => 1,
-                        as_index             => $as_index,
-                        linked               => 0,
-                        group                => 1,
-                        alt                  => 1,
-                        extra_column         => $group->{column},
-                        parent               => $group->{parent},
-                        drcol                => $drcol,
-                        current_version_only => $self->cvo_values
+                        %common,
+                        as_index     => $as_index,
+                        alt          => 1,
+                        extra_column => $group->{column},
+                        parent       => $group->{parent},
                     ) => {
                         -ident => $self->fqvalue($group->{column},
-                            %options,
-                            search               => 1,
-                            parent               => $group->{parent},
-                            as_index             => $as_index,
-                            linked               => 0,
-                            group                => 1,
-                            extra_column         => $group->{column},
-                            drcol                => $drcol,
-                            current_version_only => $self->cvo_values,
+                            %common,
+                            parent       => $group->{parent},
+                            as_index     => $as_index,
+                            extra_column => $group->{column},
                         )
                     },
                 };
@@ -971,64 +1069,46 @@ sub add_aggregate
                 {
                     alias => 'mefield',
                     join  => [
-                        [$self->linked_hash(%options,
-                                search               => 1,
-                                group                => $has_grouped,
-                                alt                  => 1,
-                                extra_column         => $column,
-                                current_version_only => $self->cvo_values,
+                        [$self->linked_hash(
+                                %common,
+                                alt          => 1,
+                                extra_column => $column,
                             )],
                         {
                             $self->cvo_values
                             ? ('current_version_alternative' => [
-                                $self->jpfetch(%options,
-                                    search               => 1,
-                                    linked               => 0,
-                                    group                => $has_grouped,
-                                    extra_column         => $column,
-                                    alt                  => 1,
-                                    current_version_only => 1,
+                                $self->jpfetch(
+                                    %common,
+                                    extra_column => $column,
+                                    alt          => 1,
                                 )
                             ])
                             : ('record_single_alternative' => [ # The (assumed) single record for the required version of current
                                 'record_later_alternative',  # The record after the single record (undef when single is latest)
-                                $self->jpfetch(%options,
-                                    search               => 1,
-                                    linked               => 0,
-                                    group                => $has_grouped,
-                                    extra_column         => $column,
-                                    alt                  => 1,
-                                    current_version_only => 0,
+                                $self->jpfetch(
+                                    %common,
+                                    extra_column => $column,
+                                    alt          => 1,
                                 ),
                             ])
                         },
                     ],
                     select => {
                         count => { distinct => $self->fqvalue($column,
-                            %options,
-                            search               => 1,
-                            as_index             => $as_index,
-                            linked               => 0,
-                            group                => 1,
-                            alt                  => 1,
-                            extra_column         => $column,
-                            drcol                => $drcol,
-                            current_version_only => $self->cvo_values,
+                            %common,
+                            as_index     => $as_index,
+                            alt          => 1,
+                            extra_column => $column,
                         )},
                         -as   => 'sub_query_as',
                     },
                 },
             );
             my $col_fq = $self->fqvalue($column,
-                %options,
-                search               => 1,
-                as_index             => $as_index,
-                linked               => 0,
-                group                => 1,
-                alt                  => 1,
-                extra_column         => $column,
-                drcol                => $drcol,
-                current_version_only => $self->cvo_values,
+                %common,
+                as_index     => $as_index,
+                alt          => 1,
+                extra_column => $column,
             );
             if ($column->numeric && $operator eq 'sum')
             {
@@ -1054,17 +1134,21 @@ sub add_aggregate
     # Standard single-value field - select directly, no need for a subquery
     else {
         $select = $self->fqvalue($column,
-            %options,
+            aggregate            => 1,
+            rewind               => $options{rewind},
             as_index             => $as_index,
-            prefetch             => 1,
             group                => 1,
-            linked               => 0,
+            linked               => !!$is_linked,
             parent               => $parent,
             retain_join_order    => 1,
             drcol                => $drcol,
             current_version_only => $self->cvo_values,
         );
     }
+
+    my $as = $is_linked ? $self->aggregate_name($is_linked, undef, $original_operator)
+        : $self->aggregate_name($column, $parent, $original_operator);
+    $as = $as.'_link' if $is_linked;
 
     my $overall_select = $operator eq 'distinct'
         ? {
@@ -1076,7 +1160,7 @@ sub add_aggregate
             -as       => $as,
         };
 
-    my $aggfield = {
+    return {
         column   => $column,
         parent   => $parent,
         select   => $overall_select,
@@ -1084,17 +1168,6 @@ sub add_aggregate
         as       => $as,
     };
 
-    push @{$self->aggregate_fields}, $aggfield;
-
-    # Also add linked column if required
-    $self->add_aggregate($column->link_parent, $operator,
-        is_linked  => $column,
-        parent     => $parent,
-        group_cols => \@group_cols,
-        is_grouped => $is_grouped
-    ) if $column->link_parent;
-
-    $aggfield;
 }
 
 sub _dump_child
@@ -1112,15 +1185,16 @@ sub _dump_child
     my $parent_id = $child->{parent}->id;
 my $ret = "
 child is ".$child->{column}->id." (".$child->{column}->name.") => {
-    join     => $join,
-    prefetch => $child->{prefetch},
-    curval   => $child->{curval},
-    search   => $child->{search},
-    sort     => $child->{sort},
-    group    => $child->{group},
-    drcol    => $child->{drcol},
-    parent   => $parent_id,
-    children => $children
+    join      => $join,
+    prefetch  => $child->{prefetch},
+    aggregate => $child->{aggregate},
+    curval    => $child->{curval},
+    search    => $child->{search},
+    sort      => $child->{sort},
+    group     => $child->{group},
+    drcol     => $child->{drcol},
+    parent    => $parent_id,
+    children  => $children
 },";
     my $space = '    ' x $indent;
     $ret =~ s/^(.*)$/$space$1/mg;
@@ -1146,15 +1220,16 @@ sub _dump_jp_store
         my $join = ref $jp->{join} ? $dd->Dump : $jp->{join};
         chomp $join;
         $dumped .= "    join for ".$jp->{column}->id." (".$jp->{column}->name.") => {
-        join     => $join,
-        prefetch => $jp->{prefetch},
-        search   => $jp->{search},
-        linked   => $jp->{linked},
-        sort     => $jp->{sort},
-        group    => $jp->{group},
-        drcol    => $jp->{drcol},
-        curval   => $jp->{curval},
-        children => $children
+        join      => $join,
+        prefetch  => $jp->{prefetch},
+        aggregate => $jp->{aggregate},
+        search    => $jp->{search},
+        linked    => $jp->{linked},
+        sort      => $jp->{sort},
+        group     => $jp->{group},
+        drcol     => $jp->{drcol},
+        curval    => $jp->{curval},
+        children  => $children
     },
 ";
     }

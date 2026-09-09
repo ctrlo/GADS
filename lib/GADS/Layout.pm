@@ -1313,9 +1313,9 @@ sub position
 
 sub column
 {   my ($self, $id, %options) = @_;
-    $id or return;
+    $id or return undef;
     my $column = $self->use_layout->columns_index->{$id}
-        or return; # Column does not exist
+        or return undef; # Column does not exist
     return if $options{permission} && !$column->user_can($options{permission});
     $column;
 }

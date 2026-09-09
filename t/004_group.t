@@ -13,7 +13,7 @@ foreach my $multivalue (0..1)
     # It doesn't make a lot of sense to test a lot of these values, as the grouping
     # of text fields is not really possible (instead, the max value is used).
     # However, add them to the tests, to check that if a user does add them to a
-    # grouping view that something unexpected doesn't happen
+    # grouping view that something unexpected doesn't happen.
     my $data = [
         {
             string1    => 'foo1',
@@ -23,6 +23,7 @@ foreach my $multivalue (0..1)
             enum1      => 8,
             tree1      => 12,
             curval1    => 1,
+            curval2    => 2, # Bar
             person1    => 1,
         },
         {
@@ -33,6 +34,7 @@ foreach my $multivalue (0..1)
             enum1      => $multivalue ? [7,9] : 7,
             tree1      => 12,
             curval1    => 1,
+            curval2    => 2,
             person1    => 1,
         },
         {
@@ -43,6 +45,7 @@ foreach my $multivalue (0..1)
             enum1      => 8,
             tree1      => 11,
             curval1    => 2,
+            curval2    => 1, # Foo
             person1    => 1,
         },
         {
@@ -53,6 +56,7 @@ foreach my $multivalue (0..1)
             enum1      => 8,
             tree1      => 11,
             curval1    => 2,
+            curval2    => 1,
             person1    => 1,
         },
     ];
@@ -67,6 +71,7 @@ foreach my $multivalue (0..1)
             enum1      => $multivalue ? '3 unique' : '2 unique',
             tree1      => '1 unique',
             curval1    => '1 unique',
+            curval2    => '1 unique',
         },
         {
             string1    => 'foo2',
@@ -77,6 +82,7 @@ foreach my $multivalue (0..1)
             enum1      => '1 unique',
             tree1      => '1 unique',
             curval1    => '1 unique',
+            curval2    => '1 unique',
         },
     ];
 
@@ -93,6 +99,8 @@ foreach my $multivalue (0..1)
         schema           => $schema,
         curval           => 2,
         curval_field_ids => [$curval_sheet->columns->{string1}->id],
+        # Add 2 curvals to test child fields of the same parent
+        column_count     => { curval => 2},
         multivalue       => $multivalue,
         user_permission_override => 0,
     );
@@ -123,10 +131,12 @@ foreach my $multivalue (0..1)
     my $enum1      = $columns->{enum1};
     my $tree1      = $columns->{tree1};
     my $curval1    = $columns->{curval1};
+    my $curval2    = $columns->{curval2};
 
     my $view = GADS::View->new(
         name        => 'Group view',
-        columns     => [$string1->id, $integer1->id, $calc1->id, $date1->id, $daterange1->id, $enum1->id, $tree1->id, $curval1->id],
+        curval1     => 'Bar',
+        columns     => [$string1->id, $integer1->id, $calc1->id, $date1->id, $daterange1->id, $enum1->id, $tree1->id, $curval1->id, $curval2->id],
         instance_id => $layout->instance_id,
         layout      => $layout,
         schema      => $schema,
@@ -161,6 +171,7 @@ foreach my $multivalue (0..1)
         is($row->fields->{$enum1->id}, $expected->{enum1}, "Group enum correct");
         is($row->fields->{$tree1->id}, $expected->{tree1}, "Group tree correct");
         is($row->fields->{$curval1->id}, $expected->{curval1}, "Group curval correct");
+        is($row->fields->{$curval2->id}, $expected->{curval2}, "Second group curval correct");
         is($row->id_count, 2, "ID count correct");
     }
 
@@ -220,6 +231,7 @@ foreach my $multivalue (0..1)
             rag1       => 'b_red',
             calc1      => 50,
             curval1    => 'Bar',
+            curval2    => 'Bar',
             daterange1 => '2000-01-02 to 2001-03-03',
             person1    => 'User1, User1',
         };
@@ -297,14 +309,14 @@ foreach my $multivalue (0..1)
     # Test curval (subfield)
     $view = GADS::View->new(
         name        => 'Group view curval subfield',
-        columns     => [$integer1->id],
+        columns     => [$curval1->id, $integer1->id],
         instance_id => $layout->instance_id,
         layout      => $layout,
         schema      => $schema,
         user        => $sheet->user,
     );
-    $view->set_sorts({fields => [$columns->{curval1}->id."_".$curval_sheet->columns->{string1}->id], types => ['desc']});
-    $view->set_groups([$columns->{curval1}->id."_".$curval_sheet->columns->{string1}->id]);
+    $view->set_sorts({fields => [$columns->{curval2}->id."_".$curval_sheet->columns->{string1}->id], types => ['desc']});
+    $view->set_groups([$columns->{curval1}->id."_".$curval_sheet->columns->{string1}->id, $columns->{curval2}->id."_".$curval_sheet->columns->{string1}->id]);
     $view->write;
 
     $records = GADS::Records->new(
@@ -315,8 +327,8 @@ foreach my $multivalue (0..1)
     );
     @results = @{$records->results};
     is(@results, 2, "Correct number of rows for group by curval subfield");
-    is($results[0]->fields->{$integer1->id}, '75', "Group by curval subfield first result correct");
-    is($results[1]->fields->{$integer1->id}, '130', "Group by curval subfield second result correct");
+    is($results[0]->fields->{$integer1->id}, '130', "Group by curval subfield first result correct");
+    is($results[1]->fields->{$integer1->id}, '75', "Group by curval subfield second result correct");
 
     # Try also sorting directly on the Records object
     # First with invalid subfield without parent - should error
@@ -338,7 +350,7 @@ foreach my $multivalue (0..1)
         sort   => {
             type      => 'desc',
             id        => $curval_sheet->columns->{string1}->id,
-            parent_id => $columns->{curval1}->id,
+            parent_id => $columns->{curval2}->id,
         },
         view   => $view,
         layout => $layout,
@@ -347,8 +359,8 @@ foreach my $multivalue (0..1)
     );
     @results = @{$records->results};
     is(@results, 2, "Correct number of rows for group by curval subfield");
-    is($results[0]->fields->{$integer1->id}, '75', "Group by curval subfield first result correct");
-    is($results[1]->fields->{$integer1->id}, '130', "Group by curval subfield second result correct");
+    is($results[0]->fields->{$integer1->id}, '130', "Group by curval subfield first result correct");
+    is($results[1]->fields->{$integer1->id}, '75', "Group by curval subfield second result correct");
 
 }
 
