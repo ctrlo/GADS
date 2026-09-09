@@ -133,6 +133,10 @@ sub _build_view
     $views->view($self->view_id);
 }
 
+# Update the stored cached values for this alert. For views that are common
+# across multiple users (the view does not have a CURUSER filter and the user
+# does not have a restricted view) then this cache will be shared across all
+# users with the same alert. Otherwise, user-specific values are stored.
 sub update_cache
 {   my ($self, %options) = @_;
 
@@ -148,33 +152,49 @@ sub update_cache
         return;
     }
 
-    # If the view contains a CURUSER filter, we need separate
-    # alert caches for each user that has this alert. Only need
-    # to worry about this if all_users flag is set
-    my @users = $view->has_curuser && $options{all_users}
+    # If the view contains a CURUSER filter or the user of the alert has a
+    # limited view, then we need separate alert caches for each user that has
+    # this alert.
+    # If the all_users flag is set we need to consider this for all users.
+    my @users_search = $options{all_users}
         ? map $_->user, $self->schema->resultset('Alert')->search({
             view_id => $view->id
         }, {
             prefetch => 'user'
-        })->all : ($self->user);
+        })->all
+        : ($self->user);
+
+    my @users;
+    if ($view->has_curuser)
+    {
+        # View has CURUSER filter - always need user-specific cache
+        @users = @users_search;
+    }
+    elsif (grep $_->has_view_limit($self->layout->instance_id), @users_search)
+    {
+        # Need user specific cache if any user of the alter is view-limited
+        @users = @users_search;
+    }
+    else {
+        # Normal cache
+        @users = (undef);
+    }
 
     foreach my $user (@users)
     {
-        my $u = $view->has_curuser && $user;
-
         my $records = GADS::Records->new(
             # We generally want to generate a view's alert_cache without user
             # defined permissions limiting it, otherwise multiple users on a
             # single global view will have different things to alert on.
             # The only exception is when the view has a CURUSER, in which
             # case we generate them individually.
-            user   => $u,
+            user   => $user,
             layout => $self->layout,
             schema => $self->schema,
             view   => $view,
         );
 
-        my $user_id = $view->has_curuser ? $u->id : undef;
+        my $user_id = $view->has_curuser ? $user->id : undef;
 
         my %exists;
         # For each item in this view, see if it exists in the cache. If it doesn't,
