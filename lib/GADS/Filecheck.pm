@@ -64,8 +64,8 @@ sub check_upload
 {
     my ($self, $upload, %options) = @_;
 
-    error __"Maximum file size is 50 MB"
-        if $upload->size > 50 * 1024 * 1024;
+    error __"Maximum file size is $options{col_filesize} KB"
+        if $upload->size > (int($options{col_filesize} ? $options{col_filesize} : 50 * 1024) * 1024);
 
     return $self->_check_file($upload->filename, $upload->tempname, %options);
 }

@@ -31,6 +31,10 @@ has '+option_names' => (
         [+{
             name              => 'override_types',
             user_configurable => 0,
+        },
+        +{
+            name              => 'filesize',
+            user_configurable => 1,
         }]
     }
 );
@@ -50,6 +54,16 @@ has override_types => (
 has filesize => (
     is      => 'rw',
     isa     => Maybe[Int],
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        return undef unless $self->has_options;
+        $self->options->{filesize} || undef;
+    },
+    trigger => sub { $_[0]->reset_options },
+    coerce => sub {
+        $_[0] eq '' ? undef : $_[0]
+    },
 );
 
 has '+can_multivalue' => (
@@ -66,15 +80,9 @@ sub value_field_as_index
 }
 
 after build_values => sub {
-    my ($self, $original) = @_;
-    
+    my ($self) = @_;
     $self->string_storage(1);
     $self->value_field('name');
-    my ($file_option) = $original->{file_options}->[0];
-    if ($file_option)
-    {
-        $self->filesize($file_option->{filesize});
-    }
 };
 
 sub _build_retrieve_fields
@@ -103,28 +111,7 @@ sub validate
 # Any value is valid for a search, as it can include begins_with etc
 sub validate_search {1};
 
-sub write_special
-{   my ($self, %options) = @_;
-
-    my $id   = $options{id};
-
-    my $foption = {
-        filesize => $self->filesize,
-    };
-    my ($file_option) = $self->schema->resultset('FileOption')->search({
-        layout_id => $id,
-    })->all;
-    if ($file_option)
-    {
-        $file_option->update($foption);
-    }
-    else {
-        $foption->{layout_id} = $id;
-        $self->schema->resultset('FileOption')->create($foption);
-    }
-
-    return ();
-};
+sub write_special {1};
 
 sub tjoin
 {   my $self = shift;
@@ -134,7 +121,6 @@ sub tjoin
 sub cleanup
 {   my ($class, $schema, $id)  = @_;
     $schema->resultset('File')->search({ layout_id => $id })->delete;
-    $schema->resultset('FileOption')->search({ layout_id => $id })->delete;
 };
 
 sub resultset_for_values
