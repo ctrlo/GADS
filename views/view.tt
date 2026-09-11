@@ -45,32 +45,18 @@
                             data-help-text="***Personal*** - available to all users and only visible to the user that creates them. **Note**: Administrators can manage other user's personal views.\n***Shared*** - users with permission to create shared views can check the shared view box and then select which groups to share the view with.\n***Administration*** - these views are only visible to Administrative users, and primarily for controlling user access to records."
                             data-help-title="View Type"
                             data-help-target="help__card">
-                            <label>View type</label>
+                            <div class="input__label">
+                              <label class="form-label">View type</label>
+                            </div>
                           </div>
                         </div>
                         <div class="row">
-                          <div class="col-lg-3">
-                            [%
-                              INCLUDE fields/sub/checkbox.tt
-                                id          = "global"
-                                name        = "global"
-                                label       = "Shared view"
-                                value       = 1
-                                checked     = view_edit.global ? 1 : 0
-                                input_class = "mb-lg-0 checkbox--reveal";
-                            %]
-                          </div>
-
-                          <div class="col-lg-9">
-                            [%
-                              INCLUDE fields/sub/checkbox.tt
-                                id          = "is_admin"
-                                name        = "is_admin"
-                                label       = "Administration view (only visible to table administrators)"
-                                value       = 1
-                                checked     = view_edit.is_admin ? 1 : 0
-                                input_class = "mb-lg-0";
-                            %]
+                          <div class="col">
+                            <select class="form-select bg-white" name="viewType" id="viewType">
+                              <option value="personal">Personal</option>
+                              <option value="shared">Shared</option>
+                              <option value="admin">Admin (only visible to table administrators)</option>
+                            </select>
                           </div>
                         </div>
                       </div>
@@ -79,7 +65,7 @@
                   <div class="row">
                     <div class="col">
 
-                      <div class="checkbox-reveal" id="global-reveal">
+                      <div class="select-reveal" data-select-target="viewType" data-select-value="shared">
                         [%
                           group_id_items = layout.user_can("layout") ? [{id="", name="<All users>"}] : [];
 
