@@ -74,6 +74,6 @@ sub sqlt_deploy_hook {
     $sqlt_table->add_index(name => 'calcval_idx_value_datetime', fields => [ 'value_datetime' ]);
 }
 
-sub _build_valuefield { ('value_text','value_numeric','value_int','value_date','value_datetime','value_date_from','value_date_to'); }
+sub _build_value_fields { ['value_text','value_numeric','value_int','value_date', 'value_datetime','value_date_from','value_date_to'] }
 
 1;

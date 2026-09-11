@@ -60,6 +60,7 @@ use GADS::Record;
 use GADS::Records;
 use GADS::RecordsGraph;
 use GADS::SAML;
+use GADS::SchemaInstance;
 use GADS::Type::Permissions;
 use GADS::Users;
 use GADS::Util;

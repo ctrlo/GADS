@@ -352,7 +352,7 @@ sub for_table
     }
 
     my $return = $self->for_table_template;
-    $return->{values} = \@vals;
+    $return->{values} = $self->is_purged ? ["[purged]"] : \@vals;
     $return;
 }
 
