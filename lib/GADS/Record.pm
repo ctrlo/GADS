@@ -724,7 +724,7 @@ sub find_chronology_id
         or error __x"Record ID {id} not found", id => $current_id;
     my $instance_id = $current->instance_id;
     $self->_set_instance_id($current->instance_id);
-    $self->_find(current_id => $current_id, chronology => 1);
+    $self->_find(current_id => $current_id, chronology => 1, current => $current);
 }
 
 sub find_draftuser_id
@@ -1006,6 +1006,14 @@ sub _find
         $page++;
         $first_run = 0;
     }
+
+    # If viewing a chronology, at this point the record will only contain the
+    # versions that the user is allowed to see in accordance with any view
+    # limits. It could be that they can't see the actual latest version though,
+    # and that the latest version here is an old version. Check now whether
+    # they are allowed to see this record at all.
+    error __"Requested record not found"
+        if $find{chronology} && $find{current}->current_version_id != $record_ids[-1];
 
     $self->clear_is_draft;
 
