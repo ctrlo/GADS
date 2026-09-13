@@ -82,6 +82,68 @@ $record->clear;
     is($changed_integer->{name_short}, 'L1integer1', "Showing change of integer in second edit");
 }
 
+# Check view limits. If the user has view limits applied to their account, they
+# should not be able to see historical versions within that restriction.
+{
+    # Firstly set up a limit that only allows them to see the most recent 2
+    # versions:
+    my $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $string1->id,
+                type     => 'string',
+                value    => 'Foo2',
+                operator => 'equal',
+            }],
+        },
+    );
+    my $view_limit = GADS::View->new(
+        name        => 'limit to view',
+        filter      => $rules,
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $user,
+    );
+    $view_limit->write;
+    $user->set_view_limits([$view_limit->id]);
+
+    $layout->clear;
+    $record->find_chronology_id(1);
+    my @changed = @{$record->chronology};
+    is(@changed, 2, "Number of versions matches access rights");
+
+    # Next a view limit that does not allow the user to see the latest version
+    # (only earlier) versions
+    $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $string1->id,
+                type     => 'string',
+                value    => '20',
+                operator => 'less',
+            }],
+        },
+    );
+    $view_limit = GADS::View->new(
+        name        => 'limit to view',
+        filter      => $rules,
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $user,
+    );
+    $view_limit->write;
+    $user->set_view_limits([$view_limit->id]);
+
+    $layout->clear;
+    try { $record->find_chronology_id(1) };
+    like($@, qr/record not found/, "Cannot see chronology of record with no current access");
+
+    # Reset
+    $user->set_view_limits([]);
+}
+
 # Check changes as user without permission on integer field
 {
     $integer1->set_permissions({$sheet->group->id => []});
@@ -107,5 +169,4 @@ $record->clear;
     # Second change not shown as integer not visible
 }
 
-#
 done_testing();
