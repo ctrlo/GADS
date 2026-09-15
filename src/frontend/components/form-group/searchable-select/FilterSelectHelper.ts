@@ -1,8 +1,8 @@
 import "./JQuerySearchableSelect";
 
 export const refreshSelects = (el: JQuery<HTMLElement>) => {
-    const ruleFilterSelects: any[] = []; // I will make this it's proper type later
-    const operatorSelects: any[] = []; // I will make this it's proper type later
+    const ruleFilterSelects: HTMLSelectElement[] = [];
+    const operatorSelects: HTMLSelectElement[] = [];
 
     el.on("afterCreateRuleFilters.queryBuilder", (e: JQuery.TriggeredEvent, rule: any) => {
         const ruleFilterSelect = $(rule.$el.find(`select[name=${rule.id}_filter]`));
