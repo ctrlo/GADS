@@ -26,7 +26,8 @@ export class GadsStorage implements AppStorage {
      * @returns {Promise<void>} The storage key used to encrypt data.
      */
     private async getStorageKey(): Promise<void> {
-        if (window.test) {
+        // TS6 is a bit weird - it recognises window.test as a function and wants to call it so we resort to typechecks
+        if (typeof window.test !== "undefined") {
             this.storageKey = "test";
             return;
         }

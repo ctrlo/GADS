@@ -7,7 +7,7 @@ import { MarkDown } from "util/formatters/markdown";
  */
 export default class HelpView extends Component {
     // This is protected so that it can be accessed in tests.
-    protected $button: JQuery<HTMLAnchorElement>;
+    protected $button!: JQuery<HTMLAnchorElement>;
 
     /**
      * Create a new HelpView component.
