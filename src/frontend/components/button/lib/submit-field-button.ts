@@ -131,7 +131,8 @@ export default class SubmitFieldButton {
      * @returns {string} The URL for the tree API
      */
     private getURL(data: JQuery.PlainObject): string {
-        if (window.test) return "";
+        // TS6 is a bit odd - it recognises window.test as a function and wants to call it so we resort to typechecks
+        if (typeof window.test !== "undefined") return "";
 
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;
 

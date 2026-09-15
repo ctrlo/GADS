@@ -6,7 +6,7 @@ if (typeof jQuery === "undefined") throw new Error("jQuery is not loaded. Please
 declare global {
     interface JQuery {
         searchableSelect: (options?: SearchableSelectOptions) => JQuery;
-        getSearchableSelect: () => SearchableSelect;
+        getSearchableSelect: () => SearchableSelect | null;
     }
 }
 

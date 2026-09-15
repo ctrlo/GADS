@@ -1,8 +1,8 @@
 import "./JQuerySearchableSelect";
 
 export const refreshSelects = (el: JQuery<HTMLElement>) => {
-    const ruleFilterSelects = [];
-    const operatorSelects = [];
+    const ruleFilterSelects: any[] = []; // I will make this it's proper type later
+    const operatorSelects: any[] = []; // I will make this it's proper type later
 
     el.on("afterCreateRuleFilters.queryBuilder", (e: JQuery.TriggeredEvent, rule: any) => {
         const ruleFilterSelect = $(rule.$el.find(`select[name=${rule.id}_filter]`));
@@ -28,26 +28,19 @@ export const refreshSelects = (el: JQuery<HTMLElement>) => {
 
     el.on("afterSetRules.queryBuilder", () => {
         for (const ruleFilterSelect of ruleFilterSelects) {
-            if (!ruleFilterSelect) {
-                continue;
-            }
-            $(ruleFilterSelect).getSearchableSelect()
-                .refresh();
+            if (!ruleFilterSelect) continue;
+            $(ruleFilterSelect).getSearchableSelect()?.refresh();
         }
         for (const operatorSelect of operatorSelects) {
             if (!operatorSelect) continue;
-            $(operatorSelect).getSearchableSelect()
-                .refresh();
+            $(operatorSelect).getSearchableSelect()?.refresh();
         }
     });
 
     el.on("afterSetRuleOperator.queryBuilder", () => {
         for (const operatorSelect of operatorSelects) {
-            if (!operatorSelect) {
-                continue;
-            }
-            $(operatorSelect).getSearchableSelect()
-                .refresh();
+            if (!operatorSelect) continue;
+            $(operatorSelect).getSearchableSelect()?.refresh();
         }
     });
 };

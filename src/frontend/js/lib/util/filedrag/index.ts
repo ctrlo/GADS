@@ -28,12 +28,14 @@ if (typeof jQuery !== "undefined") {
 
             if (!this.data("filedrag")) {
                 this.data("filedrag", "true");
-                new FileDrag(this, options, (file, index, length) => {
-                    if(index === undefined) index = 1;
-                    if(length === undefined) length = 1;
-                    if (options.debug) console.debug("fileDrop", file, index, length);
-                    const event = $.Event("fileDrop", { file, index, length });
-                    this.trigger(event);
+                this.each((_, el) => {
+                    new FileDrag(el, options, (file, index, length) => {
+                        if(index === undefined) index = 1;
+                        if(length === undefined) length = 1;
+                        if (options.debug) console.debug("fileDrop", file, index, length);
+                            const event = $.Event("fileDrop", { file, index, length });
+                            $(el).trigger(event);
+                    });
                 });
             }
 
