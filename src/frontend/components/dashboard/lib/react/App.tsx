@@ -311,7 +311,7 @@ export default function App(props: AppProps): React.JSX.Element {
     return (
         <div className="content-block">
             {props.hideMenu || <Header
-                hMargin={props.gridConfig.containerPadding?.[0]!}
+                hMargin={props.gridConfig.containerPadding![0]}
                 dashboards={props.dashboards}
                 currentDashboard={props.currentDashboard}
                 includeH1={props.includeH1}

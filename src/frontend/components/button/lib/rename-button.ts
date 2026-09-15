@@ -195,15 +195,13 @@ class RenameButton {
     }
 }
 
-if (typeof jQuery !== "undefined") {
-    (function ($) {
-        $.fn.renameButton = function () {
-            return this.each(function (_: unknown, el: HTMLElement) {
-                if (!(el instanceof HTMLButtonElement)) return;
-                new RenameButton(el);
-            });
-        };
-    })(jQuery);
-}
+(function ($) {
+    $.fn.renameButton = function () {
+        return this.each(function (_: unknown, el: HTMLElement) {
+            if (!(el instanceof HTMLButtonElement)) return;
+            new RenameButton(el);
+        });
+    };
+})(jQuery);
 
 export { RenameEvent };

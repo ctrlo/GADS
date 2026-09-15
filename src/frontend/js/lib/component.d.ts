@@ -31,7 +31,7 @@ declare module "component" {
      * Register a component that can be initialized
      * @param componentInitializer Function that will be called when component initializes
      */
-    const registerComponent: (componentInitializer: Function) => void;
+    const registerComponent: (componentInitializer: (...args: any[]) => any) => void;
 
     /**
      * Initialize all registered components in the defined scope
@@ -55,6 +55,6 @@ declare module "component" {
      * @param componentClass The Component class to initialize
      * @returns An array of initialized components
      */
-    const initializeComponent: <T extends Component>(scope: HTMLElement, selector: string | Function, componentClass: T) => T[];
+    const initializeComponent: <T extends Component>(scope: HTMLElement, selector: string | ((...args: any[]) => any), componentClass: { new(element: HTMLElement): T }) => T[];
 
 }

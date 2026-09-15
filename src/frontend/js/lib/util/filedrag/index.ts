@@ -33,8 +33,8 @@ if (typeof jQuery !== "undefined") {
                         if(index === undefined) index = 1;
                         if(length === undefined) length = 1;
                         if (options.debug) console.debug("fileDrop", file, index, length);
-                            const event = $.Event("fileDrop", { file, index, length });
-                            $(el).trigger(event);
+                        const event = $.Event("fileDrop", { file, index, length });
+                        $(el).trigger(event);
                     });
                 });
             }
