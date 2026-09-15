@@ -22,9 +22,7 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
             }
         } catch (e) {
             logging.error(e);
-            element.on("click", function (e: JQuery.ClickEvent) {
-                e.stopPropagation();
-            });
+            element.on("click", (e) => e.stopPropagation());
             // TS6 is a bit odd - it recognises window.test as a function and wants to call it so we resort to typechecks
             if (typeof window.test !== "undefined") throw e;
         }

@@ -27,15 +27,12 @@ class MultipleSelectComponent extends Component {
      * Initialize the multiple select component.
      */
     initMultipleSelect() {
-        if (!this.multipleSelectList) {
-            return;
-        }
+        if (!this.multipleSelectList) return;
 
         this.el.find(".multiple-select__row").each((i, row) => {
             this.handleDeleteButtonVisibility(row);
 
-            $(row).find("input[type=\"hidden\"]")
-                .on("change", () => this.handleDeleteButtonVisibility(row));
+            $(row).find("input[type=\"hidden\"]").on("change", () => this.handleDeleteButtonVisibility(row));
         });
 
         this.delBtn.on("click", (ev) => { this.handleClickDelete(ev); });
@@ -53,9 +50,7 @@ class MultipleSelectComponent extends Component {
         delBtn.addClass("btn-delete--hidden");
 
         rowInputs.each((i, rowInput) => {
-            if ($(rowInput).val().length) {
-                delBtn.removeClass("btn-delete--hidden");
-            }
+            if ($(rowInput).val().length) delBtn.removeClass("btn-delete--hidden");
         });
     }
 
@@ -96,13 +91,11 @@ class MultipleSelectComponent extends Component {
                 });
         });
 
-        $dateElmsInNewRow.each((i, dateEl) => {
-            initDateField($(dateEl));
-        });
+        $dateElmsInNewRow.each((i, dateEl) => initDateField($(dateEl)));
 
         // Bind click event to new delete button
         const $delBtn = $newMultipleSelectRow.find(".btn-delete");
-        $delBtn.on("click", (ev) => { this.handleClickDelete(ev); });
+        $delBtn.on("click", (ev) => this.handleClickDelete(ev));
 
         $newMultipleSelectRow.appendTo(this.multipleSelectList);
     }

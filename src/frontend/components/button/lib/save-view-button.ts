@@ -23,16 +23,12 @@ export default function createSaveViewButtonComponent(el: JQuery<HTMLElement>) {
         const $form = $(ev.target).closest("form");
         if (!validateRequiredFields($form)) ev.preventDefault();
         const select = $form.find("input[type=hidden][name=group_id]");
-        if (select.val() === "allusers") {
-            select.val("");
-            select.removeAttr("required");
-        }
+        if (select.val() === "allusers") select.val("").removeAttr("required");
         $(".filter").each((_i, el) => {
             //Bit of typecasting here, purely because the queryBuilder plugin doesn't have types
             if (!(<any>$(el)).queryBuilder("validate")) ev.preventDefault();
             const res = (<any>$(el)).queryBuilder("getRules");
-            $(el).next("#filter")
-                .val(JSON.stringify(res, null, 2));
+            $(el).next("#filter").val(JSON.stringify(res, null, 2));
         });
     });
 }

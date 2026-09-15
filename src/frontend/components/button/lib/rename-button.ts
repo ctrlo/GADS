@@ -121,15 +121,11 @@ class RenameButton {
             .trigger("focus")
             .val(original)
             .on("keydown", (e) => this.renameKeydown(id, $(ev.target), e))
-            .on("blur", (e) => {
-                this.value = (e.target as HTMLInputElement)?.value;
-            });
+            .on("blur", (e) => this.value = (e.target as HTMLInputElement)?.value);
         $(`#rename-confirm-${id}`)
             .removeClass("hidden")
             .attr("aria-hidden", null)
-            .on("click", () => {
-                this.triggerRename(id, ev.target);
-            });
+            .on("click", () => this.triggerRename(id, ev.target));
         $(`#rename-cancel-${id}`)
             .removeClass("hidden")
             .attr("aria-hidden", null)
@@ -137,8 +133,7 @@ class RenameButton {
                 const e = $.Event("keydown", { key: "Escape", code: 27 });
                 $(`#file-rename-${id}`).trigger(e);
             });
-        $(ev.target).addClass("hidden")
-            .attr("aria-hidden", "true");
+        $(ev.target).addClass("hidden").attr("aria-hidden", "true");
     }
 
     /**

@@ -17,9 +17,7 @@ class ExpandableCardComponent extends Component {
 
         this.initExpandableCard();
 
-        if (this.$el.hasClass("card--topic")) {
-            this.initTopicCard();
-        }
+        if (this.$el.hasClass("card--topic")) this.initTopicCard();
     }
 
     /**
@@ -54,16 +52,14 @@ class ExpandableCardComponent extends Component {
         // Adjust column widths of datatables when collapsible element is expanded
         $collapsibleElm.on("shown.bs.collapse", () => {
             if ($.fn.dataTable) {
-                $($.fn.dataTable.tables(true)).DataTable()
-                    .columns.adjust();
+                $($.fn.dataTable.tables(true)).DataTable().columns.adjust();
                 this.clearupStyling();
             }
         });
 
         $(window).on("resize", () => {
             if ($.fn.dataTable) {
-                $($.fn.dataTable.tables(true)).DataTable()
-                    .columns.adjust();
+                $($.fn.dataTable.tables(true)).DataTable().columns.adjust();
                 this.clearupStyling();
             }
         });
@@ -108,12 +104,8 @@ class ExpandableCardComponent extends Component {
     }
 
     confirmOnPageExit = function (ev) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        ev = ev || window.event;
         const message = "Please note that any changes will be lost.";
-        if (ev) {
-            ev.returnValue = message;
-        }
+        if (ev) ev.returnValue = message;
         return message;
     };
 

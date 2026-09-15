@@ -60,7 +60,7 @@ class ValueLookupComponent extends Component {
             const all_names = formatter.format(all_fields);
             // Remove any existing status messages on the whole record
             $(".lookup-status").addClass("d-none");
-            addStatusMessage($field, `Looking up ${all_names}...`, true, false);
+            this.addStatusMessage($field, `Looking up ${all_names}...`, true, false);
             $.ajax({
                 type: "GET",
                 url: endpoint,
@@ -68,67 +68,66 @@ class ValueLookupComponent extends Component {
                 data: data,
                 traditional: true, // Don't put stupid [] after the parameter keys
                 dataType: "json"
-            }).done(function (data) {
+            }).done((data) => {
                 if (data.is_error || !data.result) {
                     let error = data.message ? data.message : "Unknown error";
-                    addStatusMessage($field, error, false, true);
+                    this.addStatusMessage($field, error, false, true);
                 } else {
                     for (const [name, value] of Object.entries(data.result)) {
                         var $f = $(".linkspace-field[data-name-short=\"" + name + "\"]");
                         if (!$f || $f.length == 0) continue;
                         setFieldValues($f, value);
                     }
-                    removeStatusMessage($field);
+                    this.removeStatusMessage($field);
                 }
-            })
-                .fail(function (jqXHR, textStatus) {
-                    // Use error in JSON from endpoint if available, otherwise try and
-                    // interpret error response appropriately
-                    const err_message = textStatus == "timeout"
-                        ? `Failed to look up ${all_names}: request timed out`
-                        : textStatus == "parsererror" // result not in JSON
-                            ? `Failed to look up ${all_names}: unexpected response format from server`
-                            : (jqXHR.responseJSON && jqXHR.responseJSON.message)
-                                ? jqXHR.responseJSON.message
-                                : `Failed to look up ${all_names}: ${jqXHR.statusText}`;
-                    addStatusMessage($field, err_message, false, true);
-                });
+            }).fail((jqXHR, textStatus) => {
+                // Use error in JSON from endpoint if available, otherwise try and
+                // interpret error response appropriately
+                const err_message = textStatus == "timeout"
+                    ? `Failed to look up ${all_names}: request timed out`
+                    : textStatus == "parsererror" // result not in JSON
+                        ? `Failed to look up ${all_names}: unexpected response format from server`
+                        : (jqXHR.responseJSON && jqXHR.responseJSON.message)
+                            ? jqXHR.responseJSON.message
+                            : `Failed to look up ${all_names}: ${jqXHR.statusText}`;
+                this.addStatusMessage($field, err_message, false, true);
+            });
         });
     }
+
+    /**
+     * Add a status message to the field
+     * @param {JQuery<HTMLElement>} $field The field element to add the status message to
+     * @param {string} message The message to display
+     * @param {boolean} spinner The flag to show a spinner
+     * @param {boolean} is_error Is the message an error message
+     */
+    addStatusMessage($field, message, spinner, is_error) {
+        let $notice = $field.find(".lookup-status");
+        let $text = $notice.find(".status-text");
+        $text.text(message);
+        if (is_error) {
+            $text.addClass("text-danger");
+            $text.removeClass("text-info");
+        } else {
+            $text.addClass("text-info");
+            $text.removeClass("text-danger");
+        }
+        if (spinner) {
+            $notice.find(".spinner-border").show();
+        } else {
+            $notice.find(".spinner-border").hide();
+        }
+        $notice.removeClass("d-none");
+    }
+
+    /**
+     * Remove the status message from the field
+     * @param {JQuery<HTMLElement>} $field The field element to remove the status message from
+     */
+    removeStatusMessage($field) {
+        $field.find(".lookup-status").addClass("d-none");
+    }
 }
-
-/**
- * Add a status message to the field
- * @param {JQuery<HTMLElement>} $field The field element to add the status message to
- * @param {string} message The message to display
- * @param {boolean} spinner The flag to show a spinner
- * @param {boolean} is_error Is the message an error message
- */
-const addStatusMessage = ($field, message, spinner, is_error) => {
-    let $notice = $field.find(".lookup-status");
-    let $text = $notice.find(".status-text");
-    $text.text(message);
-    if (is_error) {
-        $text.addClass("text-danger");
-        $text.removeClass("text-info");
-    } else {
-        $text.addClass("text-info");
-        $text.removeClass("text-danger");
-    }
-    if (spinner) {
-        $notice.find(".spinner-border").show();
-    } else {
-        $notice.find(".spinner-border").hide();
-    }
-    $notice.removeClass("d-none");
-};
-
-/**
- * Remove the status message from the field
- * @param {JQuery<HTMLElement>} $field The field element to remove the status message from
- */
-const removeStatusMessage = ($field) => {
-    $field.find(".lookup-status").addClass("d-none");
-};
 
 export default ValueLookupComponent;

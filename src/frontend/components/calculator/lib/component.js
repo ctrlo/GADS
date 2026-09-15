@@ -41,19 +41,16 @@ class CalculatorComponent extends Component {
 
             calculator_elem.append(
                 "<form class=\"form-inline\">" +
-        "    <div class=\"form-group\"><div class=\"radio-group radio-group--buttons\" data-bs-toggle=\"buttons\"></div></div>" +
-        "    <div class=\"form-group\"><div class=\"input\"><input type=\"text\" placeholder=\"Number\" class=\"form-control\"></input></div></div>" +
-        "    <div class=\"form-group\">" +
-        "        <input type=\"submit\" value=\"Calculate\" class=\"btn btn-primary\"></input>" +
-        "    </div>" +
-        "</form>"
+                "    <div class=\"form-group\"><div class=\"radio-group radio-group--buttons\" data-bs-toggle=\"buttons\"></div></div>" +
+                "    <div class=\"form-group\"><div class=\"input\"><input type=\"text\" placeholder=\"Number\" class=\"form-control\"></input></div></div>" +
+                "    <div class=\"form-group\">" +
+                "        <input type=\"submit\" value=\"Calculate\" class=\"btn btn-primary\"></input>" +
+                "    </div>" +
+                "</form>"
             );
 
             $(document).on("mouseup", (e) => {
-                if (
-                    !calculator_elem.is(e.target) &&
-          calculator_elem.has(e.target).length === 0
-                ) {
+                if (!calculator_elem.is(e.target) && calculator_elem.has(e.target).length === 0) {
                     calculator_elem.hide();
                 }
             });
@@ -102,20 +99,18 @@ class CalculatorComponent extends Component {
                 const btn = calculator_button[i];
                 const button_elem = $(
                     "<div class=\"radio-group__option\">" +
-          `<input type="radio" name="op" id="op_${btn.action}" class="radio-group__input btn_label_${btn.action}">` +
-          `<label class="radio-group__label" for="op_${btn.action}">${btn.label}</label>` +
-          "</div>"
+                    `<input type="radio" name="op" id="op_${btn.action}" class="radio-group__input btn_label_${btn.action}">` +
+                    `<label class="radio-group__label" for="op_${btn.action}">${btn.label}</label>` +
+                    "</div>"
                 );
 
                 operator_btns_elem.append(button_elem);
 
-                $(button_elem).find(".radio-group__label")
-                    .on("click", () => {
-                        $(button_elem).find(".radio-group__input")
-                            .prop("checked", true);
-                        calculator_operation = btn.operation;
-                        calculator_elem.find(":text").trigger("focus");
-                    });
+                $(button_elem).find(".radio-group__label").on("click", () => {
+                    $(button_elem).find(".radio-group__input").prop("checked", true);
+                    calculator_operation = btn.operation;
+                    calculator_elem.find(":text").trigger("focus");
+                });
 
                 for (const j in btn.keypress) {
                     const keypress = btn.keypress[j];

@@ -42,8 +42,6 @@ export default class HelpView extends Component {
         if (!helpTarget) throw new Error("help-target is required");
         const target = document.getElementById(helpTarget);
         if (!target) throw new Error(`Could not find help target with id: ${helpTarget}`);
-        $button.on("click", () => {
-            target.innerHTML = MarkDown`${helpTitle ? `### ${helpTitle}` : ""}\n${helpText}`;
-        });
+        $button.on("click", () => target.innerHTML = MarkDown`${helpTitle ? `### ${helpTitle}` : ""}\n${helpText}`);
     }
 }

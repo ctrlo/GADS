@@ -26,7 +26,7 @@ describe('create-report-button', () => {
 
         const $submit = $('#submit');
         new CreateReportButtonComponent($submit);
-        const submitSpy = jest.fn((ev) => {
+        const submitSpy = jest.fn((ev: JQuery.TriggeredEvent) => {
             ev.preventDefault();
             ev.stopPropagation();
         });
@@ -58,7 +58,7 @@ describe('create-report-button', () => {
 
         const $submit = $('#submit');
         new CreateReportButtonComponent($submit);
-        const submitSpy = jest.fn((ev) => {
+        const submitSpy = jest.fn((ev: JQuery.TriggeredEvent) => {
             ev.preventDefault();
             ev.stopPropagation();
         });
@@ -92,7 +92,7 @@ describe('create-report-button', () => {
 
         const $submit = $('#submit');
         new CreateReportButtonComponent($submit);
-        const formSpyFn = jest.fn((ev) => {
+        const formSpyFn = jest.fn((ev: JQuery.TriggeredEvent) => {
             ev.preventDefault();
             ev.stopPropagation();
         });
@@ -172,7 +172,7 @@ describe('create-report-button', () => {
 
         expect(fieldSet.length).toBe(1);
 
-        fieldSet.find('input').each((index, input) => {
+        fieldSet.find('input').each((index: number, input: HTMLInputElement) => {
             expect(input.checked).toBe(false);
             expect($(input).has(':checked').length).toBe(0);
         });

@@ -32,11 +32,11 @@ class DataTableComponent extends Component {
         this.base_url = this.el.data("href") ? this.el.data("href") : undefined;
         this.fullscreen = false;
         this.initTable();
-        $(window).on("resize", () => {
-            if (this.el.DataTable().responsive) {
+        if (this.el.DataTable().responsive) {
+            $(window).on("resize", () => {
                 this.el.DataTable().responsive.recalc();
-            }
-        });
+            });
+        }
     }
 
     /**
@@ -62,16 +62,12 @@ class DataTableComponent extends Component {
         this.initializingTable = true;
         $(".dt-column-order").remove(); //datatables.net adds it's own ordering class - we remove it because it's easier than rewriting basically everywhere we use datatables
 
-        if (this.hasCheckboxes) {
-            this.addSelectAllCheckbox();
-        }
+        if (this.hasCheckboxes) this.addSelectAllCheckbox();
 
         if (this.el.hasClass("table-account-requests")) {
             this.modal = $.find("#userModal");
             this.initClickableTable();
-            this.el.on("draw.dt", () => {
-                this.initClickableTable();
-            });
+            this.el.on("draw.dt", () => this.initClickableTable());
         }
 
         bindToggleTableClickHandlers(this.el);
@@ -92,10 +88,10 @@ class DataTableComponent extends Component {
             }
         });
 
-        if(conf.responsive) {
+        if (conf.responsive) {
             // Render the child component when the responsive row is shown
             this.el.on("responsive-display.dt", (e, datatable, row, showHide) => {
-                if(!showHide) return;
+                if (!showHide) return;
                 const child = row.child()?.[0];
                 initializeRegisteredComponents(child);
             });
@@ -109,15 +105,11 @@ class DataTableComponent extends Component {
         for (let i = 0; i < localStorage.length; i++) {
             const storageKey = localStorage.key(i);
 
-            if (!storageKey.startsWith("DataTables")) {
-                continue;
-            }
+            if (!storageKey.startsWith("DataTables")) continue;
 
             const keySegments = storageKey.split("/");
 
-            if (!keySegments || keySegments.length <= 1) {
-                continue;
-            }
+            if (!keySegments || keySegments.length <= 1) continue;
 
             if (window.location.href.indexOf("/" + keySegments.slice(1).join("/")) !== -1) {
                 localStorage.removeItem(storageKey);
@@ -134,9 +126,9 @@ class DataTableComponent extends Component {
         links.off("click");
         links.off("focus");
         links.off("blur");
-        links.on("click", (ev) => { this.handleClick(ev); });
-        links.on("focus", (ev) => { this.toggleFocus(ev, true); });
-        links.on("blur", (ev) => { this.toggleFocus(ev, false); });
+        links.on("click", (ev) => this.handleClick(ev));
+        links.on("focus", (ev) => this.toggleFocus(ev, true));
+        links.on("blur", (ev) => this.toggleFocus(ev, false));
     }
 
     /**
@@ -171,19 +163,15 @@ class DataTableComponent extends Component {
     fillModalData(row) {
         const fields = $(this.modal).find("input, textarea");
         const btnReject = $(this.modal).find(".btn-js-reject-request-send");
-        const id = parseInt($(row).find("td[data-id]")
-            .data("id"), 10);
+        const id = parseInt($(row).find("td[data-id]").data("id"), 10);
 
         if (id) $(this.modal).data("config").id = id;
 
-        if (btnReject && id && (!isNaN(id))) {
-            btnReject.val(id);
-        }
+        if (btnReject && id && (!isNaN(id))) btnReject.val(id);
 
         fields.each((i, field) => {
             const fieldName = $(field).attr("name");
-            const fieldValue = $(row).find(`td[data-${fieldName}]`)
-                .data(fieldName);
+            const fieldValue = $(row).find(`td[data-${fieldName}]`).data(fieldName);
 
             if (fieldName && fieldValue) {
                 const $field = $(field);
@@ -230,9 +218,7 @@ class DataTableComponent extends Component {
         // Check if all checkboxes are checked and the 'select all' checkbox needs to be checked
         this.checkSelectAll($checkBoxes, $selectAllElm.find("input"));
 
-        $checkBoxes.on("click", () => {
-            this.checkSelectAll($checkBoxes, $selectAllElm.find("input"));
-        });
+        $checkBoxes.on("click", () => this.checkSelectAll($checkBoxes, $selectAllElm.find("input")));
 
         // Check if the 'select all' checkbox is checked and all checkboxes need to be checked
         $selectAllElm.find("input").on("click", (ev) => {
@@ -252,11 +238,7 @@ class DataTableComponent extends Component {
      * @param {boolean} bCheckAll True to check all checkboxes, false to uncheck all
      */
     checkAllCheckboxes($checkBoxes, bCheckAll) {
-        if (bCheckAll) {
-            $checkBoxes.prop("checked", true);
-        } else {
-            $checkBoxes.prop("checked", false);
-        }
+        $checkBoxes.prop("checked", bCheckAll);
     }
 
     /**
@@ -274,9 +256,7 @@ class DataTableComponent extends Component {
             }
         });
 
-        if (bSelectAll) {
-            $selectAllCheckBox.prop("checked", true);
-        }
+        $selectAllCheckBox.prop("checked", bSelectAll);
     }
 
     /**
@@ -296,9 +276,7 @@ class DataTableComponent extends Component {
             </span>
         `);
 
-        $header
-            .find(".data-table__header-wrapper")
-            .html($button);
+        $header.find(".data-table__header-wrapper").html($button);
 
         dataTable.order.listener($button, column.index());
     }
@@ -379,8 +357,7 @@ class DataTableComponent extends Component {
                 if (!data.error) {
                     if (data.records.length != 0) {
                         $searchInput.val(data.records[0].label);
-                        $("input.search", $searchElement).val(data.records[0].id)
-                            .trigger("change");
+                        $("input.search", $searchElement).val(data.records[0].id).trigger("change");
                     }
                 }
             }
@@ -403,12 +380,9 @@ class DataTableComponent extends Component {
                         .withCallback((data) => {
                             if (col.typeahead_use_id) {
                                 $searchInput.val(data.name);
-                                $("input.search", $searchElement).val(data.id)
-                                    .trigger("change");
+                                $("input.search", $searchElement).val(data.id).trigger("change");
                             } else {
-                                $("input", $searchElement).addClass("search")
-                                    .val(data.name)
-                                    .trigger("change");
+                                $("input", $searchElement).addClass("search").val(data.name).trigger("change");
                             }
                         })
                         .build();
@@ -422,11 +396,7 @@ class DataTableComponent extends Component {
         // Apply the search
         $("input.search", $header).on("change", function (ev) {
             let value = this.value || ev.target.value;
-            if (column.search() !== value) {
-                column
-                    .search(value)
-                    .draw();
-            }
+            if (column.search() !== value) column.search(value).draw();
 
             self.toggleFilter(column);
 
@@ -445,12 +415,8 @@ class DataTableComponent extends Component {
 
         // Clear the search
         $(".data-table__clear", $header).on("click", function () {
-            $(this).closest(".dropdown-menu")
-                .find("input")
-                .val("");
-            column
-                .search("")
-                .draw();
+            $(this).closest(".dropdown-menu").find("input").val("");
+            column.search("").draw();
 
             self.toggleFilter(column);
 
@@ -485,8 +451,7 @@ class DataTableComponent extends Component {
      * @returns {string} The encoded text
      */
     encodeHTMLEntities(text) {
-        return $("<textarea/>").text(text)
-            .html();
+        return $("<textarea/>").text(text).html();
     }
 
     /**
@@ -495,8 +460,7 @@ class DataTableComponent extends Component {
      * @returns {string} The decoded text
      */
     decodeHTMLEntities(text) {
-        return $("<textarea/>").html(text)
-            .text();
+        return $("<textarea/>").html(text).text();
     }
 
     /**
@@ -525,9 +489,7 @@ class DataTableComponent extends Component {
     renderDefault(data) {
         let strHTML = "";
 
-        if (!data.values || !data.values.length) {
-            return strHTML;
-        }
+        if (!data.values || !data.values.length) return strHTML;
 
         data.values.forEach((value, i) => {
             strHTML += this.encodeHTMLEntities(value);
@@ -560,9 +522,7 @@ class DataTableComponent extends Component {
     renderPerson(data) {
         let strHTML = "";
 
-        if (!data.values.length) {
-            return strHTML;
-        }
+        if (!data.values.length) return strHTML;
 
         data.values.forEach((value) => {
             if (value.details.length) {
@@ -601,9 +561,7 @@ class DataTableComponent extends Component {
     renderFile(data) {
         let strHTML = "";
 
-        if (!data.values.length) {
-            return strHTML;
-        }
+        if (!data.values.length) return strHTML;
 
         data.values.forEach((file) => {
             strHTML += `<a href="/file/${file.id}">`;
@@ -656,9 +614,7 @@ class DataTableComponent extends Component {
     renderCurCommon(data) {
         let strHTML = "";
 
-        if (data.values.length === 0) {
-            return strHTML;
-        }
+        if (data.values.length === 0) return strHTML;
 
         strHTML = this.renderCurCommonTable(data);
         return this.renderMoreLess(strHTML, data.name);
@@ -672,29 +628,17 @@ class DataTableComponent extends Component {
     renderCurCommonTable(data) {
         let strHTML = "";
 
-        if (data.values.length === 0) {
-            return strHTML;
-        }
-        if (data.values[0].fields.length === 0) {
-            // No columns visible to user
-            return strHTML;
-        }
+        if (data.values.length === 0 || data.values[0].fields.length === 0) return strHTML;
 
         strHTML += "<table class=\"table-curcommon\">";
 
         data.values.forEach((row) => {
             strHTML += `<tr role="button" tabindex="0" class="link record-popup" data-record-id="${row.record_id}"`;
-            if (row.version_id) {
-                strHTML += `data-version-id="${row.version_id}"`;
-            }
+            if (row.version_id) strHTML += `data-version-id="${row.version_id}"`;
             strHTML += ">";
-            if (row.status) {
-                strHTML += `<td><em>${row.status}:</em></td>`;
-            }
+            if (row.status) strHTML += `<td><em>${row.status}:</em></td>`;
 
-            row.fields.forEach((field) => {
-                strHTML += `<td class="${field.type}">${this.renderDataType(field)}</td>`;
-            });
+            row.fields.forEach((field) => strHTML += `<td class="${field.type}">${this.renderDataType(field)}</td>`);
             strHTML += "</tr>";
         });
 
@@ -745,9 +689,7 @@ class DataTableComponent extends Component {
         const strColumnName = meta ? meta.settings.oAjaxData.columns[meta.col].name : "";
         const data = row[strColumnName];
 
-        if (typeof data !== "object") {
-            return "";
-        }
+        if (typeof data !== "object") return "";
 
         return this.renderDataType(data);
     }
@@ -768,7 +710,7 @@ class DataTableComponent extends Component {
 
     /**
      * Get the configuration object for the DataTable
-     * @param {Readonly<Parital<import('datatables.net-bs5').Config>>=} overrides Any values to override in the configuration
+     * @param {Readonly<Partial<import('datatables.net-bs5').Config>>=} overrides Any values to override in the configuration
      * @returns {import('datatables.net-bs5').Config} The configuration object for the DataTable
      */
     getConf(overrides = undefined) {
@@ -843,8 +785,7 @@ class DataTableComponent extends Component {
                 // If the table has not wrapped (become responsive) then hide the "Full screen" toggle button
                 if (!this.el.hasClass("collapsed")) {
                     if (this.el.closest(".dataTables_wrapper").find(".btn-toggle-off").length) {
-                        this.el.closest(".dataTables_wrapper").find(".dataTables_toggle_full_width")
-                            .hide();
+                        this.el.closest(".dataTables_wrapper").find(".dataTables_toggle_full_width").hide();
                     }
                 }
 
@@ -938,41 +879,37 @@ class DataTableComponent extends Component {
      */
     bindClickHandlersAfterDraw(conf) {
         const tableElement = this.el;
-        const rows = tableElement.DataTable().rows({ page: "current" })
-            .data();
+        const rows = tableElement.DataTable().rows({ page: "current" }).data();
 
         if (rows && this.base_url) {
             // Add click handler to tr to open a record by id
-            $(tableElement).find("> tbody > tr")
-                .each((i, el) => {
-                    const data = rows[i] ? rows[i] : undefined;
-                    if (data) {
-                        // URL will be record link for standard view, or filtered URL for
-                        // grouped view (in which case _count parameter will be present not _id)
-                        let url = undefined;
+            $(tableElement).find("> tbody > tr").each((i, el) => {
+                const data = rows[i] ? rows[i] : undefined;
+                if (data) {
+                    // URL will be record link for standard view, or filtered URL for
+                    // grouped view (in which case _count parameter will be present not _id)
+                    let url = undefined;
 
-                        try {
-                            url = data["_id"] ? `${this.base_url}/${data["_id"]}` : `?${data["_count"]["url"]}`;
-                        } catch (e) {
-                            if (data[0] && data[0].match(/<a href="([^"]+)">/)) {
-                                // If the data is a string with an anchor tag, extract the URL
-                                url = data[0].match(/<a href="([^"]+)">/)[1];
-                            } else {
-                                logging.error("Error constructing URL for row:", data, e);
-                                return;
-                            }
+                    try {
+                        url = data["_id"] ? `${this.base_url}/${data["_id"]}` : `?${data["_count"]["url"]}`;
+                    } catch (e) {
+                        if (data[0] && data[0].match(/<a href="([^"]+)">/)) {
+                            // If the data is a string with an anchor tag, extract the URL
+                            url = data[0].match(/<a href="([^"]+)">/)[1];
+                        } else {
+                            logging.error("Error constructing URL for row:", data, e);
+                            return;
                         }
-
-                        if (!url) return;
-                        $(el).find("td:not(\".dtr-control\")")
-                            .on("click", (ev) => {
-                                // Only for table cells that are not part of a record-popup table row
-                                if (!ev.target.closest(".record-popup")) {
-                                    window.location = url;
-                                }
-                            });
                     }
-                });
+
+                    if (!url) return;
+                    $(el).find("td:not(\".dtr-control\")")
+                        .on("click", (ev) => {
+                            // Only for table cells that are not part of a record-popup table row
+                            if (!ev.target.closest(".record-popup")) window.location = url;
+                        });
+                }
+            });
         }
 
         if (conf.serverSide) {

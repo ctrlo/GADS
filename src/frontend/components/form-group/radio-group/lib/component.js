@@ -13,9 +13,7 @@ class RadioGroupComponent extends Component {
         super(element);
         this.el = $(this.element);
 
-        if (this.el.hasClass("radio-group--required")) {
-            initValidationOnField(this.el);
-        }
+        if (this.el.hasClass("radio-group--required")) initValidationOnField(this.el);
     }
 }
 

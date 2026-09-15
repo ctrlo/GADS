@@ -95,21 +95,17 @@ class DocumentComponent {
         }
 
         this.fileInput.on("change", (ev) => {
-            if (!(ev.target instanceof HTMLInputElement)) {
-                throw new Error("Could not find file-upload element");
-            }
+            if (!(ev.target instanceof HTMLInputElement)) throw new Error("Could not find file-upload element");
 
             const file = ev.target.files![0];
             if (!file || file === undefined || !file.name) return;
             const formData = formdataMapper({ file, csrf_token, column_id: columnId });
             upload<FileData>(url, formData, "POST", (loaded, total) => this.showProgress(file.name, loaded, total)).then((data) => {
                 this.addFileToField({ id: data.id, name: data.filename });
-            })
-                .catch((e) => {
-                    if (JSON.parse(e as string)?.message)
-                        e = JSON.parse(e as string).message;
-                    this.handler.addError(e);
-                });
+            }).catch((e) => {
+                if (JSON.parse(e as string)?.message) e = JSON.parse(e as string).message;
+                this.handler.addError(e);
+            });
         });
     }
 
@@ -166,22 +162,23 @@ class DocumentComponent {
 
             const fileData = formdataMapper({ file, csrf_token, column_id: columnId });
 
-            upload<FileData>(uri, fileData, "POST", (loaded, total) => this.showProgress(file.name, loaded, total)).then((data) => {
-                this.addFileToField({ id: data.id, name: data.filename });
-            }).then(
-                () => {
+            upload<FileData>(uri, fileData, "POST", (loaded, total) => this.showProgress(file.name, loaded, total))
+                .then((data) => {
+                    this.addFileToField({ id: data.id, name: data.filename });
+                }).then(
+                    () => {
+                        $(this.el.find(".progress-bar__container[data-file-name=\"" + file.name + "\"]"))
+                            .hide();
+                    }
+                ).catch((e) => {
+                    if (JSON.parse(e as string)?.message)
+                        e = JSON.parse(e as string).message;
+                    else if (typeof e == "object" && "message" in e)
+                        e = e.message;
+                    this.handler.addError(e);
                     $(this.el.find(".progress-bar__container[data-file-name=\"" + file.name + "\"]"))
                         .hide();
-                }
-            ).catch((e) => {
-                if (JSON.parse(e as string)?.message)
-                    e = JSON.parse(e as string).message;
-                else if (typeof e == "object" && "message" in e)
-                    e = e.message;
-                this.handler.addError(e);
-                $(this.el.find(".progress-bar__container[data-file-name=\"" + file.name + "\"]"))
-                    .hide();
-            });
+                });
         } catch (e: any) {
             this.showException(e instanceof Error || "message" in e ? e.message : e as string ?? e.toString());
         }
@@ -240,7 +237,9 @@ class DocumentComponent {
      * @param {string} csrf_token The CSRF token for security.
      * @param {boolean} is_new Indicates if the file is new (default is false).
      */
-    private async renameFile(fileId: number, oldName: string, newName: string, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
+    private async renameFile(fileId: number, oldName: string, newName: string, csrf_token: string, is_new: boolean = false) {
+        // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why,
+        //  so I've used the button itself
         try {
             const filename = newName;
             const url = `/api/file/${fileId}`;
@@ -249,8 +248,7 @@ class DocumentComponent {
             if (is_new) {
                 $(`#current-${fileId}`).text(data.name);
             } else {
-                $(`#current-${fileId}`).closest("li")
-                    .remove();
+                $(`#current-${fileId}`).closest("li").remove();
                 const { id, name } = data;
                 this.addFileToField({ id, name });
             }

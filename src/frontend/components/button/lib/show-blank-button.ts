@@ -10,8 +10,6 @@ export default function createShowBlankButton(element: JQuery<HTMLElement>) {
 
         $(".list__item--blank").toggle(showBlankFields);
 
-        $buttonTitle.innerHTML = showBlankFields
-            ? "Hide blank values"
-            : "Show blank values";
+        $buttonTitle.innerHTML = showBlankFields? "Hide blank values": "Show blank values";
     });
 }

@@ -7,7 +7,7 @@ import DataTable from "datatables.net-bs5";
  * @param onToggle The function to call when the toggle button is toggled
  * @returns A jQuery object representing the toggle button
  */
-function createToggleButton(id:string, label:string, checked: boolean, onToggle:(ev:JQuery.Event)=>void) {
+function createToggleButton(id: string, label: string, checked: boolean, onToggle: (ev: JQuery.Event) => void) {
     const element = $(`
     <div class="dt-toggle-button">
         <div class="custom-control form-check form-switch">
@@ -23,8 +23,6 @@ function createToggleButton(id:string, label:string, checked: boolean, onToggle:
 
 // I feel using the "proper" toggle from bootstrap is better than the custom one and adding extra "fluff" to the datatables code in my opinion
 DataTable.feature.register("fullscreen", function (settings, opts) {
-    const options = Object.assign({
-        checked: false
-    }, opts);
+    const options = Object.assign({ checked: false }, opts);
     return createToggleButton("fullscreen-button", "Fullscreen", options.checked, options.onToggle);
 });
