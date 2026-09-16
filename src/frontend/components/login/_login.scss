@@ -90,7 +90,7 @@
     }
   }
 
-  .login__fields + .login__btns {
+  .login__fields+.login__btns {
     margin-top: $padding-large-vertical;
   }
 
@@ -104,7 +104,7 @@
     margin-bottom: 2 * $padding-large-vertical;
   }
 
-  .login__fields + .login__btns {
+  .login__fields+.login__btns {
     margin-top: $padding-large-vertical + $padding-base-vertical;
   }
 }

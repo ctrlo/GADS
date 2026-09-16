@@ -2,7 +2,7 @@
   margin-right: $padding-base-horizontal;
 }
 
-.card__content > .row:last-of-type .form-group:last-child {
+.card__content>.row:last-of-type .form-group:last-child {
   margin-bottom: 0;
 }
 
@@ -10,12 +10,12 @@
   margin-left: $padding-large-horizontal;
 }
 
-.card > * > .form-group {
-    padding-bottom: 0;
+.card>*>.form-group {
+  padding-bottom: 0;
 }
 
 .form-control[aria-invalid],
-.radio-group__input[aria-invalid] + .radio-group__label::before {
+.radio-group__input[aria-invalid]+.radio-group__label::before {
   border-color: $brand-danger;
 }
 
@@ -49,5 +49,5 @@
 }
 
 .form-group {
-    margin-bottom: 2rem;
+  margin-bottom: 2rem;
 }

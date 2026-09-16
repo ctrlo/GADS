@@ -1,11 +1,11 @@
 .error-container.alert-danger {
-    &::before {
-        content: none;
-    }
+  &::before {
+    content: none;
+  }
 
-    .error-message::before {
-        @extend .pe-2;
-        @extend %icon-font;
-        content: "\E822";
-    }
+  .error-message::before {
+    @extend .pe-2;
+    @extend %icon-font;
+    content: "\E822";
+  }
 }

@@ -1,10 +1,10 @@
 .counter {
-    @extend .d-flex;
-    @extend .justify-content-end;
-    @extend .text-muted;
-    @extend .small;
+  @extend .d-flex;
+  @extend .justify-content-end;
+  @extend .text-muted;
+  @extend .small;
 
-    &.invalid {
-        @extend .text-danger
-    }
+  &.invalid {
+    @extend .text-danger
+  }
 }

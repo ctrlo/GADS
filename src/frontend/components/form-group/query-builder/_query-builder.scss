@@ -191,20 +191,21 @@
   }
 }
 
-[data-add], [data-delete] {
-    &::before {
-        @extend %icon-font;
-    }
+[data-add],
+[data-delete] {
+  &::before {
+    @extend %icon-font;
+  }
 }
 
 [data-add] {
-    &::before {
-        content: "\E800";
-    }
+  &::before {
+    content: "\E800";
+  }
 }
 
 [data-delete] {
-    &::before {
-        content: "\E807";
-    }
+  &::before {
+    content: "\E807";
+  }
 }
