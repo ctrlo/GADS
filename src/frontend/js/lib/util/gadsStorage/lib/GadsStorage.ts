@@ -33,9 +33,7 @@ export class GadsStorage implements AppStorage {
         }
         const fetchResult = await fetch("/api/get_key");
         const data = await fetchResult.json();
-        if (data.error !== 0) {
-            throw new Error("Failed to get storage key");
-        }
+        if (data.error !== 0) throw new Error("Failed to get storage key");
         this.storageKey = data.key;
     }
 
@@ -46,17 +44,13 @@ export class GadsStorage implements AppStorage {
         // all the code and try to work out where to put the check (and repeat it ad infinitum)
         if (await this.getItem("recovering")) return;
         if (await this.getItem(key) === value) return;
-        if (!this.storageKey) {
-            await this.getStorageKey();
-        }
+        if (!this.storageKey) await this.getStorageKey();
         await this.storage.setItem(key, value, this.storageKey);
     }
 
     /** @inheritdoc */
     async getItem(key: string) {
-        if (!this.storageKey) {
-            await this.getStorageKey();
-        }
+        if (!this.storageKey) await this.getStorageKey();
         return await this.storage.getItem(key, this.storageKey);
     }
 

@@ -72,9 +72,7 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
             if (this.options.allowMultiple) {
                 // For some reason the function will not accept a FileList, so we convert it to an array
                 const f2 = Array.from(files);
-                f2.forEach((file, index) => {
-                    this.onDrop(file, index, f2.length);
-                });
+                f2.forEach((file, index) => this.onDrop(file, index, f2.length));
             } else {
                 const file = e?.originalEvent?.dataTransfer?.files?.[0];
                 if(!file) return;
@@ -97,9 +95,7 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
         });
         $(document).on("dragleave", (e) => {
             if (!this.dragging) return;
-            if (e.originalEvent?.pageX != 0 || e.originalEvent?.pageY != 0) {
-                return false;
-            }
+            if (e.originalEvent?.pageX != 0 || e.originalEvent?.pageY != 0) return false;
             this.dragging = false;
             hideElement(this.dropZone);
             showElement(this.el);

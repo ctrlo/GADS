@@ -1,8 +1,7 @@
 import { marked } from "marked"; // Do not go above v15.x.x for now as this is the last version that supports synchronous rendering.
+import type { stringLike } from "./common";
 
 type MarkdownCode = string;
-
-type stringLike = { toString(): string };
 
 /**
  * Create a markdown string using template literals.
@@ -15,7 +14,12 @@ function MarkDown(strings: TemplateStringsArray, ...values: (stringLike | string
     for (let i = 0; i < strings.length; i++) {
         str += strings[i];
         if (i < values.length) {
-            str += values[i] as string ? values[i] : values[i] as MarkdownCode ? values[i] : values[i] as stringLike ? values[i].toString() : String(values[i]);
+            str += values[i] as string ?
+                values[i] :
+                values[i] as MarkdownCode ?
+                    values[i] :
+                    values[i] as stringLike ?
+                        values[i].toString() : String(values[i]);
         }
     }
     str = str.replace(/\\n/g, "\n\n");

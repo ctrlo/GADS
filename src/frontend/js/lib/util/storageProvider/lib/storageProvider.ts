@@ -15,7 +15,7 @@ class StorageProvider {
      * Get the storage provider instance
      * @returns {Storage | AppStorage} The storage provider instance
      */
-    get provider() { return this.storage; }
+    get provider(): Storage | AppStorage { return this.storage; }
 
     /**
      * Create a new StorageProvider instance

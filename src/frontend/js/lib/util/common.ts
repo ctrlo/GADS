@@ -32,9 +32,7 @@ export const fromJson = (json: string | object): object => {
     try {
         // An empty string returns false in a boolean context, this also covers null and undefined
         if (!json || json === "") return {};
-        if (typeof json === "string") {
-            return JSON.parse(json);
-        }
+        if (typeof json === "string") return JSON.parse(json);
         return json;
     } catch {
         return {};

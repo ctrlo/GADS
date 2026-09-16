@@ -1,5 +1,3 @@
-import { createElement } from "util/domutils";
-
 /**
  * Event fired when the file is renamed
  */
@@ -64,40 +62,34 @@ class RenameButton {
         if (!button || button.length < 1) throw new Error("Button element is null or empty");
         const fileId = id as number ?? parseInt(id.toString());
         if (!fileId) throw new Error("Invalid file id!");
-        button.closest(".row")
-            .append(
-                createElement("div", { classList: ["col", "align-content-center"] })
-                    .append(
-                        createElement("input", {
-                            type: "text",
-                            id: `file-rename-${fileId}`,
-                            classList: ["input", "input--text", "form-control", "hidden"],
-                            ariaHidden: "true"
-                        })
-                    )
-            )
-            .append(
-                createElement("div", { classList: ["col", "align-content-center"] })
-                    .append(
-                        createElement("button", {
-                            id: `rename-confirm-${fileId}`,
-                            type: "button",
-                            textContent: "Rename",
-                            ariaHidden: "true",
-                            classList: ["btn", "btn-sm", "btn-primary", "hidden"]
-                        }).on("click", (ev: JQuery.ClickEvent) => {
-                            ev.preventDefault();
-                            this.renameClick(typeof (id) === "string" ? parseInt(id) : id, ev);
-                        }),
-                        createElement("button", {
-                            id: `rename-cancel-${fileId}`,
-                            type: "button",
-                            textContent: "Cancel",
-                            ariaHidden: "true",
-                            classList: ["btn", "btn-sm", "btn-danger", "hidden"]
-                        })
-                    )
-            );
+        const input = document.createElement("input");
+        input.type = "text";
+        input.id = `file-rename-${fileId}`;
+        input.classList.add("input", "input--text", "form-control", "hidden");
+        input.ariaHidden = "true";
+        const div = document.createElement("div");
+        div.classList.add("col", "align-content-center");
+        div.append(input);
+        const div2 = document.createElement("div");
+        div2.classList.add("col", "align-content-center");
+        const renameConfirmButton = document.createElement("button");
+        renameConfirmButton.id = `rename-confirm-${fileId}`;
+        renameConfirmButton.type = "button";
+        renameConfirmButton.textContent = "Rename";
+        renameConfirmButton.ariaHidden = "true";
+        renameConfirmButton.classList.add("btn", "btn-sm", "btn-primary", "hidden");
+        renameConfirmButton.addEventListener("click", (ev) => {
+            ev.preventDefault();
+            this.renameClick(typeof (id) === "string" ? parseInt(id) : id, ev as unknown as JQuery.ClickEvent);
+        });
+        const renameCancelButton = document.createElement("button");
+        renameCancelButton.id = `rename-cancel-${fileId}`;
+        renameCancelButton.type = "button";
+        renameCancelButton.textContent = "Cancel";
+        renameCancelButton.ariaHidden = "true";
+        renameCancelButton.classList.add("btn", "btn-sm", "btn-danger", "hidden");
+        div2.append(renameConfirmButton, renameCancelButton);
+        button.closest(".row").append(div).append(div2);
     }
 
     /**

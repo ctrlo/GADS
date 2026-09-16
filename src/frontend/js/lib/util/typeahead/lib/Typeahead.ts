@@ -2,6 +2,7 @@ import "typeahead.js";
 import Bloodhound from "typeahead.js/dist/bloodhound";
 import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
 import { MappedResponse } from "util/mapper/mapper";
+import { logging } from "logging";
 
 /**
  * Typeahead class for creating a typeahead
@@ -28,7 +29,7 @@ export class Typeahead {
             remote: {
                 url: ajaxSource + (appendQuery ? "%QUERY" : ""),
                 wildcard: "%QUERY",
-                transform: (response) => {
+                transform: (response: any) => {
                     return mapper(response);
                 },
                 rateLimitBy: "debounce",
@@ -41,7 +42,7 @@ export class Typeahead {
                     $.ajax(request)
                         .done(success)
                         .fail((jqXHR, textStatus, errorThrown) => {
-                            console.error("Typeahead ajax request failed:", textStatus, errorThrown, jqXHR.responseText);
+                            logging.error("Typeahead ajax request failed:", textStatus, errorThrown, jqXHR.responseText);
                             error(errorThrown);
                         });
                 }
@@ -58,20 +59,12 @@ export class Typeahead {
             display: "name",
             limit: 20,
             templates: {
-                suggestion: (item: MappedResponse) => {
-                    return `<div>${item.name}</div>`;
-                },
-                pending: () => {
-                    return "<div>Loading...</div>";
-                },
-                notFound: () => {
-                    return "<div>No results found</div>";
-                }
+                suggestion: (item: MappedResponse) => `<div>${item.name}</div>`,
+                pending: () => "<div>Loading...</div>",
+                notFound: () => "<div>No results found</div>"
             }
         });
 
-        this.$input.on("typeahead:select", (ev: JQuery.TriggeredEvent, suggestion: MappedResponse) => {
-            this.callback(suggestion);
-        });
+        this.$input.on("typeahead:select", (ev: JQuery.TriggeredEvent, suggestion: MappedResponse) => this.callback(suggestion));
     }
 }

@@ -7,14 +7,14 @@
  * @abstract
  * @class Hidable
  */
-export abstract class Hidable<T extends HTMLElement= HTMLElement> {
+export abstract class Hidable<T extends HTMLElement = HTMLElement> {
     protected element: T | null = null;
 
     /**
      * Hides the component.
      */
     hide(): void {
-        if(!this.element) return;
+        if (!this.element) return;
         this.element.remove();
     }
 }
