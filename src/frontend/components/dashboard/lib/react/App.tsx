@@ -6,9 +6,10 @@ import { sidebarObservable } from "components/sidebar/lib/sidebarObservable";
 import DashboardView from "./Dashboard/DashboardView";
 import EditModal from "./EditModal/EditModal";
 
-import { AppProps } from "./types";
+import type { AppProps } from "./types";
 import serialize from "form-serialize";
 import { initializeRegisteredComponents } from "component";
+import { logging } from "logging";
 
 /**
  * Create the application component
@@ -135,7 +136,7 @@ export default function App(props: AppProps): React.JSX.Element {
         event.preventDefault();
         const formEl = formRef.current!.querySelector("form");
         if (!formEl) {
-            console.error("No form element was found!");
+            logging.error("No form element was found!");
             return;
         }
 
@@ -161,12 +162,8 @@ export default function App(props: AppProps): React.JSX.Element {
         const ulc = { x, y };
         const drc = { x: x + w, y: y + h };
         return layout.some((widget) => {
-            if (ulc.x >= (widget.x + widget.w) || widget.x >= drc.x) {
-                return false;
-            }
-            if (ulc.y >= (widget.y + widget.h) || widget.y >= drc.y) {
-                return false;
-            }
+            if (ulc.x >= (widget.x + widget.w) || widget.x >= drc.x) return false;
+            if (ulc.y >= (widget.y + widget.h) || widget.y >= drc.y) return false;
             return true;
         });
     };
@@ -241,9 +238,7 @@ export default function App(props: AppProps): React.JSX.Element {
      * @returns {boolean} Whether the layout should be saved
      */
     const shouldSaveLayout = (prevLayout: any, newLayout: any): boolean => {
-        if (prevLayout.length !== newLayout.length) {
-            return true;
-        }
+        if (prevLayout.length !== newLayout.length) return true;
         for (let i = 0; i < prevLayout.length; i += 1) {
             const entriesNew = Object.entries(newLayout[i]);
             const isDifferent = entriesNew.some((keypair) => {
@@ -262,12 +257,10 @@ export default function App(props: AppProps): React.JSX.Element {
      */
     const overWriteSubmitEventListener = () => { // eslint-disable-line
         const formContainer = document.getElementById("ld-form-container");
-        if (!formContainer)
-            return;
+        if (!formContainer) return;
 
         const form = formContainer.querySelector("form");
-        if (!form)
-            return;
+        if (!form) return;
 
         form.addEventListener("submit", saveActiveWidget);
         const submitButton = document.createElement("input");
@@ -289,10 +282,11 @@ export default function App(props: AppProps): React.JSX.Element {
     const initializeSummernoteComponent = () => {
         const summernoteEl = formRef.current!.querySelector(".summernote");
         if (summernoteEl) {
-            import(/* WebpackChunkName: "summernote" */ "../../../summernote/lib/component")
-                .then(({ default: SummerNoteComponent }) => {
-                    new SummerNoteComponent(summernoteEl as HTMLElement);
-                });
+            import(
+                /* WebpackChunkName: "summernote" */ "../../../summernote/lib/component"
+            ).then(({ default: SummerNoteComponent }) => {
+                new SummerNoteComponent(summernoteEl as HTMLElement);
+            });
         }
     };
 
@@ -301,10 +295,10 @@ export default function App(props: AppProps): React.JSX.Element {
      */
     const initializeGlobeComponents = () => {
         const arrGlobe = document.querySelectorAll(".globe");
-        import(/* WebpackChunkName: "globe" */ "../../../globe/lib/component").then(({ default: GlobeComponent }) => {
-            arrGlobe.forEach((globe) => {
-                new GlobeComponent(globe as HTMLElement);
-            });
+        import(
+            /* WebpackChunkName: "globe" */ "../../../globe/lib/component"
+        ).then(({ default: GlobeComponent }) => {
+            arrGlobe.forEach((globe) => new GlobeComponent(globe as HTMLElement));
         });
     };
 

@@ -1,7 +1,7 @@
 /* eslint-disable @stylistic/semi */
 import React, { useEffect } from "react";
 import Modal, {Styles} from "react-modal";
-import { AppModalProps } from "../types";
+import type { AppModalProps } from "../types";
 
 /**
  * Edit modal component

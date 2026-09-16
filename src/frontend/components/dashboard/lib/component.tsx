@@ -10,8 +10,7 @@ import { ReactGridLayoutProps } from "react-grid-layout";
  * DashboardComponent class that initializes the dashboard and renders the App component.
  */
 export default class DashboardComponent extends Component {
-    el: JQuery<HTMLElement>;
-    gridConfig: ReactGridLayoutProps;
+    private gridConfig: ReactGridLayoutProps;
 
     /**
      * Create a DashboardComponent instance.
@@ -19,7 +18,6 @@ export default class DashboardComponent extends Component {
      */
     constructor(element: HTMLElement) {
         super(element);
-        this.el = $(this.element);
 
         this.gridConfig = {
             cols: 2,

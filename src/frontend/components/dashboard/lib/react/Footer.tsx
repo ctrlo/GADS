@@ -1,5 +1,5 @@
 import React from "react";
-import { FooterProps } from "./types";
+import type { FooterProps } from "./types";
 import { Dropdown } from "react-bootstrap";
 
 /**

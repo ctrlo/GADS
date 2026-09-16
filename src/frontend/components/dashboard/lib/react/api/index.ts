@@ -1,5 +1,5 @@
 import { Layout } from "react-grid-layout";
-import { ApiResponse } from "../types";
+import type { ApiResponse } from "../types";
 
 /**
  * Request method types for the API client.
@@ -51,9 +51,7 @@ export default class ApiClient {
             headers: Object.assign(this.headers),
             credentials: "same-origin" // Needed for older versions of Firefox, otherwise cookies not sent
         };
-        if (body) {
-            opts.body = JSON.stringify(body);
-        }
+        if (body) opts.body = JSON.stringify(body);
         return fetch(fullRoute, opts);
     }
 
@@ -120,7 +118,7 @@ export default class ApiClient {
      */
     getWidgetHtml = async (id: string): Promise<string> => {
         const html = this.isDev ? await this.GET(`/widget/${id}/create`) : await this.GET(`/widget/${id}`);
-        return html.text();
+        return await html.text();
     };
 
     /**
@@ -137,7 +135,7 @@ export default class ApiClient {
      */
     getEditForm = async (id: string): Promise<ApiResponse> => {
         const response = await this.GET(`/widget/${id}/edit`);
-        return response.json();
+        return await response.json();
     };
 
     /**

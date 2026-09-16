@@ -10,7 +10,7 @@
         "moduleResolution": "bundler",
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
-        "types": ["node", "jest", "jquery"],
+        "types": ["node", "jest", "jquery", "react", "react-dom", "react-modal"],
         "paths": {
             "js/*": [
                 "./src/frontend/js/*"
