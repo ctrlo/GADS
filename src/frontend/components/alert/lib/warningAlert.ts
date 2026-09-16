@@ -5,13 +5,9 @@ import { AlertBase } from "./alertBase";
  */
 export class WarningAlert extends AlertBase {
     /**
-     * Create an instance of InfoAlert.
-     * This class extends AlertBase to provide a specific implementation for info alerts.
-     * @class
-     * @public
-     * @memberof alert.lib
-     * @constructor
-     * @param {string} message - The message to be displayed in the info alert.
+     * Create an instance of WarningAlert.
+     * This class extends AlertBase to provide a specific implementation for warning alerts.
+     * @param {string} message - The message to be displayed in the warning alert.
      */
     constructor(message: string) {
         super(message, "warning");

@@ -38,9 +38,7 @@ const toggleDisclosure = function (e, $trigger, state, permanent) {
     const expandedLabel = $trigger.data("label-expanded");
     const collapsedLabel = $trigger.data("label-collapsed");
 
-    if (collapsedLabel && expandedLabel) {
-        $trigger.text(state ? expandedLabel : collapsedLabel);
-    }
+    if (collapsedLabel && expandedLabel) $trigger.text(state ? expandedLabel : collapsedLabel);
 
     const $disclosure = $trigger.siblings(".expandable").first();
     $disclosure.toggleClass("expanded", state);
@@ -86,9 +84,7 @@ const onDisclosureMouseover = function (e) {
     const $trigger = $(this);
     const currentlyExpanded = $trigger.attr("aria-expanded") === "true";
 
-    if (!currentlyExpanded) {
-        toggleDisclosure(e, $trigger, true, false);
-    }
+    if (!currentlyExpanded) toggleDisclosure(e, $trigger, true, false);
 };
 
 /**
@@ -100,9 +96,7 @@ const onDisclosureMouseout = function (e) {
     const currentlyExpanded = $trigger.attr("aria-expanded") === "true";
     const currentlyPermanentExpanded = $trigger.hasClass("expanded--permanent");
 
-    if (currentlyExpanded && !currentlyPermanentExpanded) {
-        toggleDisclosure(e, $trigger, false, false);
-    }
+    if (currentlyExpanded && !currentlyPermanentExpanded) toggleDisclosure(e, $trigger, false, false);
 };
 
 /**

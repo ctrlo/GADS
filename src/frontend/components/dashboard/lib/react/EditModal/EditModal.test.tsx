@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { RefObject } from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/dom';
 import { describe, it, expect, jest } from '@jest/globals';
@@ -14,7 +14,7 @@ describe('EditModal', () => {
             editError:'',
             editHtml:'',
             editModalOpen:true,
-            formRef:React.createRef(),
+            formRef:React.createRef() as RefObject<HTMLDivElement>,
             loadingEditHtml:true,
             saveActiveWidget:()=>{}
         };
@@ -37,7 +37,7 @@ describe('EditModal', () => {
             editError:'',
             editHtml:'<div>Test</div>',
             editModalOpen:true,
-            formRef:React.createRef(),
+            formRef:React.createRef() as RefObject<HTMLDivElement>,
             loadingEditHtml:false,
             saveActiveWidget:()=>{}
         };
@@ -60,7 +60,7 @@ describe('EditModal', () => {
             editError:'Error',
             editHtml:'',
             editModalOpen:true,
-            formRef:React.createRef(),
+            formRef:React.createRef() as RefObject<HTMLDivElement>,
             loadingEditHtml:false,
             saveActiveWidget:()=>{}
         };
@@ -83,7 +83,7 @@ describe('EditModal', () => {
             editError:'',
             editHtml:'',
             editModalOpen:true,
-            formRef:React.createRef(),
+            formRef:React.createRef() as RefObject<HTMLDivElement>,
             loadingEditHtml:true,
             saveActiveWidget:jest.fn()
         };
@@ -106,7 +106,7 @@ describe('EditModal', () => {
             editError:'',
             editHtml:'',
             editModalOpen:true,
-            formRef:React.createRef(),
+            formRef:React.createRef() as RefObject<HTMLDivElement>,
             loadingEditHtml:true,
             saveActiveWidget:jest.fn()
         };
@@ -129,7 +129,7 @@ describe('EditModal', () => {
             editError:'',
             editHtml:'',
             editModalOpen:true,
-            formRef:React.createRef(),
+            formRef:React.createRef() as RefObject<HTMLDivElement>,
             loadingEditHtml:true,
             saveActiveWidget:jest.fn()
         };

@@ -24,12 +24,8 @@ class LogoComponent {
      * Initialize the LogoComponent.
      */
     init() {
-        if (this.logoDisplay.attr("src") === "#") {
-            this.logoDisplay.hide();
-        }
-
+        if (this.logoDisplay.attr("src") === "#") this.logoDisplay.hide();
         this.el.find(".file").hide();
-
         this.fileInput.on("change", this.handleFileChange);
     }
 

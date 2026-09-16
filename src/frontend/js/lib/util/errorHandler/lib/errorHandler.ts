@@ -1,10 +1,11 @@
+import { logging } from "logging";
 /**
  * Control to handle and display errors within the UI
  */
 export class ErrorHandler {
     private el: JQuery<HTMLElement>;
     private errors: string[] = [];
-    errorContainer: JQuery<HTMLElement>;
+    errorContainer!: JQuery<HTMLElement>;
 
     /**
      * Create a new ErrorHandler instance
@@ -36,7 +37,7 @@ export class ErrorHandler {
             } else if (error instanceof Error) {
                 this.errors.push(error.message);
             } else {
-                console.warn("Unsupported error type:", error);
+                logging.warn("Unsupported error type:", error);
                 this.errors.push("An unknown error occurred");
             }
         });

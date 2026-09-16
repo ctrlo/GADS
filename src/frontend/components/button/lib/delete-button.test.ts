@@ -51,8 +51,7 @@ describe('button tests', () => {
         const $button = $(button);
         createDeleteButton($button);
         $button.trigger('click');
-        expect($(modal).find('.modal-title')
-            .text()).toBe('Delete - title');
+        expect($(modal).find('.modal-title').text()).toBe('Delete - title');
     });
 
     it('should set the id of the delete button', () => {
@@ -74,7 +73,6 @@ describe('button tests', () => {
         const $button = $(button);
         createDeleteButton($button);
         $button.trigger('click');
-        expect($(modal).find('button[type=submit]')
-            .val()).toBe('id');
+        expect($(modal).find('button[type=submit]').val()).toBe('id');
     });
 });

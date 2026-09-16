@@ -1,5 +1,5 @@
 import ModalComponent from "components/modal/lib/component";
-import * as DataTableHelper from "components/data-table/lib/helper";
+import { addRow, clearTable, updateRow } from "components/data-table/lib/helper";
 import { modal } from "components/modal/lib/modal";
 import SelectComponent from "components/form-group/select/lib/component";
 
@@ -33,8 +33,8 @@ class AddTableModalComponent extends ModalComponent {
         const btnCreateTopic = this.el.find(".modal-body .btn-js-create-topic");
         const btnCreateField = this.el.find(".modal-body .btn-js-create-field");
 
-        btnCreateTopic.on("click", () => { modal.activate(4, true); });
-        btnCreateField.on("click", () => { modal.activate(7, true); });
+        btnCreateTopic.on("click", () => modal.activate(4, true));
+        btnCreateField.on("click", () => modal.activate(7, true));
         this.fieldOptions.addClass("hidden");
         this.setupDataObject();
     }
@@ -60,11 +60,7 @@ class AddTableModalComponent extends ModalComponent {
         $fields.each((i, field) => {
             if ($(field).val()) {
                 if ($(field).prop("type") == "checkbox") {
-                    if ($(field).prop("checked")) {
-                        obj[$(field).attr("name")] = true;
-                    } else {
-                        obj[$(field).attr("name")] = false;
-                    }
+                    obj[$(field).attr("name")] = !!$(field).prop("checked");
                 } else if ($(field).attr("name") === "topic_tempid") {
                     obj[$(field).attr("name")] = parseInt($(field).val());
                 } else {
@@ -108,16 +104,14 @@ class AddTableModalComponent extends ModalComponent {
                 ""
             ];
 
-            DataTableHelper.addRow(row, this.topicsTable);
+            addRow(row, this.topicsTable);
 
         } else {
             // Update existing topic in json
             const currentTopic = this.json.topics.find(x => x.tempId === this.currentTopicObject.tempId);
 
             $fields.each((i, field) => {
-                if ($(field).val()) {
-                    currentTopic[$(field).attr("name")] = $(field).val();
-                }
+                if ($(field).val()) currentTopic[$(field).attr("name")] = $(field).val();
             });
 
             // Update row in topics table
@@ -128,7 +122,7 @@ class AddTableModalComponent extends ModalComponent {
                 ""
             ];
 
-            DataTableHelper.updateRow(rowData, this.topicsTable, this.currentTopicObject["tempId"]);
+            updateRow(rowData, this.topicsTable, this.currentTopicObject["tempId"]);
 
             // Update topic dropdown
             this.selectTopicComponent.updateOption(this.currentTopicObject["name"], this.currentTopicObject["tempId"]);
@@ -211,9 +205,7 @@ class AddTableModalComponent extends ModalComponent {
      * @returns {object} The modified data with the node removed
      */
     removeNode(id, data) {
-        return data.filter((e) => {
-            return e.tempId !== id;
-        });
+        return data.filter((e) => e.tempId !== id);
     }
 
     /**
@@ -229,7 +221,7 @@ class AddTableModalComponent extends ModalComponent {
 
         $btnEditItem.each((i, btn) => {
             const tempId = $(btn).data("tempid");
-            $(btn).on("click", () => { modal.activate(frameNumber, true, tempId); });
+            $(btn).on("click", () => modal.activate(frameNumber, true, tempId));
         });
     }
 
@@ -273,7 +265,7 @@ class AddTableModalComponent extends ModalComponent {
                 ""
             ];
 
-            DataTableHelper.addRow(row, this.fieldsTable);
+            addRow(row, this.fieldsTable);
 
             this.addHandlerToEditItemButton("field");
 
@@ -282,9 +274,7 @@ class AddTableModalComponent extends ModalComponent {
             const currentField = this.json.fields.find(x => x.tempId === this.currentFieldObject.tempId);
 
             $fields.each((i, field) => {
-                if ($(field).val()) {
-                    currentField[$(field).attr("name")] = $(field).val();
-                }
+                if ($(field).val()) currentField[$(field).attr("name")] = $(field).val();
             });
 
             // Update row in fields table
@@ -296,7 +286,7 @@ class AddTableModalComponent extends ModalComponent {
                 ""
             ];
 
-            DataTableHelper.updateRow(rowData, this.fieldsTable, this.currentFieldObject["tempId"]);
+            updateRow(rowData, this.fieldsTable, this.currentFieldObject["tempId"]);
 
             this.addHandlerToEditItemButton("field");
         }
@@ -367,9 +357,7 @@ class AddTableModalComponent extends ModalComponent {
                 };
 
                 $curvalFieldIds.each((i, field) => {
-                    if ($(field).val()) {
-                        curvalSettingsObject.curval_field_ids.push($(field).val());
-                    }
+                    if ($(field).val()) curvalSettingsObject.curval_field_ids.push($(field).val());
                 });
 
                 curvalSettingsObject = this.addFieldsToObject($otherFields, curvalSettingsObject);
@@ -396,9 +384,7 @@ class AddTableModalComponent extends ModalComponent {
         const $modalTitle = this.el.find(".modal-title");
 
         $fields.each((i, field) => {
-            if ($(field).val()) {
-                this.json[$(field).attr("name")] = $(field).val();
-            }
+            if ($(field).val()) this.json[$(field).attr("name")] = $(field).val();
         });
 
         if (this.json.name) {
@@ -587,8 +573,8 @@ class AddTableModalComponent extends ModalComponent {
         this.el.find(".collapse").collapse("hide");
 
         // Clear all datatables
-        if (this.topicsTable) DataTableHelper.clearTable(this.topicsTable);
-        if (this.fieldsTable) DataTableHelper.clearTable(this.fieldsTable);
+        if (this.topicsTable) clearTable(this.topicsTable);
+        if (this.fieldsTable) clearTable(this.fieldsTable);
 
         // Remove the topics from the topic dropdown
         this.selectTopicComponent.options.each((i, option) => {

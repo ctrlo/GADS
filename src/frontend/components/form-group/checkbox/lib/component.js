@@ -23,9 +23,7 @@ class CheckboxComponent extends Component {
         const id = $(inputEl).attr("id");
         const $revealEl = $(`#${id}-reveal`);
 
-        if ($(inputEl).is(":checked")) {
-            this.showRevealElement($revealEl, true);
-        }
+        if ($(inputEl).is(":checked")) this.showRevealElement($revealEl, true);
 
         $(inputEl).on("change", () => {
             if ($(inputEl).is(":checked")) {

@@ -13,18 +13,14 @@ class TextareaComponent extends Component {
         super(element);
         this.el = $(this.element);
 
-        if (this.el.hasClass("textarea--required")) {
-            initValidationOnField(this.el);
-        }
+        if (this.el.hasClass("textarea--required")) initValidationOnField(this.el);
 
         // Check if there is a textarea with the class 'auto-adjust'
         const $autoAdjustTextarea = this.el.find("textarea.auto-adjust");
         if ($autoAdjustTextarea.length) {
             this.adjustTextareaHeight();
 
-            $autoAdjustTextarea.on("change", () => {
-                this.adjustTextareaHeight();
-            });
+            $autoAdjustTextarea.on("change", () => this.adjustTextareaHeight());
         }
     }
 

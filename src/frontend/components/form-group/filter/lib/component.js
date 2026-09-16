@@ -127,13 +127,6 @@ class FilterComponent extends Component {
             }
         });
 
-        $builderEl.on("validationError.queryBuilder", function (e, node, error, value) {
-            logging.log(error);
-            logging.log(value);
-            logging.log(e);
-            logging.log(node);
-        });
-
         $builderEl.on("afterCreateRuleInput.queryBuilder", function (e, rule) {
             let filterConfig;
 
@@ -144,23 +137,15 @@ class FilterComponent extends Component {
                 }
             });
 
-            if (!filterConfig || filterConfig.type === "rag" || !filterConfig.hasFilterTypeahead) {
-                return;
-            }
+            if (!filterConfig || filterConfig.type === "rag" || !filterConfig.hasFilterTypeahead) return;
 
-            const $ruleInputText = $(
-                `#${rule.id} .rule-value-container input[type='text']`
-            );
+            const $ruleInputText = $(`#${rule.id} .rule-value-container input[type='text']`);
 
-            const $ruleInputHidden = $(
-                `#${rule.id} .rule-value-container input[type='hidden']`
-            );
+            const $ruleInputHidden = $(`#${rule.id} .rule-value-container input[type='hidden']`);
 
             $ruleInputText.attr("autocomplete", "off");
 
-            $ruleInputText.on("keyup", () => {
-                $ruleInputHidden.val($ruleInputText.val());
-            });
+            $ruleInputText.on("keyup", () => $ruleInputHidden.val($ruleInputText.val()));
 
             const filterCallback = (suggestion) => {
                 if (filterConfig.useIdInFilter) {
@@ -272,9 +257,7 @@ class FilterComponent extends Component {
             "is_empty",
             "is_not_empty"
         ];
-        if (type === "daterange") {
-            operators.push("contain");
-        }
+        if (type === "daterange") operators.push("contain");
         return operators;
     }
 
@@ -299,7 +282,7 @@ class FilterComponent extends Component {
                 typeahead.val(rule.data.text);
             },
             validation: {
-                callback: () => { return true; }
+                callback: () => true
             }
         };
     }

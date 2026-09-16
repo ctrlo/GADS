@@ -19,8 +19,7 @@ export default abstract class AutosaveBase extends Component {
      * @returns {boolean} True if the form is a clone, false otherwise
      */
     get isClone(): boolean {
-        return !!$("body").find(".form-edit")
-            .data("from");
+        return !!$("body").find(".form-edit").data("from");
     }
 
     /**
@@ -36,8 +35,7 @@ export default abstract class AutosaveBase extends Component {
      * @returns {number} The record identifier of the current form
      */
     get recordId(): number {
-        return $("body").find(".form-edit")
-            .data("current-id") || 0;
+        return $("body").find(".form-edit").data("current-id") || 0;
     }
 
     /**

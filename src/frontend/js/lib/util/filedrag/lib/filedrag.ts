@@ -24,7 +24,7 @@ export interface FileDragOptions {
  */
 class FileDrag<T extends HTMLElement = HTMLElement> {
     private el: JQuery<T>;
-    private dropZone: JQuery<HTMLElement>;
+    private dropZone!: JQuery<HTMLElement>;
     // for testing
     protected dragging: boolean = false;
 
@@ -59,22 +59,24 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
         });
         this.dropZone.on("drop", (e) => {
             e.preventDefault();
+            const files = e?.originalEvent?.dataTransfer?.files;
+            if(!files) return;
             if (!this.dragging) return;
             this.dragging = false;
             if(this.el.hasClass("dragging")) this.el.removeClass("dragging");
             hideElement($(".drop-zone"));
             showElement($("[data-draggable=\"true\"]"));
-            if (this.options.debug) console.log(e.originalEvent.dataTransfer.files);
+            if (this.options.debug) console.log(files);
             showElement(this.el);
-            console.log(e.originalEvent.dataTransfer.files);
+            console.log(files);
             if (this.options.allowMultiple) {
                 // For some reason the function will not accept a FileList, so we convert it to an array
-                const files = Array.from(e.originalEvent.dataTransfer.files);
-                files.forEach((file, index) => {
-                    this.onDrop(file, index, files.length);
-                });
+                const f2 = Array.from(files);
+                f2.forEach((file, index) => this.onDrop(file, index, f2.length));
             } else {
-                this.onDrop(e.originalEvent.dataTransfer.files[0]);
+                const file = e?.originalEvent?.dataTransfer?.files?.[0];
+                if(!file) return;
+                this.onDrop(file);
             }
             $(document).trigger("drop");
         });
@@ -93,9 +95,7 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
         });
         $(document).on("dragleave", (e) => {
             if (!this.dragging) return;
-            if (e.originalEvent.pageX != 0 || e.originalEvent.pageY != 0) {
-                return false;
-            }
+            if (e.originalEvent?.pageX != 0 || e.originalEvent?.pageY != 0) return false;
             this.dragging = false;
             hideElement(this.dropZone);
             showElement(this.el);

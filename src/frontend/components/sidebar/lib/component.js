@@ -33,9 +33,7 @@ class SidebarComponent extends Component {
         const sidebarToggle = this.el.find(".sidebar__toggle");
         sidebarObservable.addSubscriber(this);
 
-        if (!sidebarToggle) {
-            return;
-        }
+        if (!sidebarToggle) return;
 
         if (this.isMobile) {
             this.collapseSidebar();
@@ -45,9 +43,9 @@ class SidebarComponent extends Component {
             this.expandSidebar();
         }
 
-        $(window).on("resize", () => { this.handleResize(); });
+        $(window).on("resize", () => this.handleResize());
 
-        sidebarToggle.on("click", () => { this.handleClick(); });
+        sidebarToggle.on("click", () => this.handleClick());
     }
 
     /**
@@ -85,8 +83,7 @@ class SidebarComponent extends Component {
     collapseSidebar() {
         this.el.addClass(COLLAPSED_CLASS);
         $(this.toggle).attr("aria-expanded", "false");
-        $(document).find("main")
-            .addClass(EXPANDED_CLASS);
+        $(document).find("main").addClass(EXPANDED_CLASS);
 
         if (!this.isMobile) {
             this.currentState = NAV_STATE_COLLAPSED;
@@ -100,8 +97,7 @@ class SidebarComponent extends Component {
     expandSidebar() {
         this.el.removeClass(COLLAPSED_CLASS);
         $(this.toggle).attr("aria-expanded", "true");
-        $(document).find("main")
-            .removeClass(EXPANDED_CLASS);
+        $(document).find("main").removeClass(EXPANDED_CLASS);
 
         if (!this.isMobile) {
             this.currentState = NAV_STATE_EXPANDED;

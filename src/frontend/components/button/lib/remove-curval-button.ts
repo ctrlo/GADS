@@ -12,15 +12,13 @@ export default function createRemoveCurvalButton(element: JQuery<HTMLElement>) {
                 const parent = curvalItem.parent();
                 curvalItem.remove();
                 if (parent && parent.children().length === 1) {
-                    parent.children(".odd").children(".dataTables_empty")
-                        .show();
+                    parent.children(".odd").children(".dataTables_empty").show();
                 }
             } else {
                 ev.preventDefault();
             }
         } else if ($btn.closest(".select-widget").length) {
-            const fieldId = $btn.closest(".answer").find("input")
-                .prop("id");
+            const fieldId = $btn.closest(".answer").find("input").prop("id");
             const $current = $btn.closest(".select-widget").find(".current");
 
             $current.find(`li[data-list-item=${fieldId}]`).remove();

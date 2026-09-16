@@ -10,8 +10,7 @@ const do_plot = (plotData, options_in) => {
 
     plotOptions.highlighter = {
         showMarker: showmarker,
-        tooltipContentEditor: (str, pointIndex, index, plot) =>
-            plot._plotData[pointIndex][index][1]
+        tooltipContentEditor: (str, pointIndex, index, plot) => plot._plotData[pointIndex][index][1]
     };
 
     const seriesDefaults = makeSeriesDefaults();
@@ -36,9 +35,7 @@ const do_plot = (plotData, options_in) => {
             }
         };
 
-        if (plotData.options.y_max) {
-            plotOptions.axes.yaxis.max = plotData.options.y_max;
-        }
+        if (plotData.options.y_max) plotOptions.axes.yaxis.max = plotData.options.y_max;
 
         if (plotData.options.is_metric) {
             plotOptions.axes.yaxis.tickOptions = {

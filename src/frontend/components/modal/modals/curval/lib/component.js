@@ -6,6 +6,9 @@ import { validateRadioGroup, validateCheckboxGroup } from "validation";
 import { fromJson } from "util/common";
 import StorageProvider from "util/storageProvider";
 
+// Polyfill - was planning on using the uuid library, but it won't allow import to webpack as I need it
+const uuidv4 = () => crypto.randomUUID();
+
 /**
  * Component for handling the Curval Modal, which is used for editing curval fields in a modal dialogue.
  * This component handles loading the modal content, submitting changes via AJAX, and updating the UI with the new values.
@@ -21,7 +24,7 @@ class CurvalModalComponent extends ModalComponent {
      * Create a new instance of the Curval Modal Component
      * @param {HTMLElement} element The element to attach the component to
      */
-    constructor(element)  {
+    constructor(element) {
         super(element);
         this.context = undefined; // Populated on modal show
         if (!this.wasInitialized) this.initCurvalModal();
@@ -71,15 +74,13 @@ class CurvalModalComponent extends ModalComponent {
             }
             const instance_name = $target.data("curval-instance-name");
             // Load the modal and load each value into its fields
-            $m.find(".modal-body").load(self.getURL(current_id, instance_name, layout_id), function(){
+            $m.find(".modal-body").load(self.getURL(current_id, instance_name, layout_id), function () {
                 initializeRegisteredComponents($m.get(0));
-                $m.find(".linkspace-field").each(function(){
+                $m.find(".linkspace-field").each(function () {
                     const $field = $(this);
                     const key = `linkspace-column-${$field.data("column-id")}-${$("body").data("layout-identifier")}-${record_id}`;
                     const vals = values[key];
-                    if (vals) {
-                        setFieldValues($field, vals);
-                    }
+                    if (vals) setFieldValues($field, vals);
                 });
                 let $form = $m.find(".curval-edit-form");
                 $form.data("guid", guid);
@@ -102,31 +103,25 @@ class CurvalModalComponent extends ModalComponent {
         let guid = form.data("guid");
         const $formGroup = $("div[data-column-id=" + col_id + "]");
         const valueSelector = $formGroup.data("value-selector");
-        const self=this;
+        const self = this;
         const $field = $(`#curval_list_${col_id}`).closest(".linkspace-field");
         const current_id = form.data("current-id");
 
         const textValue = jQuery
-            .map(modal_field_ids, function(element) {
+            .map(modal_field_ids, function (element) {
                 const value = values["field" + element];
-                return $("<div />")
-                    .text(value)
-                    .html();
-            })
-            .join(", ");
+                return $("<div />").text(value).html();
+            }).join(", ");
 
         if (valueSelector === "noshow") {
 
             // No strict requirement for alias here, but it is needed below, so for the sake of consistency
             const row_cells = $("<tr class=\"table-curval-item\">", self.context);
 
-            jQuery.map($field.data("modal-field-ids"), function(element) {
+            jQuery.map($field.data("modal-field-ids"), function (element) {
                 let value = values["field" + element];
-                value = $("<div />").text(value)
-                    .html();
-                row_cells.append(
-                    $("<td class=\"curval-inner-text\">").append(value)
-                );
+                value = $("<div />").text(value).html();
+                row_cells.append($("<td class=\"curval-inner-text\">").append(value));
             });
 
             const col_id = $field.data("column-id");
@@ -134,7 +129,7 @@ class CurvalModalComponent extends ModalComponent {
             const editButton = $(
                 `<td>
           <button type="button" class="btn btn-sm btn-link btn-js-curval-modal" data-bs-toggle="modal" data-bs-target="#curvalModal" data-layout-id="${col_id}"
-                data-instance-name="${instance_name}" ${current_id ? `data-current-id="${current_id}"`:""}>
+                data-instance-name="${instance_name}" ${current_id ? `data-current-id="${current_id}"` : ""}>
             <span class="btn__title">Edit</span>
           </button>
           </td>`,
@@ -155,7 +150,7 @@ class CurvalModalComponent extends ModalComponent {
             // guids in the autosave
             let is_new_row;
             if (!guid && !current_id) {
-                guid = crypto.randomUUID();
+                guid = uuidv4();
                 is_new_row = true;
             }
             const hidden_input = $("<input>").attr({
@@ -196,7 +191,7 @@ class CurvalModalComponent extends ModalComponent {
                 $answersList.find("li input").prop("checked", false);
             }
 
-            guid ||= crypto.randomUUID();
+            guid ||= uuidv4();
             const id = `field${col_id}_${guid}`;
             const deleteButton = multi
                 ? "<button class=\"close select-widget-value__delete\" aria-hidden=\"true\" aria-label=\"delete\" title=\"delete\" tabindex=\"-1\">&times</button>"
@@ -213,9 +208,9 @@ class CurvalModalComponent extends ModalComponent {
 
             $answersList.append(`<li class="answer" role="option">
         <div class="control">
-          <div class="${ multi ? "checkbox" : "radio-group__option" }">
-            <input ${strRequired} id="${id}" name="field${col_id}" type="${inputType}" value="${form_data}" class="${ multi ? "" : "radio-group__input" }" checked aria-labelledby="${id}_label">
-            <label id="${id}_label" for="${id}" class="${ multi ? "" : "radio-group__label" }">
+          <div class="${multi ? "checkbox" : "radio-group__option"}">
+            <input ${strRequired} id="${id}" name="field${col_id}" type="${inputType}" value="${form_data}" class="${multi ? "" : "radio-group__input"}" checked aria-labelledby="${id}_label">
+            <label id="${id}_label" for="${id}" class="${multi ? "" : "radio-group__label"}">
               <span>${textValue}</span>
             </label>
           </div>
@@ -231,7 +226,7 @@ class CurvalModalComponent extends ModalComponent {
 
             /* Reinitialize widget */
             initializeRegisteredComponents($formGroup[0]);
-            import(/* webpackChunkName: "select-widget" */ "../../../../form-group/select-widget/lib/component")
+            import(/* webpackChunkName: "select-widget" */ "components/form-group/select-widget/lib/component")
                 .then(({ default: SelectWidgetComponent }) => {
                     new SelectWidgetComponent($widget[0]);
                 });
@@ -246,7 +241,7 @@ class CurvalModalComponent extends ModalComponent {
         const identifier = current_id || guid;
         // "existing" is the existing values for this curval
         // Pull out the current record if it exists
-        let existing_row = existing.filter((item) => item.identifier == identifier)[0] || {identifier};
+        let existing_row = existing.filter((item) => item.identifier == identifier)[0] || { identifier };
         // And then remove it from the array so that we can re-add it in a moment
         existing = existing.filter((item) => Number.isInteger(item) || item.identifier != identifier);
         // Retrieve all the changes from the modal record form
@@ -294,14 +289,8 @@ class CurvalModalComponent extends ModalComponent {
      * @param {any} errorMessage Any error messages
      */
     curvalModalValidationFailed(form, errorMessage) {
-        form
-            .find(".alert")
-            .text(errorMessage)
-            .removeAttr("hidden");
-        form
-            .parents(".modal-content")
-            .get(0)
-            .scrollIntoView();
+        form.find(".alert").text(errorMessage).removeAttr("hidden");
+        form.parents(".modal-content").get(0).scrollIntoView();
         form.find("button[type=submit]").prop("disabled", false);
     }
 
@@ -315,9 +304,7 @@ class CurvalModalComponent extends ModalComponent {
             const layout_id = $field.data("column-id");
             const instance_name = $field.data("curval-instance-name");
             const current_id = $(button).data("current-id");
-            const hidden = $(button)
-                .closest(".table-curval-item")
-                .find(`input[name=field${layout_id}]`);
+            const hidden = $(button).closest(".table-curval-item").find(`input[name=field${layout_id}]`);
             // The hidden value may contain the value of a record ID or edited record
             // data as a query string.  Test it to see which applies, and if it's
             // query data then convert to FormData so that it can be submitted
@@ -354,7 +341,7 @@ class CurvalModalComponent extends ModalComponent {
             if (mode === "edit") {
                 guid = hidden.data("guid");
                 if (!guid) {
-                    guid = crypto.randomUUID();
+                    guid = uuidv4();
                     hidden.attr("data-guid", guid);
                 }
             }
@@ -366,16 +353,14 @@ class CurvalModalComponent extends ModalComponent {
             fetch(this.getURL(current_id, instance_name, layout_id), {
                 method: "POST",
                 body: form_data
-            }).then((response)=>response.text())
+            }).then((response) => response.text())
                 .then((text) => $m.find(".modal-body").html(text))
                 .then(() => {
-                    if (mode === "edit") {
-                        $m.find("form").data("guid", guid);
-                    }
+                    if (mode === "edit") $m.find("form").data("guid", guid);
                     initializeRegisteredComponents(self.element);
                 });
 
-            $m.on("focus", ".datepicker", function() {
+            $m.on("focus", ".datepicker", function () {
                 $(this).datepicker({
                     format: $m.attr("data-dateformat-datepicker"),
                     autoclose: true
@@ -383,11 +368,8 @@ class CurvalModalComponent extends ModalComponent {
             });
 
             $m.off("hide.bs.modal")
-                .on("hide.bs.modal", () => {
-                    return confirm("Closing this dialogue will cancel any work. Are you sure you want to do so?");
-                });
+                .on("hide.bs.modal", () => confirm("Closing this dialogue will cancel any work. Are you sure you want to do so?"));
         });
-
     }
 
     /**
@@ -399,9 +381,7 @@ class CurvalModalComponent extends ModalComponent {
      */
     getURL(current_id, instance_name, layout_id) {
 
-        let url = current_id
-            ? `/record/${current_id}`
-            : `/${instance_name}/record/`;
+        let url = current_id ? `/record/${current_id}` : `/${instance_name}/record/`;
 
         url += `?modal=${layout_id}&include_draft=1`;
         return url;
@@ -413,7 +393,7 @@ class CurvalModalComponent extends ModalComponent {
     setupSubmit() {
         const self = this;
 
-        $(this.element).on("submit", ".curval-edit-form", function(e, autosaveLoadValue) {
+        $(this.element).on("submit", ".curval-edit-form", function (e, autosaveLoadValue) {
             // Don't show close warning when user clicks submit button
             self.el.off("hide.bs.modal");
 
@@ -424,7 +404,7 @@ class CurvalModalComponent extends ModalComponent {
             $form.addClass("edit-form--validating");
             $form.find(".alert").attr("hidden", "");
 
-            const devData = window.siteConfig && window.siteConfig.curvalData;
+            const devData = window.siteConfig?.curvalData;
 
             if (devData) {
                 self.curvalModalValidationSucceeded($form, devData.values);
@@ -433,15 +413,15 @@ class CurvalModalComponent extends ModalComponent {
                 $.post(
                     url,
                     form_data,
-                    function(data) {
-                        const fieldId=$form.data("curval-id");
-                        const $field = $("[data-column-type=\"curval\"][data-column-id=\""+fieldId+"\"]");
+                    function (data) {
+                        const fieldId = $form.data("curval-id");
+                        const $field = $("[data-column-type=\"curval\"][data-column-id=\"" + fieldId + "\"]");
                         if (data.error === 0) {
                             const e = $.Event("validationPassed");
                             $field.trigger(e);
                             self.curvalModalValidationSucceeded($form, data.values);
                         } else {
-                            if(autosaveLoadValue) {
+                            if (autosaveLoadValue) {
                                 const e = $.Event("validationFailed", { message: data.message || "Something went wrong!" });
                                 $field.trigger(e);
                                 // We still allow the form to submit as if it was correct
@@ -453,15 +433,13 @@ class CurvalModalComponent extends ModalComponent {
                         }
                     },
                     "json"
-                )
-                    .fail(function(jqXHR, textstatus, errorthrown) {
-                        const errorMessage = jqXHR.responseJSON?.message ?? `Oops! Something went wrong: ${textstatus}: ${errorthrown}`;
-                        self.curvalModalValidationFailed($form, errorMessage);
-                    })
-                    .always(function() {
-                        $form.removeClass("edit-form--validating");
-                        if (autosaveLoadValue) autosaveLoadValue();
-                    });
+                ).fail(function (jqXHR, textstatus, errorthrown) {
+                    const errorMessage = jqXHR.responseJSON?.message ?? `Oops! Something went wrong: ${textstatus}: ${errorthrown}`;
+                    self.curvalModalValidationFailed($form, errorMessage);
+                }).always(function () {
+                    $form.removeClass("edit-form--validating");
+                    if (autosaveLoadValue) autosaveLoadValue();
+                });
             }
         });
     }

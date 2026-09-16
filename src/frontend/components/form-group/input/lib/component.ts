@@ -21,9 +21,6 @@ class InputComponent extends Component {
     /**
      * Map of component class names to their respective initializers.
      * This allows for dynamic initialization of components based on the class of the element.
-     * @type { {[key: string]: ComponentInitializer} }
-     * @private
-     * @static
      */
     private static componentMap: { [key: string]: ComponentInitializer } = {
         "input--password": passwordComponent,
@@ -63,10 +60,7 @@ class InputComponent extends Component {
      */
     private initializeValidation() {
         const $el = $(this.element);
-
-        if ($el.hasClass("input--required")) {
-            initValidationOnField($el);
-        }
+        if ($el.hasClass("input--required")) initValidationOnField($el);
     }
 }
 

@@ -1,5 +1,11 @@
-import { initializeComponent } from "component";
+import { getComponentElements, initializeComponent } from "component";
 
-export default (scope) =>
-    import("./lib/component")
-        .then(({ default: SelectComponent }) => { initializeComponent(scope, ".select", SelectComponent); });
+export default (scope) => {
+    if(!getComponentElements(scope, ".select")) return;
+
+    import(
+        /* webpackChunkName: "select-component" */ "./lib/component"
+    ).then(({ default: SelectComponent }) => {
+        initializeComponent(scope, ".select", SelectComponent);
+    });
+};
