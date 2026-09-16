@@ -1,5 +1,5 @@
 import { Tooltip } from "bootstrap";
-import { SearchableSelectOptions } from "./options";
+import type { SearchableSelectOptions } from "./options";
 
 /**
  * SearchableSelect class provides a searchable dropdown interface for a standard HTML select element.

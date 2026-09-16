@@ -1,5 +1,5 @@
 import { SearchableSelect } from "./lib/SearchableSelect";
-import { SearchableSelectOptions } from "./lib/options";
+import type { SearchableSelectOptions } from "./lib/options";
 import { logging } from "logging";
 
 if (typeof jQuery === "undefined") throw new Error("jQuery is not loaded. Please include jQuery before this script.");

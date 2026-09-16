@@ -1,5 +1,5 @@
 import { Hidable, Renderable } from "util/renderable";
-import { AlertType } from "./types";
+import type { AlertType } from "./types";
 
 /**
  * Base class for alert components that can be rendered to the DOM and hidden when necessary.
