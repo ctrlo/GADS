@@ -1,3 +1,5 @@
+$tt-color: #E5E5E5;
+
 .form-inline .form-group {
   margin-right: $padding-base-horizontal;
 }
@@ -30,21 +32,21 @@
 
 .tt-menu {
   background-color: $gray-light;
-  border: solid 2px #E5E5E5;
+  border: solid 2px $tt-color;
   width: 210px;
   margin-left: 1px;
 
   .tt-suggestion {
     background-color: $gray-light;
     color: $gray-extra-dark;
-    border-bottom: 1px solid #E5E5E5;
+    border-bottom: 1px solid $tt-color;
     padding: 0.5rem 1rem;
     font-weight: normal;
     text-transform: none;
   }
 
   .tt-suggestion:hover {
-    background-color: #E5E5E5;
+    background-color: $tt-color;
   }
 }
 

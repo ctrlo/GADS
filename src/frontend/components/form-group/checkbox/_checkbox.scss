@@ -2,11 +2,11 @@
   @include custom-input($type: "checkbox");
 
   margin-bottom: $padding-small-vertical;
-}
 
-.checkbox label {
-  justify-content: flex-start;
-  margin-bottom: 0;
+  & label {
+    justify-content: flex-start;
+    margin-bottom: 0;
+  }
 }
 
 .checkbox-confirm {
