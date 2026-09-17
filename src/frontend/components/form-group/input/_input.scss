@@ -191,7 +191,6 @@
   }
 }
 
-/* stylelint-disable no-descending-specificity */
 .input--autocomplete {
   font-family: $font-family-base;
 
@@ -213,6 +212,7 @@
 
     .progress-bar__progress {
       background-color: rgba($brand-success, 0.2);
+
       .progress-bar__percentage {
         display: inline-block;
         width: 100%;

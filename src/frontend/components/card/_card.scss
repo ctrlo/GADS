@@ -1,221 +1,255 @@
 .card {
-    box-shadow: $box-shadow;
+  box-shadow: $box-shadow;
 
-    &:has(.card-header > .collapsed) {
-        border-bottom-left-radius: 0;
-        border-bottom-right-radius: 0;
+  &:has(.card-header > .collapsed) {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .card-header {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    border: 0;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    span,
+    div {
+      padding: 0;
+      margin: 0;
+      font-weight: 600;
     }
 
-    .card-header {
-        display: flex;
-        flex-direction: row;
-        align-items: baseline;
-        justify-content: space-between;
-        border: 0;
-
-        h1, h2, h3, h4, h5, h6, p, span, div {
-            padding: 0;
-            margin: 0;
-            font-weight: 600;
-        }
-
-        h4 {
-            font-size: $font-size-base;
-        }
+    h4 {
+      font-size: $font-size-base;
     }
+  }
 }
 
 @each $color in (primary,
-    secondary,
-    success,
-    danger,
-    warning,
-    info,
-    light,
-    dark) {
-    .card-#{$color} {
-        border: none;
-
-        .card-header {
-            background-color: var(--bs-#{$color});
-
-            h1, h2, h3, h4, h5, h6, p, span, div {
-
-                @if $color == primary or $color == secondary or $color == danger or $color == dark {
-                    color: var(--bs-white);
-                } @else {
-                    color: var(--bs-black);
-                }
-            }
-        }
-
-        &.card-inverse {
-            .card-header {
-                background-color: var(--bs-white);
-                color: var(--bs-#{$color});
-
-                h1, h2, h3, h4, h5, h6, p, span, div {
-                    color: var(--bs-#{$color});
-                }
-            }
-        }
-    }
-}
-
-.card-plain {
+  secondary,
+  success,
+  danger,
+  warning,
+  info,
+  light,
+  dark) {
+  .card-#{$color} {
     border: none;
 
     .card-header {
-        background-color: var(--bs-white);
+      background-color: var(--bs-#{$color});
 
-        h1, h2, h3, h4, h5, h6, p, span, div {
-            color: var(--bs-secondary);
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      p,
+      span,
+      div {
+
+        @if $color ==primary or $color ==secondary or $color ==danger or $color ==dark {
+          color: var(--bs-white);
         }
 
-        h4 {
-            font-size: $font-size-base;
+        @else {
+          color: var(--bs-black);
         }
+      }
     }
+
+    &.card-inverse {
+      .card-header {
+        background-color: var(--bs-white);
+        color: var(--bs-#{$color});
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p,
+        span,
+        div {
+          color: var(--bs-#{$color});
+        }
+      }
+    }
+  }
+}
+
+.card-plain {
+  border: none;
+
+  .card-header {
+    background-color: var(--bs-white);
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    span,
+    div {
+      color: var(--bs-secondary);
+    }
+
+    h4 {
+      font-size: $font-size-base;
+    }
+  }
 }
 
 .card:not(:last-of-type) {
-    margin-bottom: $padding-base-vertical;
+  margin-bottom: $padding-base-vertical;
 }
 
 .card-header__toggle {
-    flex-grow: 1;
+  flex-grow: 1;
 
-    .card__title {
-        @extend .text-primary;
+  .card__title {
+    @extend .text-primary;
 
-        .card__subtitle {
-            font-weight: normal;
-            margin-left: $padding-base-horizontal;
-            @extend .text-secondary;
-        }
+    .card__subtitle {
+      font-weight: normal;
+      margin-left: $padding-base-horizontal;
+      @extend .text-secondary;
     }
+  }
 }
 
 .card__header-right {
-    display: flex;
-    align-items: baseline;
-    justify-content: flex-end;
-    flex-direction: row;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  flex-direction: row;
 }
 
 .card__title span {
-    transition: border-bottom 0.3s ease-in-out;
-    border-bottom: solid 1px transparent;
+  transition: border-bottom 0.3s ease-in-out;
+  border-bottom: solid 1px transparent;
 }
 
 // Settings cards
 .card--settings {
-    height: 100%;
+  height: 100%;
+  border: 0;
+  box-shadow: $box-shadow;
+
+  .card-header {
+
     border: 0;
-    box-shadow: $box-shadow;
+    font-size: 1rem;
+    font-weight: 600;
+    padding-bottom: 0;
 
-    .card-header {
-
-        border: 0;
-        font-size: 1rem;
-        font-weight: 600;
-        padding-bottom: 0;
-
-        span {
-            border-bottom: solid 1px transparent;
-        }
+    span {
+      border-bottom: solid 1px transparent;
     }
+  }
 }
 
 a.card--settings {
-    &:hover {
-        .card-header {
-            span {
-                border-bottom: solid 1px $brand-secundary;
-
-                &.icon {
-                    border-bottom: solid 1px $transparent;
-
-                    &::before {
-                        transform: scale(1.2);
-                    }
-                }
-            }
-        }
-    }
-
+  &:hover {
     .card-header {
-        span {
-            transition: all 0.5s ease-in-out;
+      span {
+        border-bottom: solid 1px $brand-secundary;
 
-            .icon::before {
-                transform: scale(1);
-            }
+        &.icon {
+          border-bottom: solid 1px $transparent;
+
+          &::before {
+            transform: scale(1.2);
+          }
         }
+      }
     }
+  }
+
+  .card-header {
+    span {
+      transition: all 0.5s ease-in-out;
+
+      .icon::before {
+        transform: scale(1);
+      }
+    }
+  }
 }
 
 .card__title {
-    color: $brand-secundary;
-    font-weight: 600;
+  color: $brand-secundary;
+  font-weight: 600;
 }
 
 .card__toggle {
-    padding: 0;
-    border: 0;
-    background-color: $white;
-    line-height: $headings-line-height;
+  padding: 0;
+  border: 0;
+  background-color: $white;
+  line-height: $headings-line-height;
 
-    span {
-        @extend .visually-hidden;
-    }
+  span {
+    @extend .visually-hidden;
+  }
 
-    &::after {
-        @extend %icon-font;
+  &::after {
+    @extend %icon-font;
 
-        content: "\E805";
-        margin-left: $padding-base-horizontal;
-        transform: rotate(90deg);
-        color: $gray-extra-dark;
-    }
+    content: "\E805";
+    margin-left: $padding-base-horizontal;
+    transform: rotate(90deg);
+    color: $gray-extra-dark;
+  }
 }
 
 .card__toggle[aria-expanded="false"] {
-    &::after {
-        transform: rotate(0deg);
-    }
+  &::after {
+    transform: rotate(0deg);
+  }
 }
 
 .card__edit-content,
 .btn-view {
-    display: none;
+  display: none;
 }
 
 .btn-edit,
 .btn-view {
-    margin-right: 0;
-    margin-bottom: 0;
+  margin-right: 0;
+  margin-bottom: 0;
 
-    span:not(.btn__title) {
-        @extend .visually-hidden;
-    }
+  span:not(.btn__title) {
+    @extend .visually-hidden;
+  }
 }
 
 @include media-breakpoint-up(md) {
-    .card__toggle::after {
-        margin-left: $padding-large-horizontal;
-    }
+  .card__toggle::after {
+    margin-left: $padding-large-horizontal;
+  }
 }
 
 .card--edit {
 
-    .card__edit-content,
-    .btn-view {
-        display: block;
-    }
+  .card__edit-content,
+  .btn-view {
+    display: block;
+  }
 
-    .card__view-content,
-    .btn-edit {
-        display: none;
-    }
+  .card__view-content,
+  .btn-edit {
+    display: none;
+  }
 }

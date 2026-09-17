@@ -62,16 +62,10 @@ class GlobeComponent extends Component {
                 // XXX This will filter only when all globe fields of the record
                 // are equal to the country. This should be an "OR" condition
                 // instead
-                const filter = params.globe_fields
-                    .map(function (field) {
-                        return field + "=" + pt.location;
-                    })
-                    .join("&");
+                const filter = params.globe_fields.map((field) => field + "=" + pt.location).join("&");
 
                 let url = "/" + params.layout_identifier + "/data?viewtype=table&view=" + params.view_id + "&" + filter;
-                if (params.default_view_limit_extra_id) {
-                    url = url + "&extra=" + params.default_view_limit_extra_id;
-                }
+                if (params.default_view_limit_extra_id) url = url + "&extra=" + params.default_view_limit_extra_id;
                 location.href = url;
             });
         });

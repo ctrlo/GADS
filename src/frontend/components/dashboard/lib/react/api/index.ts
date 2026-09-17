@@ -1,5 +1,5 @@
 import { Layout } from "react-grid-layout";
-import { ApiResponse } from "../types";
+import type { ApiResponse } from "../types";
 
 /**
  * Request method types for the API client.
@@ -51,9 +51,7 @@ export default class ApiClient {
             headers: Object.assign(this.headers),
             credentials: "same-origin" // Needed for older versions of Firefox, otherwise cookies not sent
         };
-        if (body) {
-            opts.body = JSON.stringify(body);
-        }
+        if (body) opts.body = JSON.stringify(body);
         return fetch(fullRoute, opts);
     }
 
@@ -71,7 +69,7 @@ export default class ApiClient {
      * @param {T} body The body of the request
      * @returns {Promise<Response>} A promise that resolves to the response of the fetch request.
      */
-    POST<T extends object = object>(route: string, body: T): Promise<Response> { return this._fetch(route, "POST", body); }
+    POST<T extends object = object>(route: string, body: T | null): Promise<Response> { return this._fetch(route, "POST", body ?? {}); }
 
     /**
      * Perform a PUT request to the API.
@@ -100,6 +98,7 @@ export default class ApiClient {
             const strippedLayout = layout.map(widget => ({ ...widget, moved: undefined }));
             return this.PUT(`/dashboard/${id}`, strippedLayout);
         }
+        return Promise.resolve(new Response());
     };
 
     /**
@@ -119,7 +118,7 @@ export default class ApiClient {
      */
     getWidgetHtml = async (id: string): Promise<string> => {
         const html = this.isDev ? await this.GET(`/widget/${id}/create`) : await this.GET(`/widget/${id}`);
-        return html.text();
+        return await html.text();
     };
 
     /**
@@ -127,7 +126,7 @@ export default class ApiClient {
      * @param {string} id The ID of the widget to delete.
      * @returns {Promise<Response>} A promise that resolves to the response of the delete request.
      */
-    deleteWidget = (id: string): Promise<Response> => !this.isDev && this.DELETE(`/widget/${id}`);
+    deleteWidget = (id: string): Promise<Response> => this.isDev ? Promise.reject("Running in dev mode") : this.DELETE(`/widget/${id}`);
 
     /**
      * Get the edit form for a widget.
@@ -136,7 +135,7 @@ export default class ApiClient {
      */
     getEditForm = async (id: string): Promise<ApiResponse> => {
         const response = await this.GET(`/widget/${id}/edit`);
-        return response.json();
+        return await response.json();
     };
 
     /**

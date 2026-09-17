@@ -1,7 +1,7 @@
 /* eslint-disable @stylistic/semi */
 import React, { useEffect } from "react";
 import Modal, {Styles} from "react-modal";
-import { AppModalProps } from "../types";
+import type { AppModalProps } from "../types";
 
 /**
  * Edit modal component
@@ -53,7 +53,7 @@ export default function EditModal({ editModalOpen, closeModal, editError, loadin
             {editError
                 && <p className="alert alert-danger">{editError}</p>}
             {loadingEditHtml
-                ? <span className='ld-modal__loading'>Loading...</span> : <div ref={formRef} dangerouslySetInnerHTML={{ __html: editHtml }} />}
+                ? <span className='ld-modal__loading'>Loading...</span> : <div ref={formRef} dangerouslySetInnerHTML={{ __html: editHtml! }} />}
         </div>
         <div className='modal-footer'>
             <div className='modal-footer__left'>

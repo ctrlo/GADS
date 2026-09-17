@@ -7,16 +7,16 @@
   justify-content: flex-end;
   width: 100%;
   padding: $padding-base-vertical 0;
-}
 
-.page-header_container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: -1 * $grid-offset-mobile;
-  bottom: 0;
-  left: 0;
-  background-color: $white;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -1 * $grid-offset-mobile;
+    bottom: 0;
+    left: 0;
+    background-color: $white;
+  }
 }
 
 @include media-breakpoint-up(lg) {

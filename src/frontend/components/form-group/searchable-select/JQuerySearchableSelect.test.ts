@@ -8,7 +8,7 @@ describe("JQuery SearchableSelect component", () => {
     });
 
     it("Should define the searchableSelect jQuery plugin", () => {
-        if(typeof jQuery === 'undefined') expect(true).toBe(false); // fail if jQuery is not loaded
+        expect(jQuery).toBeDefined(); // fail if jQuery is not loaded
         expect(jQuery.fn.searchableSelect).toBeDefined();
     });
 

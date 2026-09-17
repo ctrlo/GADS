@@ -26,17 +26,8 @@ class SelectComponent extends Component {
         this.isSelectReveal = this.el.hasClass("select--reveal");
         this.initSelect(this.el);
 
-        if (this.el.hasClass("select--required")) {
-            initValidationOnField(this.el);
-        }
+        if (this.el.hasClass("select--required")) initValidationOnField(this.el);
     }
-
-    /**
-     * @type {SelectComponent} self
-     * @description Reference to the current instance for static methods
-     * @static
-     */
-    static self = this;
 
     /**
      * Intializes the select
@@ -47,13 +38,11 @@ class SelectComponent extends Component {
         }
 
         // Bind event handlers
-        this.options.on("click", (ev) => { this.handleClick(ev); });
-        this.input.on("change", (ev) => { this.handleChange(ev); });
-        this.el.on("show.bs.dropdown", () => { this.handleOpen(); });
+        this.options.on("click", (ev) => this.handleClick(ev));
+        this.input.on("change", (ev) => this.handleChange(ev));
+        this.el.on("show.bs.dropdown", () => this.handleOpen());
 
-        if (this.input.val()) {
-            this.input.trigger("change");
-        }
+        if (this.input.val()) this.input.trigger("change");
     }
 
     /**
@@ -107,14 +96,14 @@ class SelectComponent extends Component {
      * @param {HTMLElement} option The option element to bind the click handler to
      */
     bindOptionHandler(option) {
-        $(option).on("click", (ev) => { this.handleClick(ev); });
+        $(option).on("click", (ev) => this.handleClick(ev));
     }
 
     /**
      * Handles the opening of the select
      */
     handleOpen() {
-        this.el.on("keydown", (ev) => { this.supportKeyboardNavigation(ev); });
+        this.el.on("keydown", (ev) => this.supportKeyboardNavigation(ev));
     }
 
     /**
@@ -138,12 +127,9 @@ class SelectComponent extends Component {
             this.resetSelect();
         } else {
             this.options.each((i, option) => {
-                if ($(option).data("value")
-                    .toString() === value) {
+                if ($(option).data("value").toString() === value) {
                     this.updateChecked($(option));
-                    if (this.isSelectReveal) {
-                        this.revealInstance($(option));
-                    }
+                    if (this.isSelectReveal) this.revealInstance($(option));
                 }
             });
         }
@@ -158,19 +144,13 @@ class SelectComponent extends Component {
         const value = option.data("value");
         const revealID = option.data("reveal_id");
 
-        this.input
-            .val(value)
-            .trigger("change");
+        this.input.val(value).trigger("change");
 
-        if (revealID !== undefined) {
-            this.input.attr("data-reveal_id", revealID);
-        }
+        if (revealID !== undefined) this.input.attr("data-reveal_id", revealID);
 
         this.updateChecked($(option));
 
-        if (this.isSelectReveal) {
-            this.revealInstance($(option));
-        }
+        if (this.isSelectReveal) this.revealInstance($(option));
 
         this.toggleButton.trigger("focus");
     }
@@ -221,12 +201,8 @@ class SelectComponent extends Component {
         const prevOption = this.options[this.optionHoveredIndex];
         const option = this.options[newIndex];
 
-        if (prevOption) {
-            prevOption.classList.remove(SELECT_MENU_ITEM_HOVER);
-        }
-        if (option) {
-            option.classList.add(SELECT_MENU_ITEM_HOVER);
-        }
+        if (prevOption) prevOption.classList.remove(SELECT_MENU_ITEM_HOVER);
+        if (option) option.classList.add(SELECT_MENU_ITEM_HOVER);
 
         this.optionHoveredIndex = newIndex;
     }
@@ -275,19 +251,13 @@ class SelectComponent extends Component {
             const option = this.options[this.optionHoveredIndex];
             const value = option && $(option).data("value");
 
-            if (value) {
-                this.input
-                    .val(value)
-                    .trigger("change");
-            }
+            if (value) this.input.val(value).trigger("change");
 
             this.handleClose(ev);
         }
 
         // press ESC -> close selectCustom
-        if (ev.key === "Escape") {
-            this.handleClose(ev);
-        }
+        if (ev.key === "Escape") this.handleClose(ev);
     }
 
     /**

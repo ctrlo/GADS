@@ -47,10 +47,7 @@ class UserModalComponent extends ModalComponent {
         } else {
             this.el.find(".js-add-user").hide();
             this.el.find(".js-approve-account").show();
-            this.el.find(".btn-js-reject-request").show()
-                .on("click", () => {
-                    this.activateFrame(4);
-                });
+            this.el.find(".btn-js-reject-request").show().on("click", () => this.activateFrame(4));
             this.el.find(".btn-js-save .btn__title").html("Approve account");
             this.el.find("input[name=\"approve-account\"]").val("true");
         }
@@ -129,9 +126,7 @@ class UserModalComponent extends ModalComponent {
         super.handleBack();
         if (this.target.hasClass("btn-add")) return;
         this.el.find(".btn-js-reject-request").off()
-            .on("click", () => {
-                this.activateFrame(4);
-            });
+            .on("click", () => this.activateFrame(4));
     }
 
     /**
@@ -141,9 +136,7 @@ class UserModalComponent extends ModalComponent {
         super.handleNext();
         if (this.target.hasClass("btn-add")) return;
         this.el.find(".btn-js-reject-request").off()
-            .on("click", () => {
-                this.activateFrame(4);
-            });
+            .on("click", () => this.activateFrame(4));
     }
 }
 

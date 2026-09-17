@@ -1,5 +1,5 @@
 import React from "react";
-import { HeaderProps } from "./types";
+import type { HeaderProps } from "./types";
 import MenuItem from "./Menu/MenuItem";
 import { Nav } from "react-bootstrap";
 

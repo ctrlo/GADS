@@ -1,8 +1,10 @@
+$tt-color: #E5E5E5;
+
 .form-inline .form-group {
   margin-right: $padding-base-horizontal;
 }
 
-.card__content > .row:last-of-type .form-group:last-child {
+.card__content>.row:last-of-type .form-group:last-child {
   margin-bottom: 0;
 }
 
@@ -10,12 +12,12 @@
   margin-left: $padding-large-horizontal;
 }
 
-.card > * > .form-group {
-    padding-bottom: 0;
+.card>*>.form-group {
+  padding-bottom: 0;
 }
 
 .form-control[aria-invalid],
-.radio-group__input[aria-invalid] + .radio-group__label::before {
+.radio-group__input[aria-invalid]+.radio-group__label::before {
   border-color: $brand-danger;
 }
 
@@ -30,24 +32,24 @@
 
 .tt-menu {
   background-color: $gray-light;
-  border: solid 2px #E5E5E5;
+  border: solid 2px $tt-color;
   width: 210px;
   margin-left: 1px;
 
   .tt-suggestion {
     background-color: $gray-light;
     color: $gray-extra-dark;
-    border-bottom: 1px solid #E5E5E5;
+    border-bottom: 1px solid $tt-color;
     padding: 0.5rem 1rem;
     font-weight: normal;
     text-transform: none;
   }
 
   .tt-suggestion:hover {
-    background-color: #E5E5E5;
+    background-color: $tt-color;
   }
 }
 
 .form-group {
-    margin-bottom: 2rem;
+  margin-bottom: 2rem;
 }

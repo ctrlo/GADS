@@ -102,11 +102,9 @@ class ModalComponent extends Component {
      */
     hideContent(bHide) {
         if (bHide) {
-            $("body").children()
-                .attr("aria-hidden", true);
+            $("body").children().attr("aria-hidden", true);
         } else {
-            $("body").children()
-                .removeAttr("aria-hidden");
+            $("body").children().removeAttr("aria-hidden");
         }
     }
 
@@ -115,9 +113,7 @@ class ModalComponent extends Component {
      */
     preventModalToOpen() {
         const modalId = this.el.attr("id") || "";
-        $(`.btn[data-bs-target="#${modalId}"]`).on("click", function (e) {
-            e.stopPropagation();
-        });
+        $(`.btn[data-bs-target="#${modalId}"]`).on("click", (e) => e.stopPropagation());
     }
 
     /**
@@ -161,12 +157,10 @@ class ModalComponent extends Component {
         if (arrFrameNumbers) {
             $(arrFrameNumbers).each((i, frameNr) => {
                 const frame = this.getFrameByNumber(frameNr);
-                if(frame) this.clearFields(frame);
+                if (frame) this.clearFields(frame);
             });
         } else {
-            this.frames.each((i, frame) => {
-                this.clearFields(frame);
-            });
+            this.frames.each((i, frame) => this.clearFields(frame));
         }
     }
 
@@ -176,13 +170,7 @@ class ModalComponent extends Component {
      * @returns {number | undefined} The frame number if available, otherwise undefined.
      */
     getFrameNumber(frame) {
-        const config = $(frame).data("config");
-
-        if (!config.frame || isNaN(config.frame)) {
-            return;
-        }
-
-        return config.frame;
+        return $(frame).data("config")?.frame;
     }
 
     /**
@@ -195,11 +183,7 @@ class ModalComponent extends Component {
 
         this.frames.each((i, frame) => {
             const config = $(frame).data("config");
-
-            if (config.frame === frameNr) {
-                selectedFrame = frame;
-                return false;
-            }
+            if (config.frame === frameNr) selectedFrame = frame;
         });
 
         return selectedFrame;
@@ -215,9 +199,7 @@ class ModalComponent extends Component {
         this.frames.each((i, frame) => {
             const config = $(frame).data("config");
 
-            if (!config.frame || isNaN(config.frame)) {
-                throw "activateFrame: frame is not a number!";
-            }
+            if (!config.frame || isNaN(config.frame)) throw "activateFrame: frame is not a number!";
 
             this.unbindEventHandlers($(frame));
 
@@ -234,8 +216,8 @@ class ModalComponent extends Component {
                 this.bindEventHandlers();
 
                 if (this.frame.requiredFields.length) {
-                    if(this.frame.buttons.next) this.setNextButtonState(false);
-                    if(this.frame.buttons.invisible) this.setInvisibleButtonState(false);
+                    if (this.frame.buttons.next) this.setNextButtonState(false);
+                    if (this.frame.buttons.invisible) this.setInvisibleButtonState(false);
                 }
 
                 if (clearFields) {
@@ -270,14 +252,14 @@ class ModalComponent extends Component {
      * Add event listeners to the buttons and required fields of the current frame
      */
     bindEventHandlers() {
-        this.frame.buttons.next.on("click", () => { modal.next(this.frame.object); });
-        this.frame.buttons.back.on("click", () => { modal.back(this.frame.object); });
-        this.frame.buttons.skip.on("click", () => { if(this.frame.skip) modal.skip(this.frame.skip); });
-        this.frame.buttons.addNext.on("click", () => { modal.add(this.frame.object); });
-        this.frame.buttons.save.on("click", () => { modal.save(); });
-        this.frame.requiredFields.on("keyup.modalEvent", (ev) => { this.handleKeyup(ev); });
-        this.frame.requiredFields.on("keydown.modalEvent", () => { this.handleKeydown(); });
-        this.frame.requiredFields.on("blur.modalEvent", (ev) => { this.handleBlur(ev); });
+        this.frame.buttons.next.on("click", () => modal.next(this.frame.object));
+        this.frame.buttons.back.on("click", () => modal.back(this.frame.object));
+        this.frame.buttons.skip.on("click", () => { if (this.frame.skip) modal.skip(this.frame.skip); });
+        this.frame.buttons.addNext.on("click", () => modal.add(this.frame.object));
+        this.frame.buttons.save.on("click", () => modal.save());
+        this.frame.requiredFields.on("keyup.modalEvent", (ev) => this.handleKeyup(ev));
+        this.frame.requiredFields.on("keydown.modalEvent", () => this.handleKeydown());
+        this.frame.requiredFields.on("blur.modalEvent", (ev) => this.handleBlur(ev));
     }
 
     /**
@@ -289,11 +271,11 @@ class ModalComponent extends Component {
         const field = ev.target;
         clearTimeout(this.typingTimer);
 
-        this.typingTimer = setTimeout(() => {
-            if ($(field).val())
-                this.validateField(field);
-        },
-        doneTypingInterval);
+        this.typingTimer = setTimeout(
+            () => {
+                if ($(field).val()) this.validateField(field);
+            }, doneTypingInterval
+        );
     }
 
     /**
@@ -311,8 +293,7 @@ class ModalComponent extends Component {
         const field = ev.target;
         clearTimeout(this.typingTimer);
 
-        if ($(field).val())
-            this.validateField(field);
+        if ($(field).val()) this.validateField(field);
     }
 
     /**
@@ -337,9 +318,7 @@ class ModalComponent extends Component {
         this.frame.error = [];
 
         if (!isValid) {
-            const fieldLabel = $(field).closest(".input")
-                .find("label")
-                .html();
+            const fieldLabel = $(field).closest(".input").find("label").html();
             this.frame.error.push(`${fieldLabel} is invalid`);
         }
 
@@ -355,9 +334,7 @@ class ModalComponent extends Component {
         this.frame.isValid = true;
 
         this.frame.requiredFields.each((i, field) => {
-            if (!this.isValidField($(field))) {
-                this.frame.isValid = false;
-            }
+            if (!this.isValidField($(field))) this.frame.isValid = false;
         });
 
         this.setFrameState();
@@ -383,16 +360,15 @@ class ModalComponent extends Component {
     setFrameState() {
         const alert = this.frame.object.find(".alert");
 
-        if(this.frame.buttons.next) this.setNextButtonState(this.frame.isValid);
-        if(this.frame.buttons.invisible) this.setInvisibleButtonState(this.frame.isValid);
+        if (this.frame.buttons.next) this.setNextButtonState(this.frame.isValid);
+        if (this.frame.buttons.invisible) this.setInvisibleButtonState(this.frame.isValid);
 
         if ((!this.frame.isValid) && (this.frame.error.length > 0)) {
             const errorIntro = "<p>There were problems with the following fields:</p>";
             let errorList = "";
 
             $.each(this.frame.error, (i, errorMsg) => {
-                const errorMsgHtml = $("<span>").text(errorMsg)
-                    .html();
+                const errorMsgHtml = $("<span>").text(errorMsg).html();
                 errorList += `<li>${errorMsgHtml}</li>`;
             });
 
@@ -476,14 +452,12 @@ class ModalComponent extends Component {
             url: strURL,
             data: dataStr,
             processData: false
-        })
-            .done(function () {
-                location.reload();
-            })
-            .fail(function (jqXHR) {
-                const strError = jqXHR.responseJSON.message;
-                self.showError(strError);
-            });
+        }).done(function () {
+            location.reload();
+        }).fail(function (jqXHR) {
+            const strError = jqXHR.responseJSON.message;
+            self.showError(strError);
+        });
     }
 
     /**
@@ -493,8 +467,7 @@ class ModalComponent extends Component {
     showError(strError) {
         const alert = this.frame.object.find(".alert");
 
-        const strErrorHtml = $("<span>").text(strError)
-            .html();
+        const strErrorHtml = $("<span>").text(strError).html();
         alert.html(`<p>Error: ${strErrorHtml}</p>`);
         alert.show();
         this.el.animate({ scrollTop: alert.offset().top }, 500);

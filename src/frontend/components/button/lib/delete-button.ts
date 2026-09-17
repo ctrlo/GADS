@@ -22,13 +22,12 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
             }
         } catch (e) {
             logging.error(e);
-            element.on("click", function (e: JQuery.ClickEvent) {
-                e.stopPropagation();
-            });
-            if (window.test) throw e;
+            element.on("click", (e) => e.stopPropagation());
+            // TS6 is a bit odd - it recognises window.test as a function and wants to call it so we resort to typechecks
+            if (typeof window.test !== "undefined") throw e;
         }
 
         $deleteModal.find(".modal-title").text(modalTitle);
-        $deleteModal.find("button[type=submit]").val(id);
+        $deleteModal.find("button[type=submit]").val(id!);
     });
 }

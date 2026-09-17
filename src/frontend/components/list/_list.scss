@@ -15,9 +15,9 @@
 }
 
 .list--vertical {
-    &:not(:last-child) {
-        margin-bottom: $padding-large-vertical;
-    }
+  &:not(:last-child) {
+    margin-bottom: $padding-large-vertical;
+  }
 }
 
 .list--horizontal {
@@ -43,8 +43,6 @@
       border-bottom: none;
     }
   }
-
-  /* stylelint-disable no-descending-specificity */
 
   &.list--no-borders {
     gap: $padding-base-horizontal;
@@ -219,7 +217,7 @@
       border-right-color: $brand-primary;
     }
 
-    & + .list__item {
+    &+.list__item {
       border-left: 0;
     }
 

@@ -1,12 +1,13 @@
 import { SearchableSelect } from "./lib/SearchableSelect";
-import { SearchableSelectOptions } from "./lib/options";
+import type { SearchableSelectOptions } from "./lib/options";
+import { logging } from "logging";
 
 if (typeof jQuery === "undefined") throw new Error("jQuery is not loaded. Please include jQuery before this script.");
 
 declare global {
     interface JQuery {
         searchableSelect: (options?: SearchableSelectOptions) => JQuery;
-        getSearchableSelect: () => SearchableSelect;
+        getSearchableSelect: () => SearchableSelect | null;
     }
 }
 
@@ -29,7 +30,7 @@ export { };
                 selectMap.set(element, select);
                 $(element).data("searchableSelect", "true");
             } else {
-                console.warn("Element is not a select:", element);
+                logging.warn("Element is not a select:", element);
             }
         });
         return this;
@@ -39,7 +40,7 @@ export { };
         if (element && selectMap.get(element)) {
             return selectMap.get(element) as SearchableSelect;
         } else {
-            console.warn("No SearchableSelect instance found for this element:", element);
+            logging.warn("No SearchableSelect instance found for this element:", element);
             return null;
         }
     };

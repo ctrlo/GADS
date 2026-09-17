@@ -1,5 +1,5 @@
 import { Hidable, Renderable } from "util/renderable";
-import { AlertType } from "./types";
+import type { AlertType } from "./types";
 
 /**
  * Base class for alert components that can be rendered to the DOM and hidden when necessary.
@@ -10,15 +10,9 @@ export abstract class AlertBase extends Hidable implements Renderable<HTMLDivEle
      * This class serves as a base for alert components.
      * It implements the Renderable interface, which requires a render method.
      * The render method should be implemented by subclasses to provide specific rendering logic.
-     * @implements {Renderable<HTMLDivElement>}
      * @param {string} message - The message to be displayed in the alert.
      * @param {AlertType} type - The type of alert, which determines its styling and behavior.
-     * @see Renderable
-     * @see Hidable
-     * @see AlertType
-     * @example
-     * const alert = new AlertBase('This is an alert message', AlertType.INFO);
-     * document.body.appendChild(alert.render());
+     * @param {boolean} [transparent=false] - Whether the alert should have a transparent background.
      */
     constructor(private readonly message: string, private readonly type: AlertType, private readonly transparent: boolean = false) {
         super();

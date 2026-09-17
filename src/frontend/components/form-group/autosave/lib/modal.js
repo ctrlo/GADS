@@ -18,8 +18,7 @@ class AutosaveModal extends AutosaveBase {
             e.stopPropagation();
 
             // Hide all the buttons (we don't want any interaction to close the modal or the restore process fails)
-            $modal.find(".modal-footer").find("button")
-                .hide();
+            $modal.find(".modal-footer").find("button").hide();
 
             // This need awaiting or it returns before the value is fully set meaning if the recovery is "fast" it will not clear
             await this.storage.setItem("recovering", true);
@@ -27,17 +26,18 @@ class AutosaveModal extends AutosaveBase {
             let curvalCount = 0;
             // Only count changed curvals - as each in the array has it's own event, we count the number of changes, not the number of fields
             await Promise.all($form.find(".linkspace-field[data-column-type=\"curval\"]").map(async (_, field) => {
-                if(await this.storage.getItem(this.columnKey($(field))))
+                if (await this.storage.getItem(this.columnKey($(field)))) {
                     (curvalCount += fromJson(await this.storage.getItem(this.columnKey($(field)))).length);
+                }
             }));
 
             let errored = false;
 
             let $list = $("<ul></ul>");
             const $body = $modal.find(".modal-body");
-            $body
-                .html("<p>Restoring values...</p><p><strong>Please be aware that linked records may take a moment to finish restoring.<strong><p>")
-                .append($list);
+            const restoreText = "<p>Restoring values...</p>" +
+                "<p><strong>Please be aware that linked records may take a moment to finish restoring.<strong><p>";
+            $body.html(restoreText).append($list);
             // Convert the fields to promise functions (using the fields) that are run in parallel
             // This is only done because various parts of the codebase use the fields in different ways dependent on types (i.e. curval)
             await Promise.all($form.find(".linkspace-field").map(async (_, field) => {
@@ -129,18 +129,18 @@ class AutosaveModal extends AutosaveBase {
             const $display = $modal.find(".modal-autosave");
             const list = $("<li></li>");
             // Get a list of the field values to restore
-            Promise.all($form.find(".linkspace-field").map(async (_, field)=>{
+            Promise.all($form.find(".linkspace-field").map(async (_, field) => {
                 const $field = $(field);
                 const key = this.columnKey($field);
                 const value = await this.storage.getItem(key);
-                if(!value) return;
+                if (!value) return;
                 const fieldName = $field.data("name");
                 const li = $(`<li>${fieldName}</li>`);
                 list.append(li);
-            })).then(()=> {
+            })).then(() => {
                 // Append the list to the modal display
                 $display.append(list);
-            }).then(()=>{
+            }).then(() => {
                 // Show the modal
                 $modal.modal("show");
                 alert.hide();
@@ -148,9 +148,13 @@ class AutosaveModal extends AutosaveBase {
         }, "btn-primary", "btn-inverted", "btn-alert-restore");
         const restoreButtonElement = restoreButton.render();
 
-        const cancelButton = new RenderableButton("Cancel", () => {
-            alert.hide();
-        }, "btn-secondary", "btn-inverted", "btn-alert-restore-cancel");
+        const cancelButton = new RenderableButton(
+            "Cancel",
+            () => alert.hide(),
+            "btn-secondary",
+            "btn-inverted",
+            "btn-alert-restore-cancel"
+        );
         const cancelButtonElement = cancelButton.render();
 
         const buttonDiv = document.createElement("div");

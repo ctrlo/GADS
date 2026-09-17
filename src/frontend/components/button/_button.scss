@@ -1,8 +1,8 @@
 .btn-primary,
 .btn-sm {
-    &.btn-inverted {
-        @include button-variant($white, $primary, $primary, $white, darken($primary, 20%), darken($primary, 20%), $white, darken($primary, 20%), darken($primary, 20%));
-    }
+  &.btn-inverted {
+    @include button-variant($white, $primary, $primary, $white, darken($primary, 20%), darken($primary, 20%), $white, darken($primary, 20%), darken($primary, 20%));
+  }
 }
 
 .btn-add {
@@ -38,7 +38,7 @@
 }
 
 .btn-cancel {
-    @include button-variant($white, $gray-extra-dark, $gray-extra-dark, $white, $gray-extra-dark, $gray-extra-dark, $white, $gray-extra-dark, $gray-extra-dark);
+  @include button-variant($white, $gray-extra-dark, $gray-extra-dark, $white, $gray-extra-dark, $gray-extra-dark, $white, $gray-extra-dark, $gray-extra-dark);
 }
 
 .btn-drag-widget {
@@ -172,7 +172,7 @@
   width: max-content;
   padding: 10px 0 0;
   border: 0;
-  border-bottom: 1px solid transparent;
+  border-bottom: 1px solid $transparent;
   border-radius: 0;
   color: $brand-secundary;
   background: $transparent;
@@ -416,6 +416,7 @@
     content: "\F204";
   }
 }
+
 /* end */
 .btn-add-link {
   padding: 0;
@@ -491,7 +492,8 @@
   .btn-export,
   .btn-add-link,
   .btn-filter,
-  .btn-clear { // to overwrite auto width of .btn
+  .btn-clear {
+    // to overwrite auto width of .btn
     width: max-content;
   }
 
@@ -540,10 +542,10 @@
 }
 
 button.close {
-    background: $transparent;
-    border: none;
+  background: $transparent;
+  border: none;
 
-    &:hover {
-        color: lighten($brand-primary, 0.1);
-    }
+  &:hover {
+    color: lighten($brand-primary, 0.1);
+  }
 }

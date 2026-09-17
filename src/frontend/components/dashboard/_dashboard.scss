@@ -90,11 +90,12 @@
 }
 
 .nav-pills {
-    .nav-link.active {
-      background-color: $brand-primary;
+  .nav-link.active {
+    background-color: $brand-primary;
+    color: $white;
+
+    h1 {
       color: $white;
-      h1 {
-        color: $white;
-      }
     }
+  }
 }

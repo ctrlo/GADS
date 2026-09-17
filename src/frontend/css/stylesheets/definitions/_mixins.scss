@@ -217,7 +217,7 @@
   }
 
   label {
-    @if $type == "checkbox" {
+    @if $type =="checkbox" {
       @include custom-checkbox;
     }
 
@@ -230,12 +230,12 @@
     padding-left: 1.5rem;
   }
 
-  input[type=#{$type}]:focus + label {
+  input[type=#{$type}]:focus+label {
     @include custom-option-focus;
   }
 
-  input[type=#{$type}]:checked + label {
-    @if $type == "checkbox" {
+  input[type=#{$type}]:checked+label {
+    @if $type =="checkbox" {
       @include custom-checkbox-checked;
     }
 
@@ -254,7 +254,7 @@
     }
   }
 
-  input[disabled] + label {
+  input[disabled]+label {
     color: $gray;
 
     &:hover::before {
@@ -262,8 +262,8 @@
     }
   }
 
-  input[type=#{$type}]:checked:disabled + label {
-    @if $type == "checkbox" {
+  input[type=#{$type}]:checked:disabled+label {
+    @if $type =="checkbox" {
       &::before {
         border-color: $gray;
         background-color: $gray;
@@ -303,7 +303,7 @@
   position: relative;
   align-items: center;
 
-  @if $position == 'before' {
+  @if $position =='before' {
     padding-left: 1.75rem;
 
     &::before {

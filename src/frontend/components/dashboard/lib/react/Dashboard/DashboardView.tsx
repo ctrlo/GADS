@@ -1,7 +1,7 @@
 import React from "react";
 import RGL, { WidthProvider } from "react-grid-layout"; // Do not go over v1 for now
 import Widget from "../Widget/Widget";
-import { DashboardViewProps } from "../types";
+import type { DashboardViewProps } from "../types";
 
 const ReactGridLayout = WidthProvider(RGL);
 
@@ -24,7 +24,7 @@ export default function DashboardView({ readOnly, layout, onLayoutChange, gridCo
         >
             {widgets.map(widget => (
                 <div key={widget.config.i} className={`ld-widget-container ${readOnly || widget.config.static ? "" : "ld-widget-container--editable"}`}>
-                    <Widget key={widget.config.i} html={widget.html} readOnly={readOnly || widget.config.static} onEditClick={onEditClick(widget.config.i)} />
+                    <Widget key={widget.config.i} html={widget.html} readOnly={readOnly || widget.config.static || false} onEditClick={onEditClick(widget.config.i)} />
                 </div>
             ))}
         </ReactGridLayout>

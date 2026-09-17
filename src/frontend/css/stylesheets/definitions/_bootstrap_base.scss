@@ -31,15 +31,15 @@ $dark: $gray-extra-dark;
 $secundary: $brand-secundary;
 
 $custom-colors: (
-    "primary": $primary,
-    "secondary": $secondary,
-    "success": $success,
-    "info": $info,
-    "warning": $warning,
-    "danger": $danger,
-    "light": $light,
-    "dark": $dark,
-    "secundary": $secundary
+  "primary": $primary,
+  "secondary": $secondary,
+  "success": $success,
+  "info": $info,
+  "warning": $warning,
+  "danger": $danger,
+  "light": $light,
+  "dark": $dark,
+  "secundary": $secundary
 );
 
 $theme-colors: map-merge($theme-colors, $custom-colors);

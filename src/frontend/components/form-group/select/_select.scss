@@ -85,7 +85,6 @@
 .select__toggle[disabled] {
   @include form-control-disabled;
 
-  /* stylelint-disable no-descending-specificity */
   span,
   &::after {
     color: $gray;

@@ -7,7 +7,7 @@ import { MarkDown } from "util/formatters/markdown";
  */
 export default class HelpView extends Component {
     // This is protected so that it can be accessed in tests.
-    protected $button: JQuery<HTMLAnchorElement>;
+    protected $button!: JQuery<HTMLAnchorElement>;
 
     /**
      * Create a new HelpView component.
@@ -42,8 +42,6 @@ export default class HelpView extends Component {
         if (!helpTarget) throw new Error("help-target is required");
         const target = document.getElementById(helpTarget);
         if (!target) throw new Error(`Could not find help target with id: ${helpTarget}`);
-        $button.on("click", () => {
-            target.innerHTML = MarkDown`${helpTitle ? `### ${helpTitle}` : ""}\n${helpText}`;
-        });
+        $button.on("click", () => target.innerHTML = MarkDown`${helpTitle ? `### ${helpTitle}` : ""}\n${helpText}`);
     }
 }

@@ -10,8 +10,7 @@ import { ReactGridLayoutProps } from "react-grid-layout";
  * DashboardComponent class that initializes the dashboard and renders the App component.
  */
 export default class DashboardComponent extends Component {
-    el: JQuery<HTMLElement>;
-    gridConfig: ReactGridLayoutProps;
+    private gridConfig: ReactGridLayoutProps;
 
     /**
      * Create a DashboardComponent instance.
@@ -19,7 +18,6 @@ export default class DashboardComponent extends Component {
      */
     constructor(element: HTMLElement) {
         super(element);
-        this.el = $(this.element);
 
         this.gridConfig = {
             cols: 2,
@@ -39,7 +37,7 @@ export default class DashboardComponent extends Component {
         const widgetsEls = Array.prototype.slice.call(document.querySelectorAll("#ld-app > div"));
         const widgets = widgetsEls.map((el: HTMLElement) => ({
             html: el.innerHTML,
-            config: JSON.parse(el.getAttribute("data-grid"))
+            config: JSON.parse(el.getAttribute("data-grid")!)
         }));
         const api = new ApiClient(this.element.getAttribute("data-dashboard-endpoint") || "");
 
@@ -48,7 +46,7 @@ export default class DashboardComponent extends Component {
         root.render(
             <App
                 widgets={widgets}
-                dashboardId={this.element.getAttribute("data-dashboard-id")}
+                dashboardId={this.element.getAttribute("data-dashboard-id")!}
                 currentDashboard={JSON.parse(this.element.getAttribute("data-current-dashboard") || "{}")}
                 readOnly={this.element.getAttribute("data-dashboard-read-only") === "true"}
                 hideMenu={this.element.getAttribute("data-dashboard-hide-menu") === "true"}

@@ -53,7 +53,7 @@ class FileComponent {
      * @param {number} index The index of the file in the upload queue.
      * @param {number} length The total number of files in the upload queue.
      */
-    handleFormUpload = (file: File, index:number, length: number) => {
+    handleFormUpload = (file: File, index: number, length: number) => {
         if (!file) throw new Error("No file provided");
 
         const form = this.el.closest("form");
@@ -66,7 +66,7 @@ class FileComponent {
         if (method === "POST") {
             logging.info(`Uploading file: ${file.name} (${index} of ${length}) to ${action} using POST method`);
             const uploadPromise = upload(action, formData, "POST");
-            if(index === length-1) {
+            if (index === length - 1) {
                 uploadPromise.then(() => {
                     logging.info("File upload complete, reloading page");
                     window.location.reload();
@@ -96,9 +96,7 @@ class FileComponent {
      * @param {JQuery.KeyUpEvent} ev The keyup event triggered when the input file label is focused.
      */
     uploadFile = (ev: JQuery.KeyUpEvent) => {
-        if (ev.which === 32 || ev.which === 13) {
-            this.fileInput.trigger("click");
-        }
+        if (ev.key === " " || ev.key === "Enter") this.fileInput.trigger("click");
     };
 
     /**

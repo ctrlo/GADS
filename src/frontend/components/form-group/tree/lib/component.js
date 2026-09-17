@@ -59,7 +59,6 @@ class TreeComponent extends Component {
 
         // The below fix is to prevent the tree from erroring when it is a multivalue and a value is deselected
         if (!this.multiValue) {
-            //Deselect Fix - 26.04.24 - DR
             //Unless you have a click event, the select_node event doesn't trigger when you click on the same node - I don't know why this is
             let node;
 
@@ -77,7 +76,6 @@ class TreeComponent extends Component {
                     this.handleSelect(data);
                 }
             });
-            //Endfix
         }
 
         this.$treeContainer.on("ready.jstree", () => {
@@ -100,7 +98,7 @@ class TreeComponent extends Component {
      * @returns {object} The configuration object for the jstree data source.
      */
     getData(id, idsAsParams) {
-        const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;
+        const devEndpoint = window.siteConfig?.urls?.treeApi;
         const layout_identifier = $("body").data("layout-identifier");
 
         return (
@@ -126,9 +124,7 @@ class TreeComponent extends Component {
      * @param {object} data The data object containing the node information.
      */
     handleSelect(data) {
-        if (data.node.children.length == 0) {
-            return;
-        }
+        if (data.node.children.length == 0) return;
         if (this.endNodeOnly) {
             this.$treeContainer.jstree(true).deselect_node(data.node);
             this.$treeContainer.jstree(true).toggle_node(data.node);
@@ -164,8 +160,7 @@ class TreeComponent extends Component {
             this.$treeContainer.after(`<input type="hidden" class="selected-tree-value" name="${this.field}" value="" />`);
         }
 
-        if (this.initialized)
-            this.$treeContainer.trigger("change");
+        if (this.initialized) this.$treeContainer.trigger("change");
     }
 
     /**
@@ -180,12 +175,12 @@ class TreeComponent extends Component {
         const $btnRename = this.el.find(".btn-js-tree-rename");
         const $btnDelete = this.el.find(".btn-js-tree-delete");
 
-        $btnExpand.on("click", () => { $treeContainer.jstree("open_all"); });
-        $btnCollapse.on("click", () => { $treeContainer.jstree("close_all"); });
-        $btnReload.on("click", () => { $treeContainer.jstree("refresh"); });
-        $btnAdd.on("click", () => { this.handleAdd(); });
-        $btnRename.on("click", () => { this.handleRename(); });
-        $btnDelete.on("click", () => { this.handleDelete(); });
+        $btnExpand.on("click", () => $treeContainer.jstree("open_all"));
+        $btnCollapse.on("click", () => $treeContainer.jstree("close_all"));
+        $btnReload.on("click", () => $treeContainer.jstree("refresh"));
+        $btnAdd.on("click", () => this.handleAdd());
+        $btnRename.on("click", () => this.handleRename());
+        $btnDelete.on("click", () => this.handleDelete());
     }
 
     /**
@@ -203,9 +198,7 @@ class TreeComponent extends Component {
 
         sel = ref.create_node(sel, { type: "file" });
 
-        if (sel) {
-            ref.edit(sel);
-        }
+        if (sel) ref.edit(sel);
     }
 
     /**

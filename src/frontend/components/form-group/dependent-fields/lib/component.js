@@ -35,10 +35,9 @@ class DependentFieldsComponent extends Component {
         const rr = jQuery.map(rules, function (rule) {
             const match_type = rule.operator;
             const is_negative = match_type.indexOf("not") !== -1 ? true : false;
-            const regexp =
-                match_type.indexOf("equal") !== -1
-                    ? new RegExp("^" + rule.value + "$", "i")
-                    : new RegExp(rule.value, "i");
+            const regexp = match_type.indexOf("equal") !== -1
+                ? new RegExp("^" + rule.value + "$", "i")
+                : new RegExp(rule.value, "i");
             let id = rule.id;
             let filtered = false;
             if (rule.filtered) { // Whether the field is of type "filval"
@@ -75,14 +74,10 @@ class DependentFieldsComponent extends Component {
         // check are not rendered on the page until the relevant filtered curval
         // field is opened. As such, use the dependent-not-shown property instead,
         // which is evaluated server-side
-        if ($field.data("dependent-not-shown")) {
-            $field.hide();
-        }
+        if ($field.data("dependent-not-shown")) $field.hide();
 
         const test_all = function (condition, rules) {
-            if (rules.length == 0) {
-                return true;
-            }
+            if (rules.length == 0) return true;
 
             let is_shown = false;
 
@@ -106,17 +101,11 @@ class DependentFieldsComponent extends Component {
                     }
                 });
 
-                if (!this_not_shown) {
-                    is_shown = true;
-                }
+                if (!this_not_shown) is_shown = true;
 
                 if (condition) {
-                    if (condition == "OR") {
-                        return is_shown; // Whether to break
-                    }
-                    if (this_not_shown) {
-                        is_shown = false;
-                    }
+                    if (condition == "OR") return is_shown; // Whether to break
+                    if (this_not_shown) is_shown = false;
                     return !is_shown; // Whether to break
                 }
 
@@ -159,21 +148,18 @@ class DependentFieldsComponent extends Component {
                 // if this one is now hidden then that will change its value to
                 // blank. Don't do this if the dependent field is the same as the field
                 // with the display condition.
-                if ($field.data("column-id") != $depends.data("column-id"))
+                if ($field.data("column-id") != $depends.data("column-id")) {
                     $field.trigger("change");
+                }
             };
 
             // If the field depended on is not actually in the form (e.g. if the
             // user doesn't have access to it) then treat it as an empty value and
             // process as normal. Process immediately as the value won't change
-            if ($depends.length == 0) {
-                processChange();
-            }
+            if ($depends.length == 0) processChange();
 
             // Standard change of visible form field
-            $depends.on("change", function () {
-                processChange();
-            });
+            $depends.on("change", () => processChange());
         });
     }
 }

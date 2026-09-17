@@ -181,7 +181,7 @@
   @include sidebar-collapsed;
 }
 
-.sidebar--collapsible + .main--expanded {
+.sidebar--collapsible+.main--expanded {
   flex: 1;
   min-width: 0;
 }
@@ -195,7 +195,7 @@
     display: block;
   }
 
-  .sidebar--collapsible + .main--expanded {
+  .sidebar--collapsible+.main--expanded {
     max-width: none;
   }
 }

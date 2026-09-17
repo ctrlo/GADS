@@ -1,3 +1,4 @@
+import { logging } from "logging";
 /**
   * @fileoverview A toggle table consist of two twin tables containing the same fields
   * One table contains hidden checkboxes while the other one contains text only
@@ -43,9 +44,11 @@ const toggleRow = (ev) => {
  */
 const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceCheck = null) => {
     // Retrieve the destination table
+    const coerceInvert = (value) => typeof value == "boolean" ? !value : !!(value ^ 1);
+
     const destinationTable = $(destinationTableID);
-    if (typeof destinationTable == "undefined") {
-        console.error(`Failed to toggle row; missing 'toggle-destination' data attribute for table '${sourceTable.attr("id")}'`);
+    if (destinationTable.length == 0) {
+        logging.error(`Failed to toggle row; missing 'toggle-destination' data attribute for table '${sourceTable.attr("id")}'`);
         return;
     }
 
@@ -54,58 +57,28 @@ const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceChec
     const destinationRow = destinationTable.DataTable().row(toggleFieldID);
 
     if (destinationRow.length == 0) {
-        console.error(`Failed to toggle row; missing row ${toggleFieldID} in table ${destinationTableID}`);
+        logging.error(`Failed to toggle row; missing row ${toggleFieldID} in table ${destinationTableID}`);
         return;
     }
 
     // Toggle checkbox in source table
     const sourceRowCheckbox = clickedRow.querySelector("input");
-    if (sourceRowCheckbox) {
-
-        if (typeof forceCheck == "boolean") {
-            // Set the checkbox
-            sourceRowCheckbox.checked = !forceCheck;
-        } else {
-            // Toggle the checkbox
-            sourceRowCheckbox.checked ^= 1;
-        }
-    }
+    if (sourceRowCheckbox) sourceRowCheckbox.checked = coerceInvert(forceCheck);
 
     // Change the checkbox in destination table
     const destinationRowCheckbox = destinationRow.node().querySelector("input");
-    if (destinationRowCheckbox) {
-        if (typeof forceCheck == "boolean") {
-            // Set the checkbox
-            destinationRowCheckbox.checked = forceCheck;
-        } else {
-            // Toggle the checkbox
-            destinationRowCheckbox.checked ^= 1;
-        }
-    }
+    if (destinationRowCheckbox) destinationRowCheckbox.checked = coerceInvert(forceCheck);
 
     // Change data-field-is-toggled in destination table
     const destinationRowDataAttribute = destinationRow.node().dataset.fieldIsToggled;
     if (destinationRowDataAttribute) {
-        if (typeof forceCheck == "boolean") {
-            // Set the attribute
-            destinationRow.node().dataset.fieldIsToggled = forceCheck.toString();
-        } else {
-            // Toggle the attribute
-            destinationRow.node().dataset.fieldIsToggled = destinationRowDataAttribute == "true" ? "false" : "true";
-        }
-
+        destinationRow.node().dataset.fieldIsToggled = coerceInvert(forceCheck).toString();
     }
 
     // Toggle data-field-is-toggled in source table
     const sourceRowDataAttribute = clickedRow.dataset.fieldIsToggled;
     if (typeof sourceRowDataAttribute != "undefined") {
-        if (typeof forceCheck == "boolean") {
-            // Set the attribute
-            clickedRow.dataset.fieldIsToggled = !forceCheck.toString();
-        } else {
-            // Toggle the attribute
-            clickedRow.dataset.fieldIsToggled = sourceRowDataAttribute == "true" ? "false" : "true";
-        }
+        clickedRow.dataset.fieldIsToggled = coerceInvert(forceCheck).toString();
     }
 };
 

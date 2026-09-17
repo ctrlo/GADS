@@ -23,12 +23,10 @@ class CollapsibleComponent extends Component {
      * @param {HTMLElement} button The button element that will toggle the collapsible content.
      */
     initCollapsible(button) {
-        if (!button) {
-            return;
-        }
+        if (!button) return;
 
         this.titleExpanded.addClass("hidden");
-        button.click(() => { this.handleClick(); });
+        button.click(() => this.handleClick());
     }
 
     /**

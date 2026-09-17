@@ -11,9 +11,7 @@ class EncryptedStorage {
      * @returns {EncryptedStorage} The singleton instance of EncryptedStorage
      */
     static instance(): EncryptedStorage {
-        if (!EncryptedStorage._instance) {
-            EncryptedStorage._instance = new EncryptedStorage(encrypt, decrypt);
-        }
+        if (!EncryptedStorage._instance) EncryptedStorage._instance = new EncryptedStorage(encrypt, decrypt);
         return EncryptedStorage._instance;
     }
 
@@ -45,9 +43,7 @@ class EncryptedStorage {
      */
     async getItem(key: string, encryptionKey: string): Promise<string | null> {
         const encryptedValue = this.storage.getItem(key);
-        if (!encryptedValue) {
-            return null;
-        }
+        if (!encryptedValue) return null;
         return await this.decrypt(encryptedValue, encryptionKey);
     }
 

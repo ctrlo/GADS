@@ -21,9 +21,7 @@ class GraphComponent extends Component {
         super(element);
         this.graphContainer = $(this.element).find(".graph__container");
 
-        if (this.graphContainer.length) {
-            this.initGraph();
-        }
+        if (this.graphContainer.length) this.initGraph();
     }
 
     /**
@@ -54,9 +52,9 @@ class GraphComponent extends Component {
         let devEndpoint;
 
         if (["bar", "line", "scatter"].indexOf(data.graphType) > -1) {
-            devEndpoint = window.siteConfig && window.siteConfig.urls.barApi;
+            devEndpoint = window.siteConfig?.urls?.barApi;
         } else if (["donut", "pie"].indexOf(data.graphType) > -1) {
-            devEndpoint = window.siteConfig && window.siteConfig.urls.pieApi;
+            devEndpoint = window.siteConfig?.urls?.pieApi;
         }
 
         if (devEndpoint) {
@@ -94,12 +92,11 @@ class GraphComponent extends Component {
     do_plot(plotData, options_in) {
         const ticks = plotData.xlabels;
         let plotOptions = {};
-        const showmarker = options_in.type == "line" ? true : false;
+        const showmarker = options_in.type == "line";
 
         plotOptions.highlighter = {
             showMarker: showmarker,
-            tooltipContentEditor: (str, pointIndex, index, plot) =>
-                plot._plotData[pointIndex][index][1]
+            tooltipContentEditor: (str, pointIndex, index, plot) => plot._plotData[pointIndex][index][1]
         };
 
         const seriesDefaults = this.makeSeriesDefaults();
@@ -124,9 +121,7 @@ class GraphComponent extends Component {
                 }
             };
 
-            if (plotData.options.y_max) {
-                plotOptions.axes.yaxis.max = plotData.options.y_max;
-            }
+            if (plotData.options.y_max) plotOptions.axes.yaxis.max = plotData.options.y_max;
 
             if (plotData.options.is_metric) {
                 plotOptions.axes.yaxis.tickOptions = {

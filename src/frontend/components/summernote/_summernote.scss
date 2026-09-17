@@ -32,13 +32,14 @@
 }
 
 .sn-checkbox-open-in-new-window {
-    .form-check-input {
-        &:checked::before,
-        &::before,
-        &:checked::after,
-        &::after {
-            content: none;
-            border: none;
-        }
+  .form-check-input {
+
+    &:checked::before,
+    &::before,
+    &:checked::after,
+    &::after {
+      content: none;
+      border: none;
     }
+  }
 }

@@ -26,3 +26,7 @@ spaces_around_brackets = true
 [*.{pl,pm,t,PL}]
 max_line_length = off
 continuation_indent_size = 4
+
+[*.{scss,css}]
+indent_style = space
+indent_size = 2

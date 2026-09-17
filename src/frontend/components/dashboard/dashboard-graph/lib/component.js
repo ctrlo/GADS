@@ -1,5 +1,5 @@
-import { do_plot_json } from "../../../graph/lib/chart";
-import GraphComponent from "../../../graph/lib/component";
+import { do_plot_json } from "components/graph/lib/chart";
+import GraphComponent from "components/graph/lib/component";
 
 /**
  * DashboardGraphComponent class that initializes the dashboard graph and renders the graph using do_plot_json.

@@ -1,49 +1,48 @@
 {
     "compilerOptions": {
-        "baseUrl": "./src/frontend",
+        "rootDir": ".",
         "outDir": "./dist/",
         "noImplicitAny": false,
         "module": "ES2020",
         "target": "ES2020",
         "jsx": "react",
         "allowJs": true,
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
-        "types": ["node"],
+        "types": ["node", "jest", "jquery", "react", "react-dom", "react-modal"],
         "paths": {
             "js/*": [
-                "js/*"
+                "./src/frontend/js/*"
             ],
             "components/*": [
-                "components/*"
+                "./src/frontend/components/*"
             ],
             "util/*": [
-                "js/lib/util/*"
+                "./src/frontend/js/lib/util/*"
             ],
             "component": [
-                "js/lib/component"
+                "./src/frontend/js/lib/component"
             ],
             "validation": [
-                "js/lib/validation"
+                "./src/frontend/js/lib/validation"
             ],
             "logging": [
-                "js/lib/logging"
+                "./src/frontend/js/lib/logging"
             ],
             "get-field-values": [
-                "js/lib/get-field-values"
+                "./src/frontend/js/lib/get-field-values"
             ],
             "set-field-values": [
-                "js/lib/set-field-values"
+                "./src/frontend/js/lib/set-field-values"
             ],
             "plotly/*": [
-                "js/lib/plotly/*"
+                "./src/frontend/js/lib/plotly/*"
             ],
             "guid": [
-                "js/lib/guid"
+                "./src/frontend/js/lib/guid"
             ],
-        },
-        "types": ["node", "jest"]
+        }
     },
     "include": [
         "src/frontend/**/*"
