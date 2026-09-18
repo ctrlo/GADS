@@ -186,7 +186,8 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [22.x, 24.x]
+        # Jest doesn't allow running on Node 22 - _very_ buggy
+        node-version: [24.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
