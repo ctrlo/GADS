@@ -3,7 +3,7 @@ import { Component, initializeRegisteredComponents } from "component";
 import "datatables.net-bs5";
 import "datatables.net-responsive-bs5";
 import "datatables.net-rowreorder-bs5";
-import "./DataTablesPlugins";
+import "./fullscreen";
 import { setupDisclosureWidgets, onDisclosureClick } from "components/more-less/lib/disclosure-widgets";
 import { moreLess } from "components/more-less/lib/more-less";
 import { bindToggleTableClickHandlers } from "./toggle-table";
@@ -30,7 +30,6 @@ class DataTableComponent extends Component {
         this.forceButtons = this.el.hasClass("table-force-buttons");
         this.searchParams = new URLSearchParams(window.location.search);
         this.base_url = this.el.data("href") ? this.el.data("href") : undefined;
-        this.fullscreen = false;
         this.initTable();
         $(window).on("resize", () => {
             if (this.el.DataTable().responsive) {
@@ -753,22 +752,8 @@ class DataTableComponent extends Component {
     }
 
     /**
-     * Setup the fullscreen mode for the DataTable
-     * @param {Config['layout']} layout The layout configuration for the DataTable
-     */
-    setupFullscreen(layout) {
-        if (!layout) return;
-        if (!layout.topEnd) return;
-        if (Array.isArray(layout.topEnd) && layout.topEnd.includes("fullscreen")) {
-            layout.topEnd = [...layout.topEnd.filter((item) => item !== "fullscreen"), { fullscreen: { checked: this.fullscreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } }];
-        } else if (layout.topEnd === "fullscreen") {
-            layout.topEnd = { fullscreen: { checked: this.fullscreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } };
-        }
-    }
-
-    /**
      * Get the configuration object for the DataTable
-     * @param {Readonly<Parital<import('datatables.net-bs5').Config>>=} overrides Any values to override in the configuration
+     * @param {Readonly<Partial<import('datatables.net-bs5').Config>>=} overrides Any values to override in the configuration
      * @returns {import('datatables.net-bs5').Config} The configuration object for the DataTable
      */
     getConf(overrides = undefined) {
@@ -781,9 +766,7 @@ class DataTableComponent extends Component {
             conf = confData;
         }
 
-        conf = Object.assign({}, conf, overrides);
-
-        this.setupFullscreen(conf.layout);
+        conf = Object.assign({fullscreen: false, element: this.el}, conf, overrides);
 
         conf.columns.forEach((column) => {
             column.orderable = column.orderable === 1;
@@ -882,53 +865,6 @@ class DataTableComponent extends Component {
         };
 
         return conf;
-    }
-
-    /**
-     * Toggle full screen mode for the DataTable
-     * @param {JQuery.ClickEvent} ev The click event that triggered the toggle
-     */
-    toggleFullScreenMode(ev) {
-        let conf;
-
-        if ($.fn.DataTable.isDataTable(this.el))
-            this.el.DataTable().destroy();
-
-        if (!this.fullscreen) {
-            this.fullscreen = true;
-
-            const frame = document.createElement("div");
-            frame.className = "p-3";
-            frame.id = "fullscreen-frame";
-            frame.style.position = "fixed";
-            frame.style.top = "0";
-            frame.style.left = "0";
-            frame.style.width = "100%";
-            frame.style.height = "100%";
-            frame.style.overflow = "auto";
-            frame.style.backgroundColor = "white";
-            frame.style.zIndex = "1021";
-            frame.style.overflow = "auto";
-
-            const newTable = this.table.cloneNode(true);
-            const $table = $(newTable);
-
-            $table.appendTo(frame);
-
-            document.body.appendChild(frame);
-
-            conf = this.getConf({ responsive: false, reinitialize: true, el: $table });
-            $table.DataTable(conf);
-
-            ev.stopPropagation();
-            ev.preventDefault();
-        } else if (this.fullscreen) {
-            this.fullscreen = false;
-
-            $("#fullscreen-frame").remove();
-
-            this.el.DataTable(this.getConf({ reinitialize: true }));
-        }
     }
 
     /**
