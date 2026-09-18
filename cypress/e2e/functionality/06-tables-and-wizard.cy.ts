@@ -8,7 +8,7 @@ describe('Another Test Suite', () => {
 
     //attempt save with incorrect (fails)
     it.skip('should fail to save new table with  invalid shortname ', () => {
-        cy.get('[data-target="#newTableModal"]').click();
+        cy.get('[data-bs-target="#newTableModal"]').click();
         cy.get('#shortName').type('This value wont $4v£');
         cy.get("#name").type("table to fail");
         cy.get('.btn-js-next').eq(0).click();
@@ -19,7 +19,7 @@ describe('Another Test Suite', () => {
     });
 
     it('should save a new table successfully', () => {
-        cy.get('[data-target="#newTableModal"]').click();
+        cy.get('[data-bs-target="#newTableModal"]').click();
         cy.get('#shortName').type('1-test_table');
         cy.get("#name").type("1-test-table");
         cy.get('.btn-js-next').eq(0).click();

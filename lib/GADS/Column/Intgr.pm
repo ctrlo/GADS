@@ -20,7 +20,7 @@ package GADS::Column::Intgr;
 
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Bool/;
 
 extends 'GADS::Column';
 
@@ -39,7 +39,12 @@ has '+return_type' => (
 );
 
 has '+option_names' => (
-    default => sub { [qw/show_calculator/] },
+    default => sub {
+        [{
+            name              => 'show_calculator',
+            user_configurable => 1,
+        }]
+    },
 );
 
 has show_calculator => (

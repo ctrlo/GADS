@@ -2,7 +2,7 @@
 <p></p>
 [% IF records.size %]
 <table class="table table-striped">
-    <caption class="sr-only">Table for [% layout.record_name_plural | html %] requiring approval</caption>
+    <caption class="visually-hidden">Table for [% layout.record_name_plural | html %] requiring approval</caption>
     <tr>
         <th>ID</th>
         <th>Submitted by</th>

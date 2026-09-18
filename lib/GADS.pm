@@ -90,6 +90,7 @@ use Dancer2::Plugin::Auth::Extensible::Provider::DBIC 0.623;
 use Dancer2::Plugin::LogReport 'linkspace';
 
 use GADS::API; # API routes
+use GADS::MFA;
 
 # YAML needs to save and load blessed objects for the sessio serializer (for
 # the notification messages). Since YAML 1.25 this is disabled by default, so
@@ -116,7 +117,7 @@ tie %{schema->storage->dbh->{CachedKids}}, 'Tie::Cache', 100;
 # required for that)
 GADS::DB->setup(schema);
 
-our $VERSION = '0.1';
+our $VERSION = '2.8.3';
 
 # set serializer => 'JSON';
 set behind_proxy => config->{behind_proxy}; # XXX Why doesn't this work in config file
@@ -211,12 +212,16 @@ hook before => sub {
         $token ||= query_parameters->get('csrf-token') || body_parameters->get('csrf_token');
         error __x"csrf-token missing for uri {uri}", uri => request->uri
             if !$token;
-        error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
-            if $token ne session('csrf_token');
+        # This is to ensure the API endpoint returns the correct error on timeout, rather than the below error
+        if(logged_in_user || request->path eq '/login')
+        {
+            error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
+                if $token ne session('csrf_token');
 
-        # If it's a potential login, change the token
-        _update_csrf_token()
-            if request->path eq '/login';
+            # If it's a potential login, change the token
+            _update_csrf_token()
+                if request->path eq '/login';
+        }
     }
 
     if ($user)
@@ -238,6 +243,9 @@ hook before => sub {
     _audit_log()
         unless request->path =~ m!^/(record|record_body)/!;
 
+    response_header "X-Frame-Options" => "DENY" # Prevent clickjacking
+        unless request->uri eq '/aup_text'; # Except AUP, which will be in an iframe
+
     # The following use logged_in_user so as not to apply for API requests
     if (logged_in_user)
     {
@@ -257,19 +265,15 @@ hook before => sub {
         if (config->{gads}->{user_status} && !session('status_accepted'))
         {
             # Redirect to user status page if required and not seen this session
-            redirect '/user_status' unless request->uri =~ m!^/(user_status|aup)!;
+            redirect '/user_status' unless request->uri =~ m!^/(user_status|aup|mfa)!;
         }
         elsif (logged_in_user_password_expired && !session('is_sso'))
         {
             # Redirect to user details page if password expired
             forwardHome({ danger => "Your password has expired. Please use the Change password button
                 below to set a new password." }, 'myaccount')
-                    unless request->uri eq '/myaccount' || request->uri eq '/logout';
+                    unless request->uri eq '/myaccount' || request->uri eq '/logout' || request->uri eq '/mfa';
         }
-
-        response_header "X-Frame-Options" => "DENY" # Prevent clickjacking
-            unless request->uri eq '/aup_text' # Except AUP, which will be in an iframe
-                || request->path eq '/file'; # Or iframe posts for file uploads (hidden iframe used for IE8)
 
         # CSP
         response_header "Content-Security-Policy" => "script-src 'self';";
@@ -339,6 +343,9 @@ hook before_template => sub {
 
     # Base 64 encoder for use in templates
     $tokens->{b64_filter} = sub { encode_base64(encode_json shift, '') };
+
+    $tokens->{actions} = session 'actions';
+    session->delete('actions');
 
     # This line used to be pre-request. However, occasionally errors have been
     # experienced with pages not submitting CSRF tokens. I think these may have
@@ -412,7 +419,7 @@ get '/' => require_login sub {
         dashboards_json                     => schema->resultset('Dashboard')->dashboards_json(%params),
         page                                => 'index',
         'content_block_main_custom_classes' => 'pt-0',
-        'content_block_custom_classes'      => 'pl-0'
+        'content_block_custom_classes'      => 'ps-0'
     };
 
     if (my $download = param('download'))
@@ -1556,8 +1563,9 @@ any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin super
                 if logged_in_user->id == $delete_id;
 
         my $usero = rset('User')->find($delete_id);
+        my $email_reject_text = param('reject_reason');
 
-        if (process( sub { $usero->retire(send_reject_email => 1) }))
+        if (process( sub { $usero->retire(send_reject_email => 1, email_reject_text => $email_reject_text) }))
         {
             $audit->login_change("User ID $delete_id deleted");
             return forwardHome(
@@ -1612,7 +1620,7 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
             view_limits           => [body_parameters->get_all('view_limits')],
             groups                => [body_parameters->get_all('groups')],
         );
-        $values{permissions} = [body_parameters->get_all('permission')]
+        $values{permissions} = [body_parameters->get_all('permissions')]
             if logged_in_user->permission->{superadmin};
 
         if (process sub {
@@ -1696,9 +1704,9 @@ post '/file/:id?' => require_login sub {
     # File upload through the "manage files" interface
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
+        my $mimetype = $filecheck->check_upload($upload); # Borks on invalid file type
         my $file;
-        if (process( sub { $file = rset('Fileval')->create({
+        if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $upload->filename,
             mimetype       => $mimetype,
             content        => $upload->content,
@@ -1721,7 +1729,7 @@ post '/file/:id?' => require_login sub {
     my $fileval = $id =~ /^[0-9]+$/ && schema->resultset('Fileval')->find($id)
         or error __x"File ID {id} cannot be found", id => $id;
 
-    if (process( sub { $fileval->delete }))
+    if (process( sub { $fileval->remove_file }))
     {
         return forwardHome( { success => "File has been deleted successsfully" }, 'file/' );
     }
@@ -1753,11 +1761,11 @@ put '/api/file/:id' => require_login sub {
     }
     else
     {
-        my $file = schema->resultset('Fileval')->find_with_permission($id, logged_in_user, 
+        my $file = schema->resultset('Fileval')->find_with_permission($id, logged_in_user,
             rename_existing => 1)
                 or error __x"File ID {id} cannot be found", id => $id;
 
-        my $newFile = rset('Fileval')->create({
+        my $newFile = rset('Fileval')->create_with_file({
             name           => $newname,
             mimetype       => $file->single_mimetype,
             content        => $file->single_content,
@@ -1785,7 +1793,7 @@ post '/api/file/?' => require_login sub {
 
         my $fileval = schema->resultset('Fileval')->find($delete_id);
 
-        $fileval->delete;
+        $fileval->remove_file();
 
         return forwardHome(
             { success => "The file has been deleted successfully" }, 'file/' );
@@ -1793,7 +1801,17 @@ post '/api/file/?' => require_login sub {
 
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_file($upload, check_name => 0); # Borks on invalid file type
+        my $user = logged_in_user;
+        my $column_id = body_parameters->get('column_id')
+            or error __"Missing column ID";
+
+        my $column = GADS::Layout->new(
+            schema => schema,
+            user   => $user,
+            config => config
+        )->column($column_id);
+
+        my $mimetype = $filecheck->check_upload($upload, check_name => 0, extra_types => $column->override_types); # Borks on invalid file type
         my $filename = $upload->filename;
 
         # Remove any invalid characters from the new name - this will possibly be changed to an error going forward
@@ -1803,7 +1821,7 @@ post '/api/file/?' => require_login sub {
         $filename =~ s/[^a-zA-Z0-9\._\-\(\) ]//g;
 
         my $file;
-        if (process( sub { $file = rset('Fileval')->create({
+        if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $filename,
             mimetype       => $mimetype,
             content        => $upload->content,
@@ -1931,8 +1949,10 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
 
     if (defined param('pdf') && !$record->layout->no_download_pdf)
     {
-        my $pdf = $record->pdf->content;
-        return send_file(\$pdf, content_type => 'application/pdf', filename => "Record-".$record->current_id.".pdf" );
+        my $site = var 'site'
+            or error __"No site configured";
+        my $pdf = $record->pdf($site)->content;
+        return send_file( \$pdf, content_type => 'application/pdf', filename => "Record-".$record->current_id.".pdf");
     }
 
     if (query_parameters->get('report'))
@@ -2126,7 +2146,7 @@ prefix '/:layout_name' => sub {
             dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
             page            => 'table_index',
             header_type     => "table_tabs",
-            content_block_custom_classes => "pl-0",
+            content_block_custom_classes => "ps-0",
             content_block_main_custom_classes => "pt-0",
             header_back_url => "${base_url}table",
             layout_obj      => $layout,
@@ -2204,15 +2224,16 @@ prefix '/:layout_name' => sub {
         my $view    = current_view($user, $layout);
 
         my $records = GADS::Records->new(
-            user                => $user,
-            layout              => $layout,
-            schema              => schema,
-            from                => $fromdt,
-            to                  => $todt,
-            max_results         => 1000,
-            view                => $view,
-            search              => session('search'),
-            view_limit_extra_id => current_view_limit_extra_id($user, $layout),
+            user                   => $user,
+            layout                 => $layout,
+            schema                 => schema,
+            from                   => $fromdt,
+            to                     => $todt,
+            max_results            => 1000,
+            view                   => $view,
+            search                 => session('search'),
+            view_limit_extra_id    => current_view_limit_extra_id($user, $layout),
+            view_limit_override_id => current_view_limit_override_id($user, $layout),
         );
 
         response_header "Cache-Control" => "max-age=0, must-revalidate, private";
@@ -2242,16 +2263,17 @@ prefix '/:layout_name' => sub {
         my $view    = current_view($user, $layout, $view_id);
 
         my $records = GADS::Records->new(
-            from                => $fromdt,
-            to                  => $todt,
-            exclusive           => param('exclusive'),
-            user                => $user,
-            layout              => $layout,
-            schema              => schema,
-            view                => $view,
-            search              => $is_dashboard ? undef : session('search'),
-            rewind              => $is_dashboard ? undef : session('rewind'),
-            view_limit_extra_id => current_view_limit_extra_id($user, $layout),
+            from                   => $fromdt,
+            to                     => $todt,
+            exclusive              => param('exclusive'),
+            user                   => $user,
+            layout                 => $layout,
+            schema                 => schema,
+            view                   => $view,
+            search                 => $is_dashboard ? undef : session('search'),
+            rewind                 => $is_dashboard ? undef : session('rewind'),
+            view_limit_extra_id    => current_view_limit_extra_id($user, $layout),
+            view_limit_override_id => current_view_limit_override_id($user, $layout),
         );
 
         response_header "Cache-Control" => "max-age=0, must-revalidate, private";
@@ -2322,14 +2344,15 @@ prefix '/:layout_name' => sub {
             forwardHome({ danger => "You do not have permission to bulk delete records"}, $layout->identifier.'/data')
                 unless $layout->user_can("bulk_delete");
             my %params = (
-                user                => $user,
-                search              => session('search'),
-                layout              => $layout,
-                schema              => schema,
-                rewind              => session('rewind'),
-                view                => current_view($user, $layout),
-                view_limit_extra_id => current_view_limit_extra_id($user, $layout),
-                additional_filters  => \@additional_filters,
+                user                   => $user,
+                search                 => session('search'),
+                layout                 => $layout,
+                schema                 => schema,
+                rewind                 => session('rewind'),
+                view                   => current_view($user, $layout),
+                view_limit_extra_id    => current_view_limit_extra_id($user, $layout),
+                view_limit_override_id => current_view_limit_override_id($user, $layout),
+                additional_filters     => \@additional_filters,
             );
             $params{limit_current_ids} = [body_parameters->get_all('delete_id')]
                 if body_parameters->get_all('delete_id');
@@ -2359,7 +2382,7 @@ prefix '/:layout_name' => sub {
             else {
                 my $input = param('rewind_date');
                 $input   .= ' ' . (param('rewind_time') ? param('rewind_time') : '23:59:59');
-                my $dt    = GADS::DateTime::parse_datetime($input)
+                my $dt    = GADS::DateTime::parse_datetime(undef, $input)
                     or error __x"Invalid date or time: {datetime}", datetime => $input;
                 session rewind => $dt;
             }
@@ -2369,6 +2392,13 @@ prefix '/:layout_name' => sub {
         if (my $extra = $layout->user_can('view_limit_extra') && param('extra'))
         {
             session('persistent')->{view_limit_extra}->{$layout->instance_id} = $extra;
+        }
+
+        # Setting a new view limit override
+        if (defined param('view_limit_override'))
+        {
+            my $override = param('view_limit_override');
+            session('persistent')->{view_limit_override}->{$layout->instance_id} = $override;
         }
 
         my $new_view_id = param('view');
@@ -2536,15 +2566,16 @@ prefix '/:layout_name' => sub {
         elsif ($viewtype eq 'timeline')
         {
             my $records = GADS::Records->new(
-                user                => $user,
-                view                => $view,
-                search              => session('search'),
-                layout              => $layout,
+                user                   => $user,
+                view                   => $view,
+                search                 => session('search'),
+                layout                 => $layout,
                 # No "to" - will take appropriate number from today
-                from                => DateTime->now, # Default
-                schema              => schema,
-                rewind              => session('rewind'),
-                view_limit_extra_id => current_view_limit_extra_id($user, $layout),
+                from                   => DateTime->now, # Default
+                schema                 => schema,
+                rewind                 => session('rewind'),
+                view_limit_extra_id    => current_view_limit_extra_id($user, $layout),
+                view_limit_override_id => current_view_limit_override_id($user, $layout),
             );
             my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} ||= {};
             if (param 'modal_timeline')
@@ -2640,13 +2671,14 @@ prefix '/:layout_name' => sub {
             my $page = defined param('download') ? undef : session('page');
 
             my %params = (
-                user                => $user,
-                search              => session('search'),
-                layout              => $layout,
-                schema              => schema,
-                rewind              => session('rewind'),
-                additional_filters  => \@additional_filters,
-                view_limit_extra_id => current_view_limit_extra_id($user, $layout),
+                user                   => $user,
+                search                 => session('search'),
+                layout                 => $layout,
+                schema                 => schema,
+                rewind                 => session('rewind'),
+                additional_filters     => \@additional_filters,
+                view_limit_extra_id    => current_view_limit_extra_id($user, $layout),
+                view_limit_override_id => current_view_limit_override_id($user, $layout),
             );
 
             # If this is a filter from a group view, then disable the group for
@@ -2656,13 +2688,17 @@ prefix '/:layout_name' => sub {
 
             if (query_parameters->get('curval_record_id'))
             {
+                my $curval = schema->resultset('Layout')->find(query_parameters->get('curval_layout_id'));
                 $params->{curval_layout_id} = query_parameters->get('curval_layout_id');
                 $params->{curval_record_id} = query_parameters->get('curval_record_id');
+                $params->{parent_record_id} = query_parameters->get('parent_record_id');
+                $params->{parent_field_name} = $curval->name;
+                $params->{hide_view_menu} = 1;
             }
 
             my $records = GADS::Records->new(%params);
 
-            $records->view($view);
+            $records->view(query_parameters->get('curval_record_id') ? undef : $view);
             $records->rows($rows);
             $records->page($page);
             $records->sort(session 'sort');
@@ -2739,49 +2775,12 @@ prefix '/:layout_name' => sub {
                };
             }
 
-            my $pages = $records->pages;
-
-            my $subset = {
-                rows  => session('rows'),
-                pages => $pages,
-                page  => $page,
-            };
-            if ($pages > 50)
-            {
-                my @pnumbers = (1..5);
-                if ($page-5 > 6)
-                {
-                    push @pnumbers, '...';
-                    my $max = $page + 5 > $pages ? $pages : $page + 5;
-                    push @pnumbers, ($page-5..$max);
-                }
-                else {
-                    push @pnumbers, (6..15);
-                }
-                if ($pages-5 > $page+5)
-                {
-                    push @pnumbers, '...';
-                    push @pnumbers, ($pages-4..$pages);
-                }
-                elsif ($pnumbers[-1] < $pages)
-                {
-                    push @pnumbers, ($pnumbers[-1]+1..$pages);
-                }
-                $subset->{pnumbers} = [@pnumbers];
-            }
-            else {
-                $subset->{pnumbers} = [1..$pages];
-            }
-
             my @columns = @{$records->columns_render};
             $params->{user_can_edit}        = $layout->user_can('write_existing');
-            $params->{sort}                 = $records->sort_first;
-            $params->{subset}               = $subset;
+            $params->{sort}                 = $records->sort;
             $params->{aggregate}            = $records->aggregate_presentation;
-            $params->{count}                = $records->count;
             $params->{columns}              = [ map $_->presentation(
                 group            => $records->is_group,
-                group_col_ids    => $records->group_col_ids,
                 sort             => $records->sort_first,
                 filters          => \@additional_filters,
                 query_parameters => query_parameters,
@@ -2839,6 +2838,7 @@ prefix '/:layout_name' => sub {
 
         $params->{user_views}                   = $views->user_views;
         $params->{views_limit_extra}            = $views->views_limit_extra;
+        $params->{views_limit_override}         = $views->views_limit_override;
         $params->{current_view_limit_extra}     = current_view_limit_extra($user, $layout) || $layout->default_view_limit_extra;
         $params->{alerts}                       = $alert->all;
         $params->{views_other_user}             = session('views_other_user_id') && rset('User')->find(session('views_other_user_id')),
@@ -2901,8 +2901,9 @@ prefix '/:layout_name' => sub {
                 header_back_url => "${base_url}table",
                 reports         => $reports,
                 breadcrumbs     => [
-                    Crumb( $base_url . "table/", "Tables" ),
-                    Crumb( "",                   "Table: " . $layout->name )
+                    Crumb($base_url."table/", "Tables"),
+                    Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                    Crumb("", "Reports")
                 ],
                 security_marking => $security_marking,
             };
@@ -2960,8 +2961,10 @@ prefix '/:layout_name' => sub {
                 fields          => $records,
                 groups          => $groups,
                 breadcrumbs     => [
-                    Crumb( $base_url . "table/", "Tables" ),
-                    Crumb( "",                   "Table: " . $layout->name )
+                    Crumb($base_url."table/", "Tables"),
+                    Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                    Crumb($base_url . $layout->identifier . '/report', "Reports"),
+                    Crumb("", "Add Report"),
                 ],
             };
 
@@ -3030,8 +3033,10 @@ prefix '/:layout_name' => sub {
                 viewtype        => 'edit',
                 groups          => $groups,
                 breadcrumbs     => [
-                    Crumb( $base_url . "table/", "Tables" ),
-                    Crumb( "",                   "Table: " . $layout->name )
+                    Crumb($base_url."table/", "Tables"),
+                    Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                    Crumb($base_url . $layout->identifier . '/report', "Reports"),
+                    Crumb("", "Edit Report"),
                 ],
             };
 
@@ -3130,10 +3135,10 @@ prefix '/:layout_name' => sub {
             }
         }
 
-        return template "historic_purge/initial" => { 
-            columns_view => \@columns, 
-            count => $records->count, 
-            columns_selected => $columns_selected 
+        return template "historic_purge/initial" => {
+            columns_view => \@columns,
+            count => $records->count,
+            columns_selected => $columns_selected
         };
     };
 
@@ -3184,9 +3189,16 @@ prefix '/:layout_name' => sub {
             view_limit_extra_id => undef, # Override any value that may be set
         );
 
+        my $base_url = request->base;
+
         my $params = {
             page    => 'purge',
             records => $records->presentation(purge => 1),
+            breadcrumbs     => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", "Purge records")
+            ],
         };
 
         template 'purge' => $params;
@@ -3738,7 +3750,7 @@ prefix '/:layout_name' => sub {
                 $column->type(param 'type')
                     unless param('id'); # Can't change type as it would require DBIC resultsets to be removed and re-added
                 $column->$_(param $_)
-                    foreach @{$column->option_names};
+                    foreach @{$column->user_options};
                 $column->display_fields(param 'display_fields');
                 # Set the layout in the GADS::Filter object, in case the write
                 # doesn't success, in which case the filter will need to be
@@ -4120,14 +4132,15 @@ prefix '/:layout_name' => sub {
 
         # The records to update
         my %params = (
-            view                 => $view,
-            is_group             => 0,
-            search               => session('search'),
-            columns              => [map { $_->id } $layout->all], # Need all columns to be able to write updated records
-            schema               => schema,
-            user                 => $user,
-            layout               => $layout,
-            view_limit_extra_id  => current_view_limit_extra_id($user, $layout),
+            view                   => $view,
+            is_group               => 0,
+            search                 => session('search'),
+            columns                => [map { $_->id } $layout->all], # Need all columns to be able to write updated records
+            schema                 => schema,
+            user                   => $user,
+            layout                 => $layout,
+            view_limit_extra_id    => current_view_limit_extra_id($user, $layout),
+            view_limit_override_id => current_view_limit_override_id($user, $layout),
         );
         $params{limit_current_ids} = [query_parameters->get_all('id')]
             if query_parameters->get_all('id');
@@ -4458,8 +4471,9 @@ prefix '/:layout_name' => sub {
         to_json [ rset('User')->match($query) ];
     };
 
-    # I don't know where else this is used, so I am going to revert it to it's original setup and leave it alone for now!
-    get '/match/layout/:layout_id' => require_login sub {
+    # This has been changed to `POST` because the select-filter requires all requests to be post (for security)
+    # All calls to this endpoint should now be using `POST` going forward
+    post '/match/layout/:layout_id' => require_login sub {
 
         my $layout = var('layout') or pass;
         my $query = param('q');
@@ -4575,6 +4589,24 @@ sub current_view_limit_extra_id
     $view ? $view->id : undef;
 }
 
+sub current_view_limit_override
+{   my ($user, $layout) = @_;
+    if (my $override_id = session('persistent')->{view_limit_override}->{$layout->instance_id})
+    {
+        # Check it's valid
+        my $override = schema->resultset('View')->find($override_id);
+        return $override
+            if $override && $override->instance_id == $override->instance_id && $override->is_limit_override;
+    }
+    return undef;
+}
+
+sub current_view_limit_override_id
+{   my ($user, $layout) = @_;
+    my $view = current_view_limit_override($user, $layout);
+    $view ? $view->id : undef;
+}
+
 sub forwardHome {
     my ($message, $page, %options) = @_;
 
@@ -4673,12 +4705,13 @@ sub _data_graph
     my $layout  = var 'layout';
     my $view    = current_view($user, $layout);
     my $records = GADS::RecordsGraph->new(
-        user                => $user,
-        search              => session('search'),
-        view_limit_extra_id => current_view_limit_extra_id($user, $layout),
-        rewind              => session('rewind'),
-        layout              => $layout,
-        schema              => schema,
+        user                   => $user,
+        search                 => session('search'),
+        view_limit_extra_id    => current_view_limit_extra_id($user, $layout),
+        view_limit_override_id => current_view_limit_override_id($user, $layout),
+        rewind                 => session('rewind'),
+        layout                 => $layout,
+        schema                 => schema,
     );
     GADS::Graph::Data->new(
         id      => $id,
@@ -4698,6 +4731,7 @@ sub _process_edit
     );
     $params{layout} = var('layout') if var('layout'); # Used when creating a new record
 
+    my $actions;
     my $layout;
 
     if (my $delete_id = param 'delete')
@@ -4755,8 +4789,8 @@ sub _process_edit
             my $newv;
             if ($modal)
             {
-                next unless defined query_parameters->get($col->field);
-                $newv = [query_parameters->get_all($col->field)];
+                next unless defined body_parameters->get($col->field);
+                $newv = [body_parameters->get_all($col->field)];
             }
             else {
                 next unless defined body_parameters->get($col->field);
@@ -4784,7 +4818,8 @@ sub _process_edit
         {
             # The "source" parameter is user input, make sure still valid
             my $source_curval = $layout->column(param('source'), permission => 'read');
-            try { $record->write(dry_run => 1, parent_curval => $source_curval) };
+            my %options = (dry_run => 1, parent_curval => $source_curval);
+            try { $record->write(%options) };
             if (my $e = $@->wasFatal)
             {
                 push @validation_errors, $e->reason eq 'PANIC' ? 'An unexpected error occurred' : $e->message;
@@ -4823,6 +4858,9 @@ sub _process_edit
                 my $forward = (!$id && $layout->forward_record_after_create) || param('submit') eq 'submit-and-remain'
                     ? 'record/'.$record->current_id
                     : $layout->identifier.'/data';
+                $actions->{clear_saved_values} = $id ? $id: 0;
+                session 'actions' => $actions;
+
                 return forwardHome(
                     { success => 'Submission has been completed successfully for record ID '.$record->current_id }, $forward );
             }
@@ -4907,6 +4945,9 @@ sub _process_edit
     {
         $params->{content_block_custom_classes} = 'content-block--footer';
     }
+
+    $params->{clone_from} = $clone_from
+        if $clone_from;
 
     $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
         if $modal;

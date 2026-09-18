@@ -25,7 +25,7 @@ use JSON qw(decode_json encode_json);
 use Log::Report 'linkspace';
 use MIME::Base64 qw/encode_base64/;
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Str/;
 
 use Inline 'Lua' => q{
     function lua_run(string, vars, working_days_diff, working_days_add)

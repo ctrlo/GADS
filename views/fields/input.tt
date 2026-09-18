@@ -63,7 +63,10 @@
         disabled[% END %][% IF is_readonly %]
         readonly[% END %][% IF is_required %]
         required
-        aria-required="true"[% END %]
+        [% # If using $.defined, TT still defines the value even if it's undef instead of expected behaviour
+           # we use $.size instead, as we still want to allow a max length of 0 if it's set. %]
+        aria-required="true"[% END %][% IF max_length.size %]
+        data-max="[% max_length %]"[% END %]
       >
     </div>
   </div>

@@ -13,7 +13,7 @@
         filter       = "html";
     END;
   %]
-  <label for="[% id %]"[% IF label_class %] class="[% label_class %]"[% END %]>
+  <label for="[% id %]" class="form-label[% IF label_class %] [% label_class %][% END %]">
     [% INCLUDE fields/sub/filter.tt value=label; %]
   </label>
   [% IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body popover_class="popover-container--top"; END; %]

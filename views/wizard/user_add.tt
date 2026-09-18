@@ -20,7 +20,7 @@
 >
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header d-flex jusify-content-between">
         <div class="modal-header__content">
           <h3 class="modal-title" id="userModalLabel">
             <span class='js-add-user'>Add a user</span>
@@ -29,9 +29,9 @@
 
           <ol class="modal__steps">
             <li class="modal__step modal__step--active" data-step="1">
-                  <span>
-                    User details
-                  </span>
+              <span>
+                User details
+              </span>
             </li>
             <li class="modal__step " data-step="2">
               <span>
@@ -46,7 +46,7 @@
           </ol>
         </div>
 
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="btn close hidden" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true" class="hidden">Close</span>
         </button>
       </div>
@@ -140,13 +140,13 @@
                 dismiss = "modal"
               }]
               right_buttons = [{
-                type    = "submit"
+                type    = "button"
                 class   = "btn-danger btn-js-reject-request"
                 name    = "delete"
                 value   = user.id
                 label   = "Reject request"
               }, {
-                class = "btn-default btn-disabled btn-js-next"
+                class = "btn-primary btn-disabled btn-js-next"
                 label = "Next"
               }];
           -%]
@@ -204,7 +204,7 @@
                         items = values.${field.name}
                         sub_field = sub_field
                         sub_params = sub_params;
-                        
+
                     ELSIF field.type == "textarea";
                       INCLUDE fields/textarea.tt
                         id=field.name
@@ -230,13 +230,13 @@
                 label   = "Back"
               }]
               right_buttons = [{
-                type    = "submit"
+                type    = "button"
                 class   = "btn-danger btn-js-reject-request"
                 name    = "delete"
                 value   = user.id
                 label   = "Reject request"
               }, {
-                class = "btn-default btn-js-next"
+                class = "btn-primary btn-js-next"
                 label = "Next"
               }];
           -%]
@@ -281,14 +281,62 @@
                 label   = "Back"
               }]
               right_buttons = [{
-                type    = "submit"
+                type    = "button"
                 class   = "btn-danger btn-js-reject-request"
                 name    = "delete"
                 value   = user.id
                 label   = "Reject request"
               }, {
-                class = "btn-default btn-js-save"
+                class = "btn-primary btn-js-save"
                 label = "Create account"
+              }];
+          -%]
+        </div>
+        <div class="modal-frame" data-config='{"step":4,"frame":4,"item":null,"count":null}'>
+          <div class="modal-body">
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col">
+                  <div class="alert alert-danger alert-js-reject-details" role="alert" id="modal-alert-reject">
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-4">
+                <div class="col">
+                  <p class="js-reject-account">In this window you can add a reason for the account request rejection.</p>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-lg-12">
+                  [%-
+                    INCLUDE fields/textarea.tt
+                      id = "reject_reason"
+                      name = "reject_reason"
+                      label = "Reject reason"
+                      placeholder = "Enter reject reason"
+                      filter = "html"
+                      rows = 2;
+                  -%]
+                </div>
+              </div>
+
+            </div> <!-- container end -->
+          </div> <!-- modal body end -->
+          [%-
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel"
+                label   = "Cancel"
+                dismiss = "modal"
+              }]
+              right_buttons = [{
+                type    = "submit"
+                class   = "btn-danger btn-js-reject-request-send"
+                name    = "delete"
+                value   = user.id
+                label   = "Reject request"
               }];
           -%]
         </div>

@@ -181,4 +181,46 @@ is_deeply([map $_->value_int, $urs->all], $expected, "Correct values for cached 
     is_deeply([map $_->value_text, $urs->all], $expected, "Correct values for cached table after change to int");
 }
 
+# Test input of long string values which exceed the length limit for caching.
+# This test checks that the long value is set correctly on the record, and that the cache is updated to remove the
+# old value and not add the new value due to length
+{
+    my $long_string = "Y3EucBXt2aTYnHNb2hXJTrgAg0QqRieA1kxNo1ud2TbcyxrXMXqu".
+        "/m83YtthBWYXiEdocydX69XqB/6IK+6NqGDZJgofxgjVxGJmP1HONBT651Yj/".
+        "47mRf4+coC3gqvzh6vQ1nCeZyWeVKVuoiiG5INOuwanGJESPDgJrvichI00Czskjah5Ju6/".
+        "tHOez+6p3hciNXUYuq76g6KFkTn4tbWegJd2Hh/bNVYqTX5yDW0MIQQQSoe2i+NLA5xi";
+
+    $record->clear;
+
+    $calc1->code("function evaluate (L1string1) \n return L1string1 \n end");
+    $calc1->return_type('string');
+    $calc1->write;
+
+    $record->find_current_id(2);
+
+    $urs = $schema->resultset('CalcUnique')->search({ layout_id => $calc1->id });
+
+    $record->fields->{$string1->id}->set_value("Sandwiches");
+    $record->write(no_alerts => 1);
+
+    my $has_cache = grep {$_ eq "Sandwiches"} map { $_->value_text } $urs->all;
+
+    ok($has_cache, "Value in cache");
+
+    $record->fields->{$string1->id}->set_value($long_string);
+    $record->write(no_alerts => 1);
+
+    is $record->fields->{$string1->id}->as_string, $long_string, "String value set correctly on long string input";
+    is $record->fields->{$calc1->id}->as_string, $long_string, "Calc value set correctly on long string input";
+
+    # Check for the old value in the cache, as it should be removed when the new value is added,
+    # even if the new value is not added to the cache due to length
+    $has_cache = grep {$_ eq "Sandwiches"} map { $_->value_text } $urs->all;
+    ok(!$has_cache, "Old value not in cache");
+
+    # Check for the new value in the cache, as it should not be added to the cache due to length
+    $has_cache = grep {$_ eq $long_string} map { $_->value_text } $urs->all;
+    ok(!$has_cache, "Value not in cache");
+}
+
 done_testing();

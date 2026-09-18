@@ -20,7 +20,6 @@ package GADS::Column::Createdby;
 
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Person';
 

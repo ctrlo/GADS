@@ -1,17 +1,20 @@
 // Bootstrap datepicker
 @import '~bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css';
 
-// Datatables styling for bootstrap 4
-@import '~datatables.net-bs4/css/dataTables.bootstrap4.css';
+// Datatables styling for bootstrap 5
+@import '~datatables.net-bs5/css/dataTables.bootstrap5.css',
+        "~datatables.net-bs5/css/dataTables.bootstrap5.min.css",
+        "~datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css",
+        "~datatables.net-rowreorder-bs5/css/rowReorder.bootstrap5.min.css";
 
 // QueryBuilder
-@import '~@lol768/jquery-querybuilder-no-eval/dist/css/query-builder.default.min.css';
+@import 'jQuery-QueryBuilder/dist/css/query-builder.default.css';
 
 // JStree
 @import '~jstree/dist/themes/default/style.min.css';
 
 // Summernote
-@import '~summernote/dist/summernote-bs4.css';
+@import '~summernote/dist/summernote-bs5.css';
 
 // JQplot
 @import 'external/jquery.jqplot.min.css';
@@ -22,4 +25,3 @@
 // tippy
 @import '~tippy.js/dist/tippy.css';
 @import '~tippy.js/themes/light.css';
-@import '~bootstrap-select/dist/css/bootstrap-select.css';

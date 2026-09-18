@@ -41,12 +41,12 @@
   left: 0;
   height: 24px;
   margin: auto;
-  font-size: 24px;
+  @include font-size(24px);
   text-align: center;
 }
 
 .react-grid-item .minMax {
-  font-size: 12px;
+  @include font-size(12px);
 }
 
 .react-grid-item .add {
@@ -54,7 +54,8 @@
 }
 
 .react-grid-dragHandleExample {
-  cursor: move; /* fallback if grab cursor is unsupported */
+  cursor: move;
+  /* fallback if grab cursor is unsupported */
   cursor: grab;
 }
 
@@ -71,8 +72,29 @@
 }
 
 .react-grid-item:hover {
+
   .react-resizable-handle,
   .ld-widget-handlers {
     opacity: 1;
   }
+}
+
+.ld-footer-container {
+  .btn-group {
+    margin-right: $padding-base-vertical;
+
+    &:last-of-type {
+      margin-right: 0;
+    }
+  }
+}
+
+.nav-pills {
+    .nav-link.active {
+      background-color: $brand-primary;
+      color: $white;
+      h1 {
+        color: $white;
+      }
+    }
 }

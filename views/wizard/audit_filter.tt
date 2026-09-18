@@ -3,13 +3,13 @@
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
       [% INCLUDE wizard/sub/modal_header.tt label="Filter"; %]
-      
+
       <form method="post">
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
-        
+
         <div class="modal-frame">
           <div class="modal-body">
-            
+
             <p>In this window you can filter your user audit logs.</p>
             <div class="row">
               <div class="col-lg-6">
@@ -32,11 +32,11 @@
               <div class="col-lg-6">
                 [%
                   types = [{id="" name="All types"}];
-                
+
                   FOREACH audit_type IN audit_types;
                     types.push({id=audit_type name=audit_type});
                   END;
-                
+
                   INCLUDE fields/select.tt
                     id = "btn-type"
                     name = "type"
@@ -90,9 +90,9 @@
                 %]
               </div>
             </div>
-          
+
           </div>
-          
+
           [%-
             INCLUDE wizard/sub/modal_footer.tt
               left_buttons = [{
@@ -102,18 +102,18 @@
               }]
               right_buttons = [{
                 type  = "submit"
-                class = "btn-default"
+                class = "btn-primary"
                 name  = "audit_filtering"
                 value = "submit"
                 label = "Update"
               }];
           -%]
         </div>
-      
-      
+
+
       </form>
-    
-    
+
+
     </div>
   </div>
 </div>

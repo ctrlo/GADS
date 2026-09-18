@@ -21,9 +21,31 @@ package GADS::Column::File;
 use Log::Report 'linkspace';
 use MIME::Base64 qw/decode_base64/;
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Int Maybe ArrayRef/;
+use GADS::Filecheck;
 
 extends 'GADS::Column';
+
+has '+option_names' => (
+    default => sub { 
+        [+{
+            name              => 'override_types',
+            user_configurable => 0,
+        }]
+    }
+);
+
+has override_types => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        return [] unless $self->has_options;
+        $self->options->{override_types} || [];
+    },
+    trigger => sub { $_[0]->reset_options },
+);
 
 has filesize => (
     is      => 'rw',
@@ -45,7 +67,7 @@ sub value_field_as_index
 
 after build_values => sub {
     my ($self, $original) = @_;
-
+    
     $self->string_storage(1);
     $self->value_field('name');
     my ($file_option) = $original->{file_options}->[0];
@@ -70,6 +92,11 @@ sub validate
         error __x"'{int}' is not a valid file ID for '{col}'",
             int => $value, col => $self->name;
     }
+
+    # Check that the file type is allowed here as well
+    my $filecheck = GADS::Filecheck->instance;
+    my $fileval = $self->schema->resultset('Fileval')->find($value);
+    $filecheck->check_fileval($fileval, extra_types => $self->override_types, check_name => 0);
     1;
 }
 
@@ -142,7 +169,7 @@ around export_hash => sub {
 sub import_value
 {   my ($self, $value) = @_;
 
-    my $file = $value->{content} && $self->schema->resultset('Fileval')->create({
+    my $file = $value->{content} && $self->schema->resultset('Fileval')->create_with_file({
         name     => $value->{name},
         mimetype => $value->{mimetype},
         content  => decode_base64($value->{content}),

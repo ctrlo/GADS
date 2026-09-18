@@ -28,17 +28,17 @@
         -%]
       </div>
     </div>
-    
+
     <div class="row mb-4">
       [% INCLUDE snippets/user_column_view_limits.tt user={} column_class="col-lg-6"; %]
     </div>
-  
+
     [%- IF user.permission.superadmin -%]
     <div class="row mb-3">
       [% INCLUDE snippets/user_column_permissions.tt user={} column_class="col-lg-5" list_class="list--vertical list--checkboxes"; %]
     </div>
     [%- END -%]
-  
+
     <div class="row">
       [% INCLUDE snippets/user_column_groups.tt column_class="col-lg-5" list_class="list--vertical list--checkboxes"; %]
     </div>
@@ -59,7 +59,7 @@
             type  = "button",
             name  = "submit",
             value = "submit",
-            class = "btn btn-default",
+            class = "btn btn-primary",
             label = "Import"
           }]
         }];

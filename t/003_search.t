@@ -116,7 +116,7 @@ my $calc_int = GADS::Column::Calc->new(
     layout          => $layout,
     name            => 'calc_int',
     return_type     => 'integer',
-    code            => "function evaluate (L1integer1) return L1integer1 end",
+    code            => "function evaluate (L1integer1) return L1integer1[1] end",
     set_permissions => {
         $sheet->group->id => $sheet->default_permissions,
     },

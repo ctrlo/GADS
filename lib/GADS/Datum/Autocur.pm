@@ -21,7 +21,6 @@ package GADS::Datum::Autocur;
 use HTML::Entities qw/encode_entities/;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Datum::Curcommon';
 

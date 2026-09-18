@@ -106,6 +106,13 @@ my @tests = (
         count_off => 1,
     },
     {
+        data      => "string1, ,integer1\nFoo,Bar,123",
+        option    => undef,
+        error     => qr\Empty field name\,
+        count_on  => 1,
+        count_off => 1,
+    },
+    {
         data      => "string1\nString content",
         option    => 'dry_run',
         count_on  => 0,
@@ -228,7 +235,14 @@ foreach my $test (@tests)
 
         my $test_name = defined $test->{option} ? "with option $test->{option} set to $status" : "with no options";
         is($records->count, 0, "No records before import for test $test_name");
-        $import->process;
+        
+        try { $import->process; };
+        if ($test->{error}) 
+        {
+            like($@, $test->{error}, "Got expected import error");
+            next;
+        }
+
         $records->clear;
         is($records->count, $test->{"count_$status"}, "Correct record count on import for test $test_name");
 

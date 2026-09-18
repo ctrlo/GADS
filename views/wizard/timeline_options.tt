@@ -6,7 +6,7 @@
   <div class="modal-dialog modal-dialog-centered " role="document">
     <div class="modal-content">
       [% INCLUDE wizard/sub/modal_header.tt label="Timeline view options"; %]
-      
+
       <form method="post" class="">
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
         <div class="modal-frame">
@@ -37,7 +37,7 @@
                     value       = tl_options.group
                     filter      = "html";
                 %]
-                
+
                 <div class="mb-4">
                   [%
                     INCLUDE fields/sub/checkbox.tt
@@ -69,12 +69,12 @@
               <div class="col">
                 [%
                   overlay_items = [{id="", name=""}];
-  
+
                   FOREACH overlay_ins IN instances;
                     NEXT IF overlay_ins.instance_id == layout.instance_id;
                     overlay_items.push({id=overlay_ins.instance_id, name=overlay_ins.name});
                   END;
-                
+
                   INCLUDE fields/select.tt
                     id          = "tl_overlay"
                     name        = "tl_overlay"
@@ -95,7 +95,7 @@
                 }]
                 right_buttons = [{
                   type  = "submit"
-                  class = "btn-default"
+                  class = "btn-primary"
                   name  = "modal_timeline"
                   value = "submit"
                   label = "Update options"

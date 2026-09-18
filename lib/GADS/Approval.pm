@@ -22,7 +22,7 @@ use GADS::Datum::Person;
 use Log::Report 'linkspace';
 
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(ArrayRef HashRef Int);
 
 has schema => (
     is       => 'ro',

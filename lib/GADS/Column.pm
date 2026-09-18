@@ -21,7 +21,6 @@ package GADS::Column;
 use JSON qw(decode_json encode_json);
 use Log::Report 'linkspace';
 use String::CamelCase qw(camelize);
-use GADS::DateTime;
 use GADS::DB;
 use GADS::Filter;
 use GADS::Groups;
@@ -32,12 +31,11 @@ use MIME::Base64 qw/encode_base64/;
 use Text::Markdown qw/markdown/;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Maybe Bool Int Str ArrayRef HashRef/;
 
 use List::Compare ();
 
-use namespace::clean; # Otherwise Enum clashes with MooseLike
-
+with 'GADS::DateTime';
 with 'GADS::Role::Presentation::Column';
 
 sub types
@@ -72,6 +70,21 @@ has instance_id => (
     isa => Int,
 );
 
+# If this is a field belonging to a curval and if so what that parent curval is
+has parent_id => (
+    is => 'ro',
+);
+
+has parent => (
+    is => 'lazy',
+);
+
+sub _build_parent
+{   my $self = shift;
+    return if !$self->parent_id;
+    $self->layout->column($self->parent_id);
+}
+
 has from_id => (
     is      => 'rw',
     trigger => sub {
@@ -104,6 +117,12 @@ has id => (
     is  => 'rw',
     isa => Int,
 );
+
+sub full_id
+{   my $self = shift;
+    return $self->id if !$self->parent_id;
+    $self->parent_id."_".$self->id;
+}
 
 has internal => (
     is      => 'ro',
@@ -250,14 +269,14 @@ sub reset_options
     # Force each option to build now to capture its value, otherwise if it
     # hasn't already been built then the options hash will be lost and it will
     # use its default value
-    $self->$_ foreach @{$self->option_names};
+    $self->$_ foreach map { $_->{name} } @{$self->option_names};
     $self->clear_options;
 }
 
 sub _build_options
 {   my $self = shift;
     my $options = {};
-    foreach my $option_name (@{$self->option_names})
+    foreach my $option_name (map {$_->{name}} @{$self->option_names})
     {
         $options->{$option_name} = $self->$option_name;
     }
@@ -268,6 +287,15 @@ has option_names => (
     is      => 'ro',
     isa     => ArrayRef,
     default => sub { [] },
+);
+
+has user_options => (
+    is      => 'lazy',
+    isa     => ArrayRef[Str],
+    builder => sub {
+        my $self = shift;
+        [map { $_->{name} } grep {$_->{user_configurable}} @{$self->option_names}];
+    },
 );
 
 has ordering => (
@@ -797,7 +825,7 @@ sub parse_date
     # Check whether it's a CURDATE first
     my $dt = GADS::Filter->parse_date_filter($value);
     return $dt if $dt;
-    $value && GADS::DateTime::parse_datetime($value);
+    $value && $self->parse_datetime($value);
 }
 
 sub _build_permissions
@@ -855,6 +883,16 @@ sub _build_instance_id
     $self->layout
         or panic "layout is not set - specify instance_id on creation instead?";
     $self->layout->instance_id;
+}
+
+sub clone
+{   my ($self, %params) = @_;
+    ref($self)->new(
+        schema     => $self->schema,
+        layout     => $self->layout,
+        set_values => $self->set_values,
+        %params,
+    );
 }
 
 sub build_values
@@ -917,19 +955,6 @@ sub tjoin
 sub filter_value_to_text
 {   my ($self, $value) = @_;
     return $value;
-}
-
-# Overridden where required
-sub sort_columns
-{   my $self = shift;
-    ($self);
-}
-
-# Whether the sort columns when added should be added with a parent, and
-# if so what is the paremt
-sub sort_parent
-{   my $self = shift;
-    return undef; # default no, undef in case used in arrays
 }
 
 # Overridden in child classes. This function is used
@@ -1675,7 +1700,7 @@ sub import_hash
     notice __x"Update: filter from {old} to {new} for {name}",
         old => $self->filter->as_json, new => $values->{filter}, name => $self->name
             if $report && $self->filter->changed;
-    foreach my $option (@{$self->option_names})
+    foreach my $option (map {$_->{name}} @{$self->option_names})
     {
         notice __x"Update: {option} from {old} to {new} for {name}",
             option => $option, old => $self->$option, new => $values->{$option}, name => $self->name
@@ -1728,7 +1753,7 @@ sub export_hash
         };
     }
     $return->{display_fields} = \@display_fields;
-    foreach my $option (@{$self->option_names})
+    foreach my $option (map {$_->{name}} @{$self->option_names})
     {
         $return->{$option} = $self->$option;
     }

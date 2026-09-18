@@ -2,13 +2,13 @@
   <div class="modal-dialog modal-dialog-centered " role="document">
     <div class="modal-content">
       [% INCLUDE wizard/sub/modal_header.tt label=" View data as it was at a previous date"; %]
-      
+
       <form method="post" class="">
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
-        
+
         <div class="modal-frame">
           <div class="modal-body">
-            
+
             [%
               INCLUDE fields/input.tt
                 id = "rewind_date"
@@ -20,7 +20,7 @@
                 dateformat = config.dateformat_datepicker
                 filter = ""
                 type = "text";
-            
+
               INCLUDE fields/input.tt
                 id = "rewind_time"
                 name = "rewind_time"
@@ -32,28 +32,28 @@
                 type = "text";
             %]
           </div>
-          
+
           [%
             footer_right_buttons = session.rewind ? [{
                 type  = "submit"
-                class = "btn-default"
+                class = "btn-primary"
                 name  = "modal_rewind_reset"
                 value = "submit"
                 label = "Reset to normal"
               }, {
                 type  = "submit"
-                class = "btn-default"
+                class = "btn-primary"
                 name  = "modal_rewind"
                 value = "submit"
                 label = "Update"
               }] : [{
                 type  = "submit"
-                class = "btn-default"
+                class = "btn-primary"
                 name  = "modal_rewind"
                 value = "submit"
                 label = "Submit"
               }];
-          
+
             INCLUDE wizard/sub/modal_footer.tt
               left_buttons = [{
                 class   = "btn-cancel"

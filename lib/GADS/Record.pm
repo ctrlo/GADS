@@ -40,6 +40,7 @@ use GADS::Datum::Rag;
 use GADS::Datum::Serial;
 use GADS::Datum::String;
 use GADS::Datum::Tree;
+use GADS::Hooks;
 use GADS::Layout;
 use Log::Report 'linkspace';
 use JSON qw(encode_json);
@@ -50,11 +51,14 @@ use Session::Token;
 use URI::Escape;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(Maybe Bool Int ArrayRef HashRef);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 use namespace::clean;
 
+with 'GADS::DateTime';
 with 'GADS::Role::Presentation::Record';
+
+my $hooks = GADS::Hooks->instance;
 
 # When clear() is called the layout is also cleared. This property can be used
 # to seed the layout to an existing value when it is rebuilt
@@ -454,15 +458,18 @@ has created_user => (
     builder => sub {
         my $self = shift;
 
-        # Not yet defined for new record
-        return undef if $self->new_entry;
-
         my $column = $self->layout->column_by_name_short('_created_user');
 
+        # Default to current user drafting record if new record
+        return $self->_person($self->user->id, $column)
+            if $self->new_entry;
+
+        my $value = $self->set_record_created_user || $self->record->{record_created_user};
+
         # Has it been retrieved as part of sql query?
-        if ($self->record && exists $self->record->{record_created_user})
+        if ($value)
         {
-            return $self->_person($self->record->{record_created_user}, $column);
+            return $self->_person($value, $column);
         }
 
         my $user = $self->first_record_rs->createdby;
@@ -510,15 +517,16 @@ has edited_user => (
     builder => sub {
         my $self = shift;
 
-        # Not yet defined for new record
-        return undef if $self->new_entry;
-
         my $column = $self->layout->column_by_name_short('_version_user');
+
+        # Default to current user drafting record if new record
+        return $self->_person($self->user->id, $column)
+            if $self->new_entry;
 
         # Has it been retrieved as part of sql query?
         if ($self->record && exists $self->record->{createdby})
         {
-            return $self->_person($self->record->{createdby}, $column);
+            return $self->_person($self->record->{$column->field}, $column);
         }
 
         my $user = $self->record_rs->createdby;
@@ -628,7 +636,7 @@ sub _build_deleted
         return $self->schema->resultset('Record')->find($self->record_id)->deleted;
     }
     $self->set_deleted or return undef;
-    $self->schema->storage->datetime_parser->parse_datetime(
+    $self->dt_parser->parse_datetime(
         $self->set_deleted
     );
 }
@@ -829,7 +837,6 @@ sub _find
         layout                  => $self->layout,
         schema                  => $self->schema,
         columns                 => $self->columns,
-        rewind                  => $self->rewind,
         is_deleted              => $find{deleted},
         is_draft                => $find{draftuser_id} || $find{include_draft},
         no_view_limits          => !!$find{draftuser_id},
@@ -837,6 +844,13 @@ sub _find
         include_children        => 1,
         ignore_view_limit_extra => 1,
     );
+    # Build automatically unless override required for chronology
+    $params{cvo_values} = 0
+        if $find{chronology};
+    # Only pass in if defined, otherwise it causes current_version_only to be
+    # cleared
+    $params{rewind} = $self->rewind
+        if $self->rewind;
     my $records = GADS::Records->new(%params);
 
     $self->columns_retrieved_do($records->columns_retrieved_do);
@@ -847,13 +861,20 @@ sub _find
     my $record = {}; my $limit = 10; my $page = 1; my $first_run = 1; my $current_id; my @record_ids;
     while (1)
     {
+        my %common = (
+            prefetch             => 1,
+            limit                => $limit,
+            page                 => $page,
+            current_version_only => $records->cvo_values,
+            rewind               => $records->rewind_values
+        );
         # No linked here so that we get the ones needed in accordance with this loop (could be either)
-        my @prefetches = $records->jpfetch(prefetch => 1, search => 1, limit => $limit, page => $page); # Still need search in case of view limit
+        my @prefetches = $records->jpfetch(search => 1, %common); # Still need search in case of view limit
         last if !@prefetches && !$first_run;
         my %options = $find{current_id} || $find{draftuser_id} ? () : (root_table => 'record', no_current => 1);
-        my $search = $records->search_query(prefetch => 1, linked => 1, limit => $limit, page => $page, chronology => $find{chronology}, %options);
+        my $search = $records->search_query(linked => 1, chronology => $find{chronology}, rewind => $records->rewind_values, %common, %options);
          # Still need search in case of view limit
-        @prefetches = $records->jpfetch(prefetch => 1, search => 1, linked => 0, limit => $limit, page => $page, %options);
+        @prefetches = $records->jpfetch(search => 1, linked => 0, %common, %options);
 
         my $root_table;
         if (my $record_id = $find{record_id})
@@ -862,7 +883,7 @@ sub _find
                 {
                     'current' => [
                         'deletedby',
-                        $records->linked_hash(prefetch => 1, limit => $limit, page => $page),
+                        $records->linked_hash(%common),
                     ],
                 },
             ); # Add info about related current record
@@ -890,14 +911,15 @@ sub _find
                 panic "Unexpected find parameters";
             }
             @prefetches = (
-                $records->linked_hash(prefetch => 1, limit => $limit, page => $page),
+                $records->linked_hash(%common),
                 'deletedby',
                 'currents',
                 {
-                    'record_single' => [
+                    $records->cvo_values ? ('current_version' => [@prefetches])
+                    : ('record_single' => [
                         'record_later',
                         @prefetches,
-                    ],
+                    ]),
                 },
             );
             $root_table = 'Current';
@@ -906,17 +928,17 @@ sub _find
             panic "record_id or current_id needs to be passed to _find";
         }
 
-        local $GADS::Schema::Result::Record::REWIND = $records->rewind_formatted
+        local $GADS::Schema::Result::Record::REWIND = $self->dt_parser->format_datetime($records->rewind)
             if $records->rewind;
 
         # Don't specify linked for fetching columns, we will get whataver is needed linked or not linked
-        my @columns_fetch = $records->columns_fetch(search => 1, limit => $limit, page => $page, %options); # Still need search in case of view limit
-        my $has_linked = $records->has_linked(prefetch => 1, limit => $limit, page => $page, %options);
-        my $base = $find{record_id} ? 'me' : $records->record_name(prefetch => 1, search => 1, limit => $limit, page => $page);
+        my @columns_fetch = $records->columns_fetch(search => 1, %common, %options); # Still need search in case of view limit
+        my $has_linked = $records->has_linked(%common, %options);
+        my $base = $find{record_id} ? 'me' : $records->record_name(search => 1, %common, current_version_only => $records->cvo_values);
         push @columns_fetch, {id => "$base.id"};
         push @columns_fetch, $find{record_id} ? {deleted => "current.deleted"} : {deleted => "me.deleted"};
         push @columns_fetch, $find{record_id} ? {linked_id => "current.linked_id"} : {linked_id => "me.linked_id"};
-        push @columns_fetch, {linked_record_id => "record_single.id"}
+        push @columns_fetch, {linked_record_id => $records->cvo_values ? "current_version.id" : "record_single.id"}
             if $has_linked;
         push @columns_fetch, $find{record_id} ? {draftuser_id => "current.draftuser_id"} : {draftuser_id => "me.draftuser_id"};
         push @columns_fetch, {current_id => "$base.current_id"};
@@ -1047,6 +1069,7 @@ sub _find
                 records      => [$record],
                 is_draft     => $find{draftuser_id},
                 already_seen => $records->already_seen,
+                chronology   => 1,
             );
             my @changed;
             foreach my $column (@{$record->columns_render})
@@ -1082,7 +1105,10 @@ sub _find
                                 # Changed?
                                 my $new_value = delete $new_ids{$id};
                                 next if $old_value->{value} eq $new_value->{value};
-                                $new_value->{status} = "Changed";
+                                my $record = $new_value->{record};
+                                my $status = __x"Updated on {created} by {created_by}. Changed",
+                                    created => $record->edited_time, created_by => $record->edited_user;
+                                $new_value->{status} = $status->toString;
                                 $new_value->{version_id} = $new_value->{record}->record_id;
                                 push @values, $new_value;
                             }
@@ -1230,7 +1256,7 @@ sub versions
         'current_id' => $self->current_id,
         approval     => 0,
     };
-    $search->{'me.created'} = { '<' => $self->schema->storage->datetime_parser->format_datetime($self->rewind) }
+    $search->{'me.created'} = { '<' => $self->dt_parser->format_datetime($self->rewind) }
         if $self->rewind;
     my @records = $self->schema->resultset('Record')->search($search,{
         prefetch => 'createdby',
@@ -1389,7 +1415,7 @@ sub initialise_field
             column           => $column,
             schema           => $record->schema,
             layout           => $record->layout,
-            datetime_parser  => $record->schema->storage->datetime_parser,
+            datetime_parser  => $record->dt_parser,
         );
     }
 }
@@ -1516,6 +1542,7 @@ sub _build_selector_id
 # new version. This allows updates that aren't recorded in the history, and
 # allows the correcting of previous versions that have since been changed.
 # - force_mandatory: allow blank mandatory values
+# - force_readonly_new: allow read-only values in new records to be written to
 # - no_change_unless_blank: bork on updates to existing values unless blank
 # - dry_run: do not actually perform any writes, test only
 # - no_alerts: do not send any alerts for changed values
@@ -1689,7 +1716,7 @@ sub write
         elsif ($self->new_entry)
         {
             error __x"You do not have permission to add data to field {name}", name => $column->name
-                if !$datum->blank && !$column->user_can('write_new');
+                if !$datum->blank && !$column->user_can('write_new') && !$options{force_readonly_new};
         }
         elsif ($datum->changed && !$column->user_can('write_existing'))
         {
@@ -1875,12 +1902,14 @@ sub write
         return;
     }
 
+    my $current;
+
     # New record?
     if ($self->new_entry)
     {
         $self->delete_user_drafts unless $options{no_draft_delete}; # Delete any drafts first, for both draft save and full save
         my $instance_id = $self->layout->instance_id;
-        my $current = $self->schema->resultset('Current')->create({
+        $current = $self->schema->resultset('Current')->create({
             parent_id    => $self->parent_id,
             linked_id    => $self->linked_id,
             instance_id  => $instance_id,
@@ -1914,6 +1943,9 @@ sub write
 
         $self->current_id($current->id);
     }
+    else {
+        $current = $self->schema->resultset('Current')->find($self->current_id);
+    }
 
     if ($need_rec && !$options{update_only})
     {
@@ -1924,6 +1956,9 @@ sub write
         })->id;
         $self->record_id_old($self->record_id) if $self->record_id;
         $self->record_id($id);
+        $current->update({
+            current_version_id => $id,
+        });
     }
     elsif ($self->layout->forget_history)
     {
@@ -1972,6 +2007,7 @@ sub write
 
     $self->_need_rec($need_rec);
     $self->_need_app($need_app);
+    $hooks->run_hook('record.write.before_write_values', $self, $self->layout);
     $self->write_values(%options, submission_token => $submission_token) unless $options{no_write_values};
 
     # Finally delete any related cached filter values, meaning that any later
@@ -2309,9 +2345,6 @@ sub set_blank_dependents
 
     foreach my $column (@{$options{columns}})
     {
-        # Don't attempt any blanking if the user is editing an existing record
-        # and they do not have access to the field
-        next if !$self->new_entry && !$column->user_can('write_existing');
         my $datum = $self->get_field_value($column);
         $datum->set_value('')
             if $datum->dependent_not_shown(submission_token => $options{submission_token})
@@ -2611,8 +2644,25 @@ sub purge
 {   my $self = shift;
     error __"You do not have permission to purge records"
         unless !$self->user || $self->user_can_purge;
+    my $guard = $self->schema->txn_scope_guard;
     $self->_purge_record_values($self->record_id);
-    $self->schema->resultset('Record')->find($self->record_id)->delete;
+    my $record_rs = $self->schema->resultset('Record')->find($self->record_id);
+    my $current_rs = $record_rs->current;
+    if ($record_rs->id == $current_rs->current_version_id)
+    {
+        error __"Unable to delete this version as there are none others"
+            if $current_rs->records < 2;
+        # Find previous version to save to current record
+        my $previous_version = $current_rs->records->search({
+            'me.id' => { '!=' => $record_rs->id },
+        },{
+            rows     => 1,
+            order_by => { -desc => ['me.created', 'me.id'] },
+        })->next;
+        $current_rs->update({ current_version_id => $previous_version->id });
+    }
+    $record_rs->delete;
+    $guard->commit;
 }
 
 sub restore
@@ -2714,83 +2764,21 @@ sub for_code
 }
 
 sub pdf
-{   my $self = shift;
+{   my ($self, $site) = @_;
 
-    my $dateformat = GADS::Config->instance->dateformat;
-    my $now = DateTime->now;
-    $now->set_time_zone('Europe/London');
-    my $now_formatted = $now->format_cldr($dateformat)." at ".$now->hms;
-    my $updated = $self->edited_time->as_string;
+    my $result = [$self->layout->all_user_read];
 
-    my $config = GADS::Config->instance;
-    my $header = $config && $config->gads && $config->gads->{header};
-    my $pdf = CtrlO::PDF->new(
-        header => $header,
-        footer => "Downloaded by ".$self->user->value." on $now_formatted",
+    my $generator = GADS::PDFGenerator->new(
+        site              => $site,
+        layouts           => $result,
+        record            => $self,
+        user              => $self->user,
+        security_marking  => $self->layout->security_marking
     );
 
-    $pdf->add_page;
-    $pdf->heading('Record '.$self->current_id);
-    $pdf->heading('Last updated by '.$self->edited_user->as_string." on $updated", size => 12);
+    my $pdf = $generator->build(title => "Record " . $self->current_id);
 
-    my $data =[
-        ['Field', 'Value'],
-    ];
-    my $max_fields;
-    foreach my $col ($self->layout->all_user_read)
-    {
-        my $datum = $self->get_field_value($col);
-        next if $datum->dependent_not_shown;
-        if ($col->is_curcommon)
-        {
-            my $first = 1;
-            foreach my $line (@{$datum->values})
-            {
-                my $field_count;
-                my @l = ($first ? $col->name : '');
-                foreach my $v (@{$line->{values}})
-                {
-                    push @l, $v;
-                    $field_count++;
-                }
-                push @$data, \@l;
-                $first = 0;
-                $max_fields = $field_count if !$max_fields || $max_fields < $field_count;
-            }
-        }
-        else {
-            push @$data, [
-                $col->name,
-                $datum->as_string,
-            ],
-        }
-    }
-
-    my $hdr_props = {
-        repeat     => 1,
-        justify    => 'center',
-        font_size  => 8,
-    };
-
-    my $cell_props = [];
-    foreach my $d (@$data)
-    {
-        my $has = @$d;
-        # $max_fields does not include field name
-        my $gap = $max_fields - $has + 1;
-        push @$d, undef for (1..$gap);
-        push @$cell_props, [
-            (undef) x ($has - 1),
-            {colspan => $gap + 1}
-        ];
-    }
-
-    $pdf->table(
-        data       => $data,
-        cell_props => $cell_props,
-    );
-
-    $pdf;
+    return $pdf;
 }
 
 sub get_report
@@ -2881,9 +2869,11 @@ sub purge_current
     }
     $self->schema->resultset('Record') ->search({ current_id => $id })->update({ record_id => undef });
     $self->schema->resultset('AlertCache')->search({ current_id => $id })->delete;
+    my $current = $self->schema->resultset('Current')->find($id);
+    $current->update({ current_version_id => undef });
     $self->schema->resultset('Record')->search({ current_id => $id })->delete;
     $self->schema->resultset('AlertSend')->search({ current_id => $id })->delete;
-    $self->schema->resultset('Current')->find($id)->delete;
+    $current->delete;
     $guard->commit;
 
     my $user_id = $self->user && $self->user->id;

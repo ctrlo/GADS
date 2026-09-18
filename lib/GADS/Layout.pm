@@ -53,7 +53,7 @@ use JSON qw(decode_json encode_json);
 use String::CamelCase qw(camelize);
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Maybe Int Str Bool ArrayRef HashRef/;
 
 has schema => (
     is       => 'rw',
@@ -1575,14 +1575,16 @@ sub purge
     $_->delete foreach reverse $self->all(order_dependencies => 1, include_hidden => 1);
 
     $self->schema->resultset('UserLastrecord')->delete;
+    my $current_rs = $self->schema->resultset('Current')->search({
+        instance_id => $self->instance_id,
+    });
+    $current_rs->update({ current_version_id => undef });
     $self->schema->resultset('Record')->search({
         instance_id => $self->instance_id,
     },{
         join => 'current',
     })->delete;
-    $self->schema->resultset('Current')->search({
-        instance_id => $self->instance_id,
-    })->delete;
+    $current_rs->delete;
     $self->schema->resultset('InstanceGroup')->search({
         instance_id => $self->instance_id,
     })->delete;

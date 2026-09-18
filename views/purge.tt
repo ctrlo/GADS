@@ -1,3 +1,10 @@
+<header class="row g-0 purge--header">
+  <div class="table-header__meta">
+    [% INCLUDE navigation/breadcrumbs.tt %]
+    <h1 class="table-header__title">Purge Records</h1>
+  </div>
+</header>
+<div class="purge--content">
 <h2>Manage deleted [% layout.record_name_plural | html %]</h2>
 <p>
     This page contains all records that have been deleted in the table &quot;[%
@@ -12,7 +19,7 @@
         [%
           # prepare table config
           table_class            = 'table-striped table-selectable';
-          table_dom              = 't';
+          table_layout           = undef;
           table_language         = {
             emptyTable => "There are no deleted records in this table.",
           };
@@ -97,7 +104,7 @@
               }, {
                 type  = "modal_button",
                 modalId = "restore",
-                class = "btn btn-default",
+                class = "btn btn-primary",
                 label = "Undelete"
               }]
             }];
@@ -107,3 +114,4 @@
 [% ELSE %]
     <div role="alert" class="alert alert-info">There are no deleted records in this table</div>
 [% END %]
+</div>

@@ -57,11 +57,11 @@ has filtering => (
         );
         if ($value->{from} && ref $value->{from} ne 'DateTime')
         {
-            $value->{from} = GADS::DateTime::parse_datetime($value->{from});
+            $value->{from} = GADS::DateTime::parse_datetime(undef, $value->{from});
         }
         if ($value->{to} && ref $value->{to} ne 'DateTime')
         {
-            $value->{to} = GADS::DateTime::parse_datetime($value->{to});
+            $value->{to} = GADS::DateTime::parse_datetime(undef, $value->{to});
         }
         $value->{from} ||= DateTime->now->subtract(hours => 24);
         $value->{to}   ||= DateTime->now;

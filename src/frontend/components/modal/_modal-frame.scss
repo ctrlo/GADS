@@ -1,5 +1,6 @@
 .modal-footer {
   display: block;
+  padding: $padding-base-vertical $padding-base-horizontal;
 
   & > * {
     margin: 0;

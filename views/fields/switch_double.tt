@@ -5,7 +5,7 @@
   <div class="form-group mb-0">
     <div class="switch [% switch_class %]">
       <input class="switch__input" type="checkbox" id="[% id %]" name="[% name %]" value="[% value %]" [%- IF checked -%]checked="checked"[%- END -%]>
-      <label class="switch__label" for="[% id %]">
+      <label class="form-label switch__label" for="[% id %]">
         [% INCLUDE fields/sub/filter.tt value=label_right; %]
       </label>
     </div>

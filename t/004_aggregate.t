@@ -38,7 +38,7 @@ my $data = [
 my $sheet   = Test::GADS::DataSheet->new(
     data         => $data,
     multivalue   => 1,
-    calc_code    => "function evaluate (L1integer1, L1integer2) \n return (L1integer1 / L1integer2) * 100 \n end",
+    calc_code    => "function evaluate (L1integer1, L1integer2) \n return (L1integer1[1] / L1integer2[1]) * 100 \n end",
     column_count => { integer => 2 },
 );
 my $schema = $sheet->schema;

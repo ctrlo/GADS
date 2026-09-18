@@ -11,8 +11,8 @@ export default class CreateReportButtonComponent {
      * @param {JQuery<HTMLElement>} element button element
      */
     constructor(element:JQuery<HTMLElement>) {
-        element.on('click', (ev) => {
-            const $button = $(ev.target).closest('button');
+        element.on("click", (ev) => {
+            const $button = $(ev.target).closest("button");
             const $form = $button.closest("form");
 
             if (!this.canSubmitRecordForm) {

@@ -24,7 +24,7 @@ use String::CamelCase qw(camelize);
 use Tree::DAG_Node;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/ArrayRef/;
 use namespace::clean;
 
 extends 'GADS::Datum';
@@ -122,6 +122,8 @@ sub _write_unique
     my $schema = $self->schema;
     if (my $table = $self->column->table_unique)
     {
+        # Return and don't write the cache if the value is over 250 characters
+        return if (grep { length($_) > 250 } values %values);
         $schema->storage->svp_begin("sp_uq_calc");
         try {
             $schema->resultset($table)->create({
@@ -135,6 +137,8 @@ sub _write_unique
             $schema->storage->svp_release("sp_uq_calc");
         }
         elsif ($@) {
+            $schema->storage->svp_rollback("sp_uq_calc");
+            $schema->storage->svp_release("sp_uq_calc");
             $@->reportAll;
         }
         else {
@@ -200,7 +204,7 @@ sub write_cache
         {
             foreach my $oldval (@{$old->value})
             {
-                my $sv = $oldval && $self->column->value_field eq 'value_date'
+                my $sv = $oldval && ($self->column->value_field eq 'value_date' || $self->column->value_field eq 'value_datetime')
                     ? $formatter->format_date($oldval)
                     : $oldval;
                 # Ignore values from this record itself as it hasn't been
@@ -246,7 +250,7 @@ sub write_cache
                 my $old_value = $row->$vfield;
                 $row->update({ %blank, %to_write });
                 # Delete unique cache, unless exists in another
-                my $sv = $old_value && $self->column->value_field eq 'value_date'
+                my $sv = $old_value && ($self->column->value_field eq 'value_date' || $self->column->value_field eq 'value_datetime')
                     ? $formatter->format_date($old_value)
                     : $old_value;
                 $self->_delete_unique(%old)
@@ -315,7 +319,9 @@ sub _build_value
         } @{$self->init_value};
         @values = map {
             $column->return_type eq 'date'
-               ?  $self->_parse_date($_)
+               ? $self->parse_date($_)
+               : $column->return_type eq 'datetime'
+               ? $self->parse_datetime($_)
                : $column->return_type eq 'daterange'
                ? $self->parse_daterange($_, source => 'db')
                : $_;

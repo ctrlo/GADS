@@ -27,12 +27,12 @@
   #   }];
 -%]
 <div class="content-block__head row">
-  <div class="content-block__info col-lg-6">
+  <div class="content-block__info[% IF aside_buttons %] col-lg-6[% END; %]">
     <h1 class="content-block__title">
       [% IF back_button AND back_button.url %]
-      <a href="[%- back_button.url -%]" class="btn btn-title-back">
-        <span class="btn__title">[%- title | html -%]</span>
-      </a>
+        <a href="[%- back_button.url -%]" class="btn btn-title-back">
+          <span class="btn__title">[%- title | html -%]</span>
+        </a>
       [% ELSE; title || '' | html ; END; %]
     </h1>
     
@@ -40,13 +40,13 @@
       [% description || '' %]
     </div>
   </div>
-  <div class="content-block__aside col-lg-6">
-  [%
-    IF aside_buttons;
-      INCLUDE snippets/button_list.tt
-        list_class = "list--horizontal list--no-borders list--buttons"
-        buttons    = aside_buttons;
-    END;
-  %]
-  </div>
+  [% IF aside_buttons; %]
+    <div class="content-block__aside col-lg-6">
+      [%
+        INCLUDE snippets/button_list.tt
+          list_class = "list--horizontal list--no-borders list--buttons"
+          buttons    = aside_buttons;
+      %]
+    </div>
+  [% END; %]
 </div>

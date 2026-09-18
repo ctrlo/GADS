@@ -21,7 +21,7 @@ package GADS::Datum;
 use HTML::Entities;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(Bool);
 use namespace::clean;
 
 with 'GADS::Role::Presentation::Datum';

@@ -1,46 +1,46 @@
 [% IF ! hide_group %]
-<div class="form-group">
+<div class="form-group mb-4">
 [% END %]
   <div class="tree [% tree_class %]" id="tree-config" data-no-initial-data="[% no_initial_data ? 'true' : 'false' %]">
     [%
       tree_buttons = [];
-      
+
       IF edit_tree;
         tree_buttons.push({
           type        = "button",
           button_type = "button",
-          class       = "btn btn-small btn-default btn-js-tree-add",
+          class       = "btn btn-sm btn-primary btn-js-tree-add",
           label       = "Add a node"
         }, {
           type        = "button",
           button_type = "button",
-          class       = "btn btn-small btn-inverted btn-js-tree-rename",
+          class       = "btn btn-sm btn-primary btn-js-tree-rename",
           label       = "Rename"
         }, {
           type        = "button",
           button_type = "button",
-          class       = "btn btn-small btn-danger btn-js-tree-delete",
+          class       = "btn btn-sm btn-primary btn-js-tree-delete",
           label       = "Delete"
         });
       END;
-  
+
       tree_buttons.push({
         type        = "button",
         button_type = "button",
-        class       = "btn btn-small btn-link btn-js-tree-expand",
+        class       = "btn btn-sm btn-link btn-js-tree-expand",
         label       = "Expand all"
       }, {
         type        = "button",
         button_type = "button",
-        class       = "btn btn-small btn-link btn-js-tree-collapse",
+        class       = "btn btn-sm btn-link btn-js-tree-collapse",
         label       = "Collapse all"
       });
-  
+
       IF ! edit_tree;
         tree_buttons.push({
           type        = "button",
           button_type = "button",
-          class       = "btn btn-small btn-link btn-js-tree-reload",
+          class       = "btn btn-sm btn-link btn-js-tree-reload",
           label       = "Reload"
         });
       END;
@@ -48,7 +48,7 @@
         list_class = "list--horizontal list--buttons"
         buttons    = tree_buttons;
     %]
-    
+
     <div
       class="tree-widget-container"[% IF id %]
       id="[% id %]"[% END %][% IF tree_field %]
@@ -60,7 +60,7 @@
       data-ids-as-params="[% ids_as_params %]"[% END %]
     >
     </div>
-    
+
     [%
       IF tree_values.defined;
         IF NOT tree_values.size;

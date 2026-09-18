@@ -26,7 +26,7 @@ use MIME::Base64;
 use String::CamelCase qw(camelize);
 
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(Maybe Int Bool HashRef ArrayRef);
 use namespace::clean;
 
 has id => (
@@ -264,6 +264,21 @@ has columns => (
     },
 );
 
+has _columns_hash => (
+    is => 'lazy',
+);
+
+sub _build__columns_hash
+{   my $self = shift;
+    my %cols = map { $_ => 1 } @{$self->columns};
+    \%cols;
+}
+
+sub has_column_id
+{   my ($self, $column_id) = @_;
+    $self->_columns_hash->{$column_id};
+}
+
 # Whether the view has a variable "CURUSER" condition
 has has_curuser => (
     is      => 'lazy',
@@ -338,6 +353,10 @@ sub write
     length $self->name < 128
         or error __"View name must be less than 128 characters";
 
+    # Names consisting of just whitespace characters cause issues when displaying a view
+    $self->name !~ /^\s*$/
+        or error __"View name must not contain only whitespace characters";
+        
     my $global   = !$self->layout->user ? 1 : $self->global;
 
     $self->clear_writable; # Force rebuild based on any updated values

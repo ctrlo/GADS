@@ -1,0 +1,121 @@
+[% PROCESS snippets/message_center.tt %]
+
+[%
+  INCLUDE layouts/page_header.tt title = "Multi-factor Authentication";
+  buttons = [];
+%]
+
+<form role="form" method="post">
+    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+    <div class="row">
+        <div class="col-md-6">
+            [% IF choose_mfa %]
+                <div class="form-group">
+                    <p>
+                        In order to continue, it is required to set up multi-factor authentication.
+                    </p>
+                    <p>
+                        Which type of multi-factor authentication would you like to use?
+                    </p>
+                </div>
+                [% buttons.push({ type = "button", name = "choose_mfa", value = "otp", class = "btn btn-default", label = "One-time passwords (OTP)" }); %]
+                [% buttons.push({ type = "button", name = "choose_mfa", value = "sms", class = "btn btn-default", label = "SMS" }); %]
+                [% buttons.push({ type = "button", name = "choose_mfa", value = "yub", class = "btn btn-default", label = "Yubikey hardware token" }); %]
+            [% ELSIF setup_mfa == "sms" AND user.need_mobile_verification %]
+                <div class="form-group">
+                    <p>
+                        We now need to validate your mobile number. We have sent you a
+                        verification token via SMS. Please enter the token below or if
+                        you did not receive the token, please click the “Not received”
+                        button.
+                    </p>
+                    <label for="token">Enter verification token:</label>
+                    <input class="form-control" type="text" name="token">
+                </div>
+                [% buttons.push({ type  = "button", name  = "sms-not-received", value = "1", class = "btn btn-danger", label = "Not received" }); %]
+            [% ELSIF setup_mfa == "sms" %]
+                <div class="form-group">
+                    <p>
+                        In order to continue, it is required to set up multi-factor
+                        authentication using SMS. A mobile telephone number will be
+                        required to deliver the SMS text messages to.
+                    </p>
+                    <label for="mobile">Mobile telephone number:</label>
+                    <input class="form-control" type="text" name="mobile" placeholder="+4471234123123" value="[% user.mobile | html %]">
+                    <small class="form-text text-muted">
+                        By entering your number, you agree to receive mobile messages
+                        from this site at the phone number provided. Message
+                        frequency varies. Message and data rates may apply. Carriers
+                        are not liable for any delays or undelivered messages, Reply
+                        STOP to opt-out. View our Privacy Policy.
+                    </p>
+                </div>
+            [% ELSIF setup_mfa == "yub" %]
+                <p>
+                    In order to continue please generate an OTP in the field
+                    below using your Yubikey.  This normally happens simply by
+                    touching your Yubikey once the field has the focus.
+                </p>
+
+                <div class="form-group">
+                    <label for="get_key">Enter Yubikey one-time password:</label>
+                    <input class="form-control" type="text" name="get_key">
+                </div>
+            [% ELSIF setup_mfa == "otp" %]
+                <p>
+                    In order to continue you will need to set up an authentication app
+                    that supports TOTP.
+
+                    If you do not have an authentication app available, please search
+                    your relevant device app store or go directly to one of these links:
+                </p>
+
+                <h4>Apple - App Store</h4>
+                <ul>
+                    <li><a href="https://apps.apple.com/gb/app/microsoft-authenticator/id983156458">Microsoft Authenticator</a></li>
+                    <li><a href="https://apps.apple.com/gb/app/google-authenticator/id388497605">Google Authenticator</a></li>
+                </ul>
+
+                <h4>Google - Play Store</h4>
+                <ul>
+                    <li><a href="https://play.google.com/store/apps/details?id=com.azure.authenticator&hl=en&gl=US">Microsoft Authenticator</a></li>
+                    <li><a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en&gl=US">Google Authenticator</a></li>
+                </ul>
+
+                <p>
+                    Use the following QR code or key to set up your authenticator application.
+                </p>
+
+                <label for="key_image">Key as QR code</label>
+                <img id="key_image" class="w-100" src="data:image/png;base64,[% qr | html %]" alt="QR code" />
+                <label for="key_text">Key as text</label>
+                <p id="key_text">[% key | html %]</p>
+                <div class="form-group">
+                    <label for="get_key">Enter authentication token:</label>
+                    <input class="form-control" type="text" name="get_key" placeholder="958384">
+                </div>
+            [% ELSIF get_code %]
+                <div class="form-group">
+                    [% IF mfa_type == "sms" %]
+                        <p>We have sent an SMS text message to your registered mobile number.</p>
+                    [% ELSIF mfa_type == "otp" %]
+                        <p>Please use your One-time Password application to generate an MFA code.</p>
+                    [% END %]
+                    <label for="token">Enter token:</label>
+                    <input class="form-control" type="text" name="token">
+                </div>
+            [% ELSE %]
+                <p>Invalid action</p>
+            [% END %]
+        </div>
+    </div>
+
+    [% UNLESS choose_mfa %]
+        [% buttons.push({ type = "button", name = "submit-login", value = "submit", class = "btn btn-default", label = "Submit" }); %]
+    [% END %]
+    [%
+      INCLUDE navigation/button_bar.tt
+        row_class = "row"
+        columns = [{ buttons = buttons }];
+    %]
+</form>

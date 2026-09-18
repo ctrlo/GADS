@@ -22,7 +22,7 @@ use GADS::Graph;
 use Log::Report 'linkspace';
 use Scalar::Util qw/blessed/;
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/ArrayRef/;
 
 has schema => (
     is       => 'ro',

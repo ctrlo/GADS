@@ -1,219 +1,36 @@
 use utf8;
 package GADS::Schema::Result::User;
 
-=head1 NAME
-
-GADS::Schema::Result::User
-
-=cut
-
 use strict;
 use warnings;
 
+use Auth::Yubikey_WebClient;
+use Authen::OATH;
+use Convert::Base32 qw/encode_base32 decode_base32/;
+use Cpanel::JSON::XS;
 use DateTime;
+use Digest::SHA  qw/hmac_sha256 sha256/;
 use GADS::Audit;
 use GADS::Config;
 use GADS::Email;
 use HTML::Entities qw/encode_entities/;
+use HTTP::Request::Common;
+use Imager::Color;
+use Imager::QRCode;
 use Log::Report;
+use LWP::UserAgent;
+use MIME::Base64 qw/encode_base64url decode_base64 encode_base64/;
 use Moo;
+use Session::Token;
+use URI::Escape qw/uri_escape/;
 
 extends 'DBIx::Class::Core';
 
 sub BUILDARGS { $_[2] || {} }
 
-=head1 COMPONENTS LOADED
-
-=over 4
-
-=item * L<DBIx::Class::InflateColumn::DateTime>
-
-=back
-
-=cut
-
 __PACKAGE__->load_components("InflateColumn::DateTime", "+GADS::DBIC");
 
-=head1 TABLE: C<user>
-
-=cut
-
 __PACKAGE__->table("user");
-
-=head1 ACCESSORS
-
-=head2 id
-
-  data_type: 'bigint'
-  is_auto_increment: 1
-  is_nullable: 0
-
-=head2 site_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 firstname
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 128
-
-=head2 surname
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 128
-
-=head2 email
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 username
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 title
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 organisation
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 department_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 team_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 freetext1
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 freetext2
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 password
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 128
-
-=head2 pwchanged
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-
-=head2 resetpw
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 32
-
-=head2 deleted
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-
-=head2 lastlogin
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-
-=head2 lastfail
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-
-=head2 failcount
-
-  data_type: 'integer'
-  is_nullable: 1
-
-=head2 lastrecord
-
-  data_type: 'bigint'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 lastview
-
-  data_type: 'bigint'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 session_settings
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 value
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 account_request
-
-  data_type: 'smallint'
-  default_value: 0
-  is_nullable: 1
-
-=head2 account_request_notes
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 aup_accepted
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-
-=head2 limit_to_view
-
-  data_type: 'bigint'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 stylesheet
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 created
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-
-=head2 debug_login
-
-  data_type: 'smallint'
-  default_value: 0
-  is_nullable: 1
-
-=cut
 
 __PACKAGE__->add_columns(
   "id",
@@ -298,31 +115,38 @@ __PACKAGE__->add_columns(
     datetime_undef_if_invalid => 1,
     is_nullable => 1,
   },
+  "created_by_id",
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "debug_login",
   { data_type => "smallint", default_value => 0, is_nullable => 1 },
+  # All the following for MFA
+  "mfa_type",
+  { data_type => "char", is_nullable => 1, size => 3 },
+  "mobile",
+  { data_type => "text", is_nullable => 1 },
+  "mobile_verified",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "mfa_secret",
+  { data_type => "text", is_nullable => 1 },
+  "mfa_sms_token",
+  { data_type => "text", is_nullable => 1 },
+  "mfa_sms_created",
+  {data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "mfa_token_previous",
+  { data_type => "text", is_nullable => 1 },
+  "mfa_token_previous_type",
+  { data_type => "char", is_nullable => 1, size => 3 },
+  "mfa_token_previous_used",
+  {data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "mfa_token_previous_key",
+  { data_type => "text", is_nullable => 1 },
+  "mfa_lastfail",
+  {data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "mfa_failcount",
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
 );
 
-=head1 PRIMARY KEY
-
-=over 4
-
-=item * L</id>
-
-=back
-
-=cut
-
 __PACKAGE__->set_primary_key("id");
-
-=head1 RELATIONS
-
-=head2 alerts
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Alert>
-
-=cut
 
 __PACKAGE__->has_many(
   "alerts",
@@ -330,14 +154,6 @@ __PACKAGE__->has_many(
   { "foreign.user_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
-
-=head2 audits
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Audit>
-
-=cut
 
 __PACKAGE__->has_many(
   "audits",
@@ -361,13 +177,17 @@ __PACKAGE__->has_many(
     }
 );
 
-=head2 lastrecord
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::Record>
-
-=cut
+__PACKAGE__->belongs_to(
+  "created_by",
+  "GADS::Schema::Result::User",
+  { id => "created_by_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
 
 __PACKAGE__->belongs_to(
   "lastrecord",
@@ -381,14 +201,6 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 lastview
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::View>
-
-=cut
-
 __PACKAGE__->belongs_to(
   "lastview",
   "GADS::Schema::Result::View",
@@ -400,14 +212,6 @@ __PACKAGE__->belongs_to(
     on_update     => "NO ACTION",
   },
 );
-
-=head2 limit_to_view
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::View>
-
-=cut
 
 __PACKAGE__->belongs_to(
   "limit_to_view",
@@ -421,14 +225,6 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 organisation
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::Organisation>
-
-=cut
-
 __PACKAGE__->belongs_to(
   "organisation",
   "GADS::Schema::Result::Organisation",
@@ -440,14 +236,6 @@ __PACKAGE__->belongs_to(
     on_update     => "NO ACTION",
   },
 );
-
-=head2 department
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::Department>
-
-=cut
 
 __PACKAGE__->belongs_to(
   "department",
@@ -461,14 +249,6 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 team
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::Team>
-
-=cut
-
 __PACKAGE__->belongs_to(
   "team",
   "GADS::Schema::Result::Team",
@@ -480,14 +260,6 @@ __PACKAGE__->belongs_to(
     on_update     => "NO ACTION",
   },
 );
-
-=head2 site
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::Site>
-
-=cut
 
 __PACKAGE__->belongs_to(
   "site",
@@ -501,28 +273,12 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 people
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Person>
-
-=cut
-
 __PACKAGE__->has_many(
   "people",
   "GADS::Schema::Result::Person",
   { "foreign.value" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
-
-=head2 view_limits
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::ViewLimit>
-
-=cut
 
 __PACKAGE__->has_many(
   "view_limits",
@@ -531,28 +287,12 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 record_approvedbies
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Record>
-
-=cut
-
 __PACKAGE__->has_many(
   "record_approvedbies",
   "GADS::Schema::Result::Record",
   { "foreign.approvedby" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
-
-=head2 record_createdbies
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Record>
-
-=cut
 
 __PACKAGE__->has_many(
   "record_createdbies",
@@ -568,28 +308,12 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 imports
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Import>
-
-=cut
-
 __PACKAGE__->has_many(
   "imports",
   "GADS::Schema::Result::Import",
   { "foreign.user_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
-
-=head2 title
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::Title>
-
-=cut
 
 __PACKAGE__->belongs_to(
   "title",
@@ -603,28 +327,12 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 user_graphs
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::UserGraph>
-
-=cut
-
 __PACKAGE__->has_many(
   "user_graphs",
   "GADS::Schema::Result::UserGraph",
   { "foreign.user_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
-
-=head2 user_groups
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::UserGroup>
-
-=cut
 
 __PACKAGE__->has_many(
   "user_groups",
@@ -670,14 +378,6 @@ sub groups_viewable
     return values %groups;
 }
 
-=head2 user_lastrecords
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::UserLastrecord>
-
-=cut
-
 __PACKAGE__->has_many(
   "user_lastrecords",
   "GADS::Schema::Result::UserLastrecord",
@@ -685,28 +385,12 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 user_permissions
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::UserPermission>
-
-=cut
-
 __PACKAGE__->has_many(
   "user_permissions",
   "GADS::Schema::Result::UserPermission",
   { "foreign.user_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
-
-=head2 views
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::View>
-
-=cut
 
 __PACKAGE__->has_many(
   "views",
@@ -966,7 +650,7 @@ sub update_user
           or error __x"The email address \"{email}\" is invalid", email => $params{email};
 
       my $msg = __x"User updated: ID {id}, username: {username}",
-          id => $self->id, username => $params{username};
+          id => $self->id, username => $params{username} ? $params{username} : $params{email};
       $msg .= __x", groups: {groups}", groups => join ', ', @{$params{groups}}
           if $params{groups};
       $msg .= __x", permissions: {permissions}", permissions => join ', ', @{$params{permissions}}
@@ -1014,6 +698,24 @@ sub permissions
     }
 }
 
+sub _map_fields 
+{   my ($self, $text) = @_;
+    my @fields = ('firstname', 'surname', 'email', 'title', 'organisation', 'department', 'team');
+  
+    if ($text) 
+    {
+        foreach my $field (@fields) 
+        {
+            my $value = $self->$field || '';
+            $text =~ s/\{$field\}/$value/g;
+        }
+        my $notes = $self->account_request_notes || '';
+        $text =~ s/\{notes\}/$notes/g;
+    }
+
+    return $text;
+}
+
 sub retire
 {   my ($self, %options) = @_;
 
@@ -1023,14 +725,19 @@ sub retire
     # Properly delete if account request - no record needed
     if ($self->account_request)
     {
+        if ($options{send_reject_email})
+        {
+            my $email_body = $options{email_reject_text} || $site->email_reject_text || "Your account request has been rejected";
+            $email_body = $self->_map_fields($email_body);
+
+            my $email = GADS::Email->instance;
+            $email->send({
+                subject => $site->email_reject_subject || "Account request rejected",
+                emails  => [$self->email],
+                text    => $email_body,
+            });
+        }
         $self->delete;
-        return unless $options{send_reject_email};
-        my $email = GADS::Email->instance;
-        $email->send({
-            subject => $site->email_reject_subject || "Account request rejected",
-            emails  => [$self->email],
-            text    => $site->email_reject_text || "Your account request has been rejected",
-        });
 
         return;
     }
@@ -1100,15 +807,12 @@ sub update_attributes
     {
         $self->update({ surname => $attributes->{$at}->[0] });
     }
-    my $value = _user_value({firstname => $self->firstname, surname => $self->surname});
-    $self->update({ value => $value });
 }
 
-sub _user_value
-{   my $user = shift;
-    return unless $user;
-    my $firstname = $user->{firstname} || '';
-    my $surname   = $user->{surname}   || '';
+sub as_string
+{   my $self = shift;
+    my $firstname = $self->firstname || '';
+    my $surname   = $self->surname   || '';
     my $value     = "$surname, $firstname";
     $value;
 }
@@ -1142,6 +846,11 @@ sub for_data_table
             type   => 'string',
             name   => 'Created',
             values => [$self->created ? $self->created->ymd : 'Unknown'],
+        },
+        'Created by' => {
+            type   => 'string',
+            name   => 'Created By',
+            values => [$self->created_by ? $self->created_by->as_string : 'Unknown'],
         },
         'Last login' => {
             type   => 'string',
@@ -1180,8 +889,6 @@ sub for_data_table
 
 sub validate
 {   my $self = shift;
-    # Update value field
-    $self->value(_user_value({firstname => $self->firstname, surname => $self->surname}));
 
     $self->username
         or error "Username required";
@@ -1196,10 +903,22 @@ sub validate
             my $search = { $f => $self->$f };
             $search->{id} = { '!=' => $self->id }
                 if $self->id;
-            $self->result_source->resultset->active->search($search)->next
-                and error __x"{username} already exists as an active user", username => $self->$f;
+            $self->result_source->schema->resultset('User')->active->search($search)->next
+             and error __x"{username} already exists as an active user", username => $self->$f;
         }
     }
+
+    !$self->mobile || validate_mobile($self->mobile)
+        or error __x"The mobile number {number} is invalid. Please enter as international format (e.g. +1444555666)",
+            number => $self->mobile;
+
+    !$self->mfa_type || $self->mfa_type =~ /^(otp|yub|sms)$/
+        or error __x"Invalid MFA type: {type}", type => $self->mfa_type;
+}
+
+sub before_create_or_update
+{   my $self = shift;
+    $self->value($self->as_string);
 }
 
 sub export_hash
@@ -1221,9 +940,236 @@ sub export_hash
         account_request       => $self->account_request,
         account_request_notes => $self->account_request_notes,
         created               => $self->created && $self->created->datetime,
+        created_by_id         => $self->created_by_id,
         groups                => [map $_->id, $self->groups],
         permissions           => [map $_->permission->name, $self->user_permissions],
     };
+}
+
+has encryption_key => (
+    is      => 'lazy',
+);
+
+sub _build_encryption_key {
+    my $self = shift;
+    
+    my $header_json  = '{"typ":"JWT","alg":"HS256"}';
+    # This is a string because encode_json created the JSON string in an arbitrary order and we need the same key _every time_!
+    my $payload_json = '{"sub":"' . $self->id . '","user":"' . $self->username . '"}';
+    my $header_b64   = encode_base64url($header_json);
+    my $payload_b64  = encode_base64url($payload_json);
+    my $input        = "$header_b64.$payload_b64";
+    my $secret       = sha256($self->password);
+    my $sig          = encode_base64url(hmac_sha256($input, $secret));
+    
+    return encode_base64url(sha256("$input.$sig"));
+}
+
+# All the following for MFA
+
+# Forced site MFA if applicable, otherwise user's chosen MFA. If forced type is
+# "any" then return the user's chosen MFA, which may be undefined at this
+# point.
+sub mfa_type_effective
+{   my $self = shift;
+    my $force = $self->site->force_mfa;
+    return $force if $force && $force ne 'any';
+    return $self->mfa_type;
+}
+
+sub need_mfa
+{   my $self = shift;
+    # mfa_type_effective may return false even if MFA is forced (in the case of
+    # it being "any"
+    !! $self->site->force_mfa || $self->mfa_type_effective;
+}
+
+sub seed_key
+{   my $self = shift;
+    my $len_secret_bytes = 26;
+    open my $RNG, '<', '/dev/urandom'
+        or panic "Cannot open /dev/urandom for reading";
+    sysread $RNG, my $secret_bytes, $len_secret_bytes
+        or panic "Cannot read $len_secret_bytes from /dev/urandom";
+    close $RNG
+        or panic "Cannot close /dev/urandom";
+    encode_base32($secret_bytes);
+}
+
+sub key_qr_base64
+{   my ($self, $key) = @_;
+    my $qrcode = Imager::QRCode->new(
+        size          => 10,
+        margin        => 2,
+        version       => 1,
+        level         => 'M',
+        casesensitive => 1,
+        lightcolor    => Imager::Color->new(255, 255, 255),
+        darkcolor     => Imager::Color->new(0, 0, 0),
+    );
+    my $issuer = "LinkSpace";
+    $issuer .= " – ".$self->site->name
+        if $self->site->name;
+    my $uri = "otpauth://totp/".uri_escape($self->username)."?secret=".uri_escape($key || $self->mfa_secret)."&issuer=$issuer";
+    my $img = $qrcode->plot($uri);
+    my $string;
+    open my $fh, ">", \$string;
+    $img->write(fh => $fh, type => 'png')
+        or panic "Failed to write QR image";
+    encode_base64 $string;
+}
+
+sub get_yubikey
+{   my ($self, $otp) = @_;
+    $otp or return undef;
+    my $yubi_config = GADS::Config->instance->yubi_config;
+    my $id = $yubi_config->{id};
+    my $api = $yubi_config->{key};
+    my $nonce = Session::Token->new(length => 32)->get;
+    my $yubi_id = substr $otp, 0, 12;
+    my $result = Auth::Yubikey_WebClient::yubikey_webclient($otp, $id, $api, $nonce);
+    return $result eq 'OK' ? $yubi_id : undef;
+}
+
+sub check_token
+{   my ($self, $token, $secret) = @_;
+    if ($self->mfa_type_effective eq 'sms')
+    {
+        return 0 if !$self->mfa_sms_token; # Safety check in case both blank
+        return 0 if $self->mfa_sms_created < DateTime->now->subtract(minutes => 15);
+        return $token eq $self->mfa_sms_token;
+    }
+    elsif ($self->mfa_type_effective eq 'yub')
+    {
+        return 0 if !$self->mfa_secret;
+        $self->get_yubikey($token) eq $self->mfa_secret;
+    }
+    elsif ($self->mfa_type_effective eq 'otp')
+    {
+        my $oath = Authen::OATH->new;
+        my $otp = $oath->totp(decode_base32 ($self->mfa_secret || $secret));
+        return $otp eq $token;
+    }
+    else {
+        panic __x"Unknown MFA type {type}", type => $self->mfa_type_effective;
+    }
+}
+
+# Whether the user has recently verified MFA
+sub recent_mfa
+{   my ($self, $key_from_cookie) = @_;
+    return 0 unless $key_from_cookie
+        && $self->mfa_token_previous_used
+        && ("$key_from_cookie" eq $self->mfa_token_previous_key)
+        && $self->mfa_type_effective eq $self->mfa_token_previous_type;
+    return 1 if $self->mfa_token_previous_used > DateTime->now->subtract(days => 7);
+    return 0;
+}
+
+sub send_mfa_sms
+{   my $self = shift;
+
+    my $code = Session::Token->new(alphabet => [0..9], length => 6)->get;
+    $self->update({ mfa_sms_token => $code, mfa_sms_created => DateTime->now });
+    # Force utf-8 in SMS message - needed to route Chinese SMS via correct
+    # route (advised by Twilio)
+    my $message = __x"“{code}” is your LinkSpace access code", code => $code;
+
+    send_sms($self->mobile, $message);
+}
+
+sub need_mfa_setup
+{   my $self = shift;
+    return 1 if !$self->mfa_type_effective; # User not chosen MFA type
+    return 0 if ($self->mfa_type_effective eq 'otp' && $self->mfa_secret)
+        || ($self->mfa_type_effective eq 'yub' && $self->mfa_secret)
+        || ($self->mfa_type_effective eq 'sms' && $self->mobile && $self->mobile_verified);
+    return 1;
+}
+
+sub need_mobile_verification
+{   my $self = shift;
+    # Need to use validate_mobile() here, otherwise this object may be used
+    # when it has an invalid mobile number (following an unsuccessful
+    # submission and validate error)
+    if ($self->mobile && validate_mobile($self->mobile) && !$self->mobile_verified)
+    {
+        $self->send_mfa_sms;
+        return 1;
+    }
+    return 0;
+}
+
+sub verify_mobile
+{   my ($self, $token) = @_;
+    if ($token eq $self->mfa_sms_token)
+    {
+        $self->update({ mobile_verified => 1 });
+        return 1;
+    }
+    else {
+        $self->update({ mobile => undef });
+        return 0;
+    }
+}
+
+sub reset_mfa
+{   my $self = shift;
+    $self->update({
+        mobile                  => undef,
+        mfa_secret              => undef,
+        mfa_sms_token           => undef,
+        mfa_sms_created         => undef,
+        mfa_token_previous      => undef,
+        mfa_token_previous_type => undef,
+        mfa_token_previous_used => undef,
+        mfa_token_previous_key  => undef,
+        mfa_failcount           => 0,
+    });
+}
+
+sub validate_mobile
+{   my $mobile = shift;
+    $mobile =~ /^\+[0-9]{4,}$/;
+}
+
+sub send_sms
+{   my ($to, $body) = @_;
+
+    my $sms_config = GADS::Config->instance->sms_config;
+
+    my $ua = LWP::UserAgent->new;
+    $ua->timeout(10);
+
+    my $json = Cpanel::JSON::XS->new->utf8->encode({
+        from     => $sms_config->{from},
+        to       => $to,
+        body     => "$body",
+        encoding => 'UNICODE',
+    });
+
+    my $request = POST $sms_config->{url}, 'Content-Type' => 'application/json', Content => $json;
+
+    $request->authorization_basic($sms_config->{username}, $sms_config->{password});
+
+    my $response = $ua->request($request);
+
+    my $return = try { decode_json $response->decoded_content };
+
+    $return
+        or panic "Failed to send SMS message - unknown response";
+
+    # Assume that hash return means failed sending (success should return array
+    # for each message status, see below)
+    panic __x"Failed to send SMS message: {title} ({err})",
+        title => $return->{title}, err => $return->{detail}
+            if ref $return eq 'HASH';
+
+    # See https://www.bulksms.com/developer/json/v1/#tag/Message%2Fpaths%2F~1messages%2Fpost
+    # (type should be ACCEPTED on submission and will subsequently change)
+    # Status of the first message
+    $return->[0]->{status}->{type} eq 'ACCEPTED'
+        or panic __"Failed to send SMS message - unknown reason";
 }
 
 1;

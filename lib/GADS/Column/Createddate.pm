@@ -20,7 +20,6 @@ package GADS::Column::Createddate;
 
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Date';
 
@@ -46,7 +45,7 @@ has '+userinput' => (
     default => 0,
 );
 
-sub tjoin {};
+sub tjoin { undef };
 
 sub has_time { 1 };
 

@@ -1,5 +1,5 @@
-<div class="form-group">
-    <label for="tl_label">Show label as field:</label>
+<div class="form-group mb-4">
+    <label class="form-label" for="tl_label">Show label as field:</label>
     <select class="form-control" name="tl_label">
         <option value="" [% IF NOT tl_options.label %]selected[% END %]>&lt;All fields&gt;</option>
         [% FOREACH column IN columns_read %]
@@ -7,8 +7,8 @@
         [% END %]
     </select>
 </div>
-<div class="form-group">
-    <label for="tl_group">Group by field:</label>
+<div class="form-group mb-4">
+    <label class="form-label" for="tl_group">Group by field:</label>
     <select class="form-control" name="tl_group" id="tl_group">
         <option value="" [% IF NOT tl_options.group %]selected[% END %]>&lt;All fields&gt;</option>
         [% FOREACH column IN columns_read %]
@@ -18,14 +18,14 @@
         [% END %]
     </select>
     <div id="tl_all_group_values_div">
-        <label>
+        <label class="form-label">
             <input type="checkbox" id="tl_all_group_values" name="tl_all_group_values" [% IF tl_options.all_group_values %]checked[% END %]>
             Show all group values even if empty
         </label>
     </div>
 </div>
-<div class="form-group">
-    <label for="tl_color">Colour by field:</label>
+<div class="form-group mb-4">
+    <label class="form-label" for="tl_color">Colour by field:</label>
     <select class="form-control" name="tl_color">
         <option value="" [% IF NOT tl_options.color %]selected[% END %]>&lt;All fields&gt;</option>
         [% FOREACH column IN columns_read %]
@@ -33,8 +33,8 @@
         [% END %]
     </select>
 </div>
-<div class="form-group">
-    <label for="tl_color">Overlay items from other table:</label>
+<div class="form-group mb-4">
+    <label class="form-label" for="tl_color">Overlay items from other table:</label>
     <select class="form-control" name="tl_overlay">
         <option value="" [% IF NOT tl_options.overlay %]selected[% END %]></option>
         [% FOREACH overlay_ins IN instances %]

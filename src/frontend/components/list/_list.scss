@@ -14,6 +14,12 @@
   padding-bottom: $padding-small-vertical;
 }
 
+.list--vertical {
+    &:not(:last-child) {
+        margin-bottom: $padding-large-vertical;
+    }
+}
+
 .list--horizontal {
   .list__items {
     display: flex;

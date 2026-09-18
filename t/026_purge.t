@@ -9,8 +9,6 @@ use GADS::Record;
 use lib 't/lib';
 use Test::GADS::DataSheet;
 
-use Test::Simple tests => 384;
-
 my $sheet = Test::GADS::DataSheet->new(
     column_count => {
         string => 2,
@@ -101,7 +99,6 @@ foreach my $col (@cols)
 
     $record->find_current_id(1);
 
-    
     if($col->{new}) {
         $record->fields->{ $test_col->id }->set_value($col->{new});
         $record->write(no_alerts => 1);
@@ -158,5 +155,17 @@ foreach my $col (@cols)
         ok(!$datum->is_purged, "String2 is purged is not set");
     }
 }
+
+# Test purge of whole record version
+$record->find_current_id(1);
+is($record->versions, 8, "Correct number of versions of record");
+my $crs = $schema->resultset('Current')->find($record->current_id);
+is($crs->records->get_column('id')->max, 8, "Correct current version number");
+is($crs->current_version_id, 8, "Correct version number in parent");
+$record->purge;
+$crs->discard_changes;
+is($record->versions, 7, "Correct number of versions of record");
+is($crs->records->get_column('id')->max, 7, "Correct version number after rollback");
+is($crs->current_version_id, 7, "Correct version number in parent");
 
 done_testing();

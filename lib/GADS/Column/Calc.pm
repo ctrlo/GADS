@@ -21,7 +21,7 @@ package GADS::Column::Calc;
 use Log::Report 'linkspace';
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Int Maybe/;
 use Scalar::Util qw(looks_like_number);
 
 extends 'GADS::Column::Code';
@@ -33,7 +33,11 @@ has '+type' => (
 );
 
 has '+option_names' => (
-    default => sub { [qw/show_in_edit/] },
+    default => sub {[{
+            name              => 'show_in_edit',
+            user_configurable => 1,
+        }]
+    },
 );
 
 has show_in_edit => (
@@ -64,7 +68,7 @@ sub to_field { 'value_date_to' }
 
 sub has_time
 {   my $self = shift;
-    $self->return_type eq 'daterange';
+    $self->return_type eq 'daterange' || $self->return_type eq 'datetime';
 }
 
 sub _build_has_filter_typeahead
@@ -93,6 +97,8 @@ after build_values => sub {
 # Convert return format to database column field
 sub _format_to_field
 {   my $return_type = shift;
+    $return_type eq 'datetime' ?
+    'value_datetime' :
     $return_type eq 'date'
     ? 'value_date'
     : $return_type eq 'daterange'
@@ -120,6 +126,7 @@ has '+blank_row' => (
     builder => sub {
         {
             value_date      => undef,
+            value_datetime  => undef,
             value_int       => undef,
             value_numeric   => undef,
             value_text      => undef,
@@ -138,7 +145,7 @@ sub table_unique { "CalcUnique" }
 has '+return_type' => (
     isa => sub {
         return unless $_[0];
-        $_[0] =~ /(string|date|integer|numeric|globe|error|daterange)/
+        $_[0] =~ /^(string|date|datetime|integer|numeric|globe|error|daterange)$/
             or error __x"Bad return type {type}", type => $_[0];
     },
     lazy    => 1,
@@ -216,7 +223,7 @@ sub validate_search
 
 sub validate
 {   my ($self, $value) = @_;
-    if ($self->return_type eq 'date')
+    if ($self->return_type eq 'date' || $self->return_type eq 'datetime')
     {
         return $self->parse_date($value);
     }

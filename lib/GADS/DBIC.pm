@@ -28,10 +28,12 @@ sub insert
 {   my $self = shift;
     $self->_validate(@_);
     $self->_before_create(@_);
+    $self->_before_create_or_update(@_);
     my $guard = $self->result_source->schema->txn_scope_guard;
     my $return = $self->next::method(@_);
     $self->after_create
         if $self->can('after_create');
+    $self->_after_create_or_update(@_);
     $guard->commit;
     $return;
 }
@@ -46,7 +48,9 @@ sub delete
 sub update 
 {   my $self = shift;
     $self->_validate(@_);
+    $self->_before_create_or_update(@_);
     $self->next::method(@_);
+    $self->_after_create_or_update(@_);
 }
 
 sub _validate
@@ -68,5 +72,16 @@ sub _before_create
         if $self->can('before_create');
 };
 
+sub _after_create_or_update
+{   my $self = shift;
+    $self->after_create_or_update
+        if $self->can('after_create_or_update');
+};
+
+sub _before_create_or_update
+{   my $self = shift;
+    $self->before_create_or_update
+        if $self->can('before_create_or_update');
+};
 
 1;
