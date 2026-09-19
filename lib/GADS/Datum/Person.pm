@@ -185,10 +185,15 @@ has value_hash => (
     },
 );
 
-# Whether to allow deleted users to be set
-has allow_deleted => (
-    is => 'rw',
+has deleted_values => (
+    is      => 'lazy',
+    clearer => 1,
 );
+
+sub _build_deleted_values
+{   my $self = shift;
+    [grep $_->{deleted}, @{$self->value_hash}];
+}
 
 sub search_values_unique
 {   shift->text_all;
