@@ -84,7 +84,7 @@ jobs:
                              libdata-compare-perl libtext-csv-encoded-perl libhtml-fromtext-perl \
                              libhtml-scrubber-perl libdbd-pg-perl postgresql postgresql-contrib \
                              libdatetime-format-pg-perl libset-infinite-perl libtie-cache-perl \
-                             libmath-round-perl liblua5.2-dev \
+                             libmath-round-perl liblua5.3-dev \
                              libfile-slurp-perl libfile-mimeinfo-perl liblist-compare-perl \
                              libnet-oauth2-authorizationserver-perl libfontconfig1 libpdf-builder-perl \
                              fonts-liberation libfile-bom-perl libdatetime-format-iso8601-perl \
@@ -169,7 +169,7 @@ jobs:
                              libdata-compare-perl libtext-csv-encoded-perl libhtml-fromtext-perl \
                              libhtml-scrubber-perl libdbd-pg-perl postgresql postgresql-contrib \
                              libdatetime-format-pg-perl libset-infinite-perl libtie-cache-perl \
-                             libmath-round-perl liblua5.2-dev \
+                             libmath-round-perl liblua5.3-dev \
                              libfile-slurp-perl libfile-mimeinfo-perl liblist-compare-perl \
                              libnet-oauth2-authorizationserver-perl libfontconfig1 libpdf-builder-perl \
                              fonts-liberation libfile-bom-perl libdatetime-format-iso8601-perl \
