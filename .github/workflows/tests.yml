@@ -76,7 +76,7 @@ jobs:
                              libdbd-mysql-perl libdbix-class-helpers-perl libdbix-class-perl libfcgi-perl \
                              libfile-copy-recursive-perl libimager-qrcode-perl libimager-perl \
                              libio-all-perl liblog-report-lexicon-perl liblog-report-perl \
-                             liblog-report-template-perl libmail-box-perl libmail-transport-perl \
+                             libmail-box-perl libmail-transport-perl \
                              libmath-random-isaac-xs-perl libmoox-singleton-perl libpod-parser-perl \
                              libregexp-common-perl libstring-camelcase-perl libtemplate-perl \
                              libtext-autoformat-perl libtext-csv-perl libyaml-libyaml-perl \
@@ -84,11 +84,11 @@ jobs:
                              libdata-compare-perl libtext-csv-encoded-perl libhtml-fromtext-perl \
                              libhtml-scrubber-perl libdbd-pg-perl postgresql postgresql-contrib \
                              libdatetime-format-pg-perl libset-infinite-perl libtie-cache-perl \
-                             libmath-round-perl libdatetime-format-datemanip-perl liblua5.2-dev \
+                             libmath-round-perl liblua5.2-dev \
                              libfile-slurp-perl libfile-mimeinfo-perl liblist-compare-perl \
                              libnet-oauth2-authorizationserver-perl libfontconfig1 libpdf-builder-perl \
                              fonts-liberation libfile-bom-perl libdatetime-format-iso8601-perl \
-                             liblog-log4perl-perl chromium libfile-libmagic-perl liburl-encode-perl \
+                             liblog-log4perl-perl chromium-bsu libfile-libmagic-perl liburl-encode-perl \
                              libtext-markdown-perl libauth-yubikey-webclient-perl \
                              libauth-yubikey-webclient-perl libauthen-oath-perl libconvert-base32-perl \
                              libimager-qrcode-perl libimager-perl cpanminus libtest-mocktime-perl \
@@ -161,7 +161,7 @@ jobs:
                              libdbd-mysql-perl libdbix-class-helpers-perl libdbix-class-perl libfcgi-perl \
                              libfile-copy-recursive-perl libimager-qrcode-perl libimager-perl \
                              libio-all-perl liblog-report-lexicon-perl liblog-report-perl \
-                             liblog-report-template-perl libmail-box-perl libmail-transport-perl \
+                             libmail-box-perl libmail-transport-perl \
                              libmath-random-isaac-xs-perl libmoox-singleton-perl libpod-parser-perl \
                              libregexp-common-perl libstring-camelcase-perl libtemplate-perl \
                              libtext-autoformat-perl libtext-csv-perl libyaml-libyaml-perl \
@@ -169,11 +169,11 @@ jobs:
                              libdata-compare-perl libtext-csv-encoded-perl libhtml-fromtext-perl \
                              libhtml-scrubber-perl libdbd-pg-perl postgresql postgresql-contrib \
                              libdatetime-format-pg-perl libset-infinite-perl libtie-cache-perl \
-                             libmath-round-perl libdatetime-format-datemanip-perl liblua5.2-dev \
+                             libmath-round-perl liblua5.2-dev \
                              libfile-slurp-perl libfile-mimeinfo-perl liblist-compare-perl \
                              libnet-oauth2-authorizationserver-perl libfontconfig1 libpdf-builder-perl \
                              fonts-liberation libfile-bom-perl libdatetime-format-iso8601-perl \
-                             liblog-log4perl-perl chromium libfile-libmagic-perl liburl-encode-perl \
+                             liblog-log4perl-perl chromium-bsu libfile-libmagic-perl liburl-encode-perl \
                              libtext-markdown-perl libauth-yubikey-webclient-perl \
                              libauth-yubikey-webclient-perl libauthen-oath-perl libconvert-base32-perl \
                              libimager-qrcode-perl libimager-perl cpanminus libtest-mocktime-perl \
