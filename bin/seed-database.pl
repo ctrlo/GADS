@@ -93,8 +93,8 @@ my $user = rset('User')->create({
     created  => DateTime->now,
 });
 # Set the created by for the first user to be the user itself, to be clear who
-# it was
-$user->update({ created_by => $user->id });
+# it was - this is a foreign key so has to be set like this
+$user->update({ created_by => $user });
 
 say "Adding all permissions to initial username...";
 foreach my $perm (rset('Permission')->all)
