@@ -185,7 +185,7 @@ jobs:
           perl ./bin/output_cpanfile > ./cpanfile
           cpanm --installdeps . --cpanfile ./cpanfile --notest
       - name: 'check Dancer2 plugin'
-        run: perl -MDancer2::Plugin::DBIC -e 'print $Dancer2::Plugin::DBIC::VERSION' || cpanm Dancer2::Plugin::DBIC --notest
+        run: cpan Dancer2::Plugin::DBIC # not installing correctly - think I'm going mad!
       - name: 'Set up credentials for psql'
         # See https://wiki.postgresql.org/wiki/Pgpass
         run: |
