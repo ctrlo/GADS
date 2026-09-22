@@ -208,6 +208,8 @@ jobs:
         run: |
           ./bin/setup_database
           perl bin/app.pl &
+      - name: 'check Dancer2 plugin'
+        run: perl -MDancer2::Plugin::DBIC -e 'print $Dancer2::Plugin::DBIC::VERSION' || cpanm Dancer2::Plugin::DBIC --notest
       - name: 'Run the Cypress tests'
         run: yarn cypress run --browser ${{ matrix.browser.name }}
 
