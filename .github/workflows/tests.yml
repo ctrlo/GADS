@@ -184,8 +184,6 @@ jobs:
         run: |
           perl ./bin/output_cpanfile > ./cpanfile
           cpanm --installdeps . --cpanfile ./cpanfile --notest
-      - name: 'check Dancer2 plugin'
-        run: perl -e "print join(', ', @INC);"
       - name: 'Set up credentials for psql'
         # See https://wiki.postgresql.org/wiki/Pgpass
         run: |
