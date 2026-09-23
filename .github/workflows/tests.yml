@@ -69,7 +69,8 @@ jobs:
         uses: 'actions/checkout@v4'
       - name: 'Install dependencies'
         run: |
-          sudo apt-get install -y libapache2-mod-perl2 libauth-yubikey-webclient-perl libauthen-oath-perl \
+          sudo apt-get update -q
+          sudo apt-get install -qy libapache2-mod-perl2 libauth-yubikey-webclient-perl libauthen-oath-perl \
                              libconfig-inifiles-perl libconvert-base32-perl libcpanel-json-xs-perl \
                              libcrypt-saltedhash-perl libcrypt-urandom-perl libdancer2-perl \
                              libdata-dump-streamer-perl libdata-visitor-perl libdatetime-format-mysql-perl \
@@ -154,7 +155,8 @@ jobs:
         uses: 'actions/checkout@v4'
       - name: 'Install dependencies'
         run: |
-          sudo apt-get install -y libapache2-mod-perl2 libauth-yubikey-webclient-perl libauthen-oath-perl \
+          sudo apt-get update -q
+          sudo apt-get install -qy libapache2-mod-perl2 libauth-yubikey-webclient-perl libauthen-oath-perl \
                              libconfig-inifiles-perl libconvert-base32-perl libcpanel-json-xs-perl \
                              libcrypt-saltedhash-perl libcrypt-urandom-perl libdancer2-perl \
                              libdata-dump-streamer-perl libdata-visitor-perl libdatetime-format-mysql-perl \
