@@ -1,6 +1,6 @@
 import { goodPassword, goodUser } from "../../support/constants";
 
-describe('Another Test Suite', () => {
+describe('Table Wizard Functionality', () => {
     beforeEach(() => {
         cy.loginAndGoTo(goodUser, goodPassword, 'http://localhost:3000/table');
         cy.location("pathname").should("include", "/table");
