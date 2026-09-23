@@ -48,7 +48,7 @@ jobs:
             os: 'ubuntu-22.04'
           - name: 'Firefox'
             command: 'MOZ_HEADLESS=1 geckodriver --log warn &'
-            os: 'ubuntu-22.04'
+            os: 'ubuntu-26.04'
 
     services:
       postgres:
@@ -132,7 +132,7 @@ jobs:
       matrix:
         browser:
           - name: 'chrome'
-            os: 'ubuntu-22.04'
+            os: 'ubuntu-26.04'
             node_version: 24.x
 
     services:
@@ -191,7 +191,7 @@ jobs:
           chmod 600 ~/.pgpass
       - name: 'Install YARN dependencies'
         run: |
-          sudo apt-get install -y libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+          sudo apt-get install -y libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2t64 libxtst6 xauth xvfb
           yarn
           yarn build --no-watch
       - name: 'create uploads directory'
