@@ -294,5 +294,28 @@ sub date_for_code
     };
 }
 
+has schema => (
+    is      => 'lazy',
+    builder => sub { shift->record->schema },
+);
+
+sub _rs
+{   my $self = shift;
+    return if $self->column->internal;
+    $self->schema->resultset($self->column->table)->search({
+        record_id => $self->record_id,
+        layout_id => $self->column->id,
+    },{
+        result_class => 'DBIx::Class::ResultClass::HashRefInflator',
+    });
+}
+
+sub is_purged
+{   my $self = shift;
+    my $rs = $self->_rs or return 0;
+    my @all = $rs->all or return 0;
+    !!(grep { defined $_->{purged_by} && $_->{purged_by} } @all);
+}
+
 1;
 
