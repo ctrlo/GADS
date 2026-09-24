@@ -13,6 +13,7 @@ GADS provides a much more user-friendly interface and makes the data easier to m
 - Basic graph functionality[^1]
 - Red/Amber/Green calculated status indicators for values
 - Complex calculated values
+- This is a change for fun
 
 ## What is this document?
 
