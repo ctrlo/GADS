@@ -76,7 +76,7 @@ jobs:
           chmod 600 ~/.pgpass
       - name: 'Install YARN dependencies'
         run: |
-          sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+          apt-get install -yq libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
           yarn
           yarn build --no-watch
       - name: 'create uploads directory'
