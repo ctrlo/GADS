@@ -46,7 +46,7 @@ jobs:
         browser:
           - name: 'chrome'
             os: 'ubuntu-22.04'
-            node_version: 24.x
+            node_version: '24.21.0'
 
     services:
       postgres:
