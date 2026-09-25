@@ -77,14 +77,6 @@ jobs:
       - name: 'Install YARN dependencies'
         run: |
           apt-get install -yq libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh | bash
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          nvm install ${{ matrix.browser.node_version }}
-          nvm use ${{ matrix.browser.node_version }}
-          npm i -g yarn && npm i -g --allow-scripts=yarn
-          yarn --frozen-lockfile
-          yarn build --no-watch
       - name: 'create uploads directory'
         run: |
           mkdir -p /tmp/uploads
@@ -100,14 +92,23 @@ jobs:
           ./bin/setup_database
           perl bin/app.pl &
       - name: 'Run the Cypress tests'
-        run: yarn cypress run --browser ${{ matrix.browser.name }}
+        run: |
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          nvm install ${{ matrix.browser.node_version }}
+          nvm use ${{ matrix.browser.node_version }}
+          npm i -g yarn && npm i -g --allow-scripts=yarn
+          yarn --frozen-lockfile
+          yarn build --no-watch
+          yarn cypress run --browser ${{ matrix.browser.name }}
 
   js_tests:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [22.x, 24.x]
+        node-version: [24.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
