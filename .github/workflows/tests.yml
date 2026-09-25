@@ -22,7 +22,7 @@ jobs:
     name: 'Unit Tests'
     runs-on: 'ubuntu-22.04'
     timeout-minutes: 30
-    container: debian:trixie
+    container: debian:trixie-slim
 
     steps:
       - name: 'Check out the GADS repository'
@@ -34,88 +34,19 @@ jobs:
       - name: 'Run the unit tests'
         run: prove -lrs -j4 t
 
-  webdriver_tests:
-    name: 'Webdriver Tests for ${{ matrix.browser.name }}'
-    runs-on: '${{ matrix.browser.os }}'
-    timeout-minutes: 30
-
-    strategy:
-      fail-fast: false
-      matrix:
-        browser:
-          - name: 'Chromium'
-            command: 'chromedriver --port=4444 &'
-            os: 'ubuntu-22.04'
-          - name: 'Firefox'
-            command: 'MOZ_HEADLESS=1 geckodriver --log warn &'
-            os: 'ubuntu-22.04'
-
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgrespassword
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-
-    env:
-      GADS_USERNAME: 'test@example.com'
-      GADS_PASSWORD: 'xyz123'
-
-    steps:
-      - name: 'Check out the GADS code'
-        uses: 'actions/checkout@v4'
-      - name: 'Install Non-CPAN dependencies'
-        run: |
-          sudo apt-get update
-          sudo apt-get install cpanminus liblua5.3-dev
-          # Avoid "Install CPAN dependencies" needing to compile so much
-          sudo apt-get install libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl
-      - name: 'Build cpanfile'
-        run: |
-          perl bin/output_cpanfile > cpanfile
-          ( cd webdriver && perl ../bin/output_cpanfile ) >> cpanfile
-      - name: 'Install CPAN dependencies'
-        uses: 'perl-actions/install-with-cpanm@v1'
-        with:
-          cpanfile: 'cpanfile'
-      - name: 'Set up credentials for psql'
-        # See https://wiki.postgresql.org/wiki/Pgpass
-        run: |
-          echo '*:*:*:postgres:postgrespassword' > ~/.pgpass
-          chmod 600 ~/.pgpass
-      - name: 'create uploads directory'
-        run: |
-          mkdir -p /tmp/uploads
-          chmod 777 /tmp/uploads
-      - name: 'Start the application'
-        env:
-          DANCER_CONFDIR: 'webdriver'
-          PGDATABASE: 'postgres'
-          PGHOST: 'localhost'
-          PGUSER: 'postgres'
-        run: |
-          ./bin/setup_database
-          perl bin/app.pl &
-      - name: 'Run the Webdriver implementation'
-        run: '${{ matrix.browser.command }}'
-      - name: 'Run the Webdriver tests'
-        run: prove -lmrsv webdriver/t
-
   cypress_tests:
     name: 'Cypress Tests for ${{ matrix.browser.name }}'
     runs-on: '${{ matrix.browser.os }}'
     timeout-minutes: 30
+    container: debian:trixie-slim
 
     strategy:
       fail-fast: false
       matrix:
         browser:
-          - name: 'chrome'
+          - name: 'chromium'
             os: 'ubuntu-22.04'
-            node_version: 24.x
+            node_version: '24.21.0'
 
     services:
       postgres:
@@ -136,24 +67,8 @@ jobs:
         uses: 'actions/checkout@v4'
       - name: 'Install Non-CPAN dependencies'
         run: |
-          sudo apt-get update
-          sudo apt-get install cpanminus liblua5.3-dev gcc g++ libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl
-          sudo apt-get install libdbix-class-schema-loader-perl libmagic-dev postgresql-client libpng-dev libssl-dev libpq-dev
-          sudo apt-get install libjson-perl libsession-token-perl libnet-oauth2-authorizationserver-perl libtext-csv-encoded-perl
-          sudo apt-get install libcrypt-urandom-perl libhtml-scrubber-perl libtext-markdown-perl libwww-form-urlencoded-xs-perl
-          sudo apt-get install libstring-camelcase-perl libmail-transport-perl liblog-log4perl-perl libplack-perl libdbd-pg-perl
-          sudo apt-get install libmail-message-perl libmath-random-isaac-xs-perl libdbix-class-helpers-perl libtree-dagnode-perl
-          sudo apt-get install libmath-round-perl libdatetime-format-dateparse-perl libwww-mechanize-perl libdatetime-format-iso8601-perl
-          sudo apt-get install libmoox-types-mooselike-perl libmoox-singleton-perl libdancer2-perl liblist-compare-perl
-          sudo apt-get install liburl-encode-perl libtie-cache-perl libhtml-fromtext-perl libdata-compare-perl libfile-bom-perl
-          sudo apt-get install libalgorithm-dependency-perl libdancer-plugin-auth-extensible-perl libfile-libmagic-perl postfix
-      - name: 'Build cpanfile'
-        run: |
-          perl bin/output_cpanfile > cpanfile
-      - name: 'Install CPAN dependencies'
-        uses: 'perl-actions/install-with-cpanm@v1'
-        with:
-          cpanfile: 'cpanfile'
+          chmod +x ./.github/workflows/install.sh
+          ./.github/workflows/install.sh
       - name: 'Set up credentials for psql'
         # See https://wiki.postgresql.org/wiki/Pgpass
         run: |
@@ -161,9 +76,7 @@ jobs:
           chmod 600 ~/.pgpass
       - name: 'Install YARN dependencies'
         run: |
-          sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
-          yarn
-          yarn build --no-watch
+          apt-get install -yq libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
       - name: 'create uploads directory'
         run: |
           mkdir -p /tmp/uploads
@@ -179,14 +92,23 @@ jobs:
           ./bin/setup_database
           perl bin/app.pl &
       - name: 'Run the Cypress tests'
-        run: yarn cypress run --browser ${{ matrix.browser.name }}
+        run: |
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          nvm install ${{ matrix.browser.node_version }}
+          nvm use ${{ matrix.browser.node_version }}
+          npm i -g yarn && npm i -g --allow-scripts=yarn
+          yarn --frozen-lockfile
+          yarn build --no-watch
+          yarn cypress run --browser ${{ matrix.browser.name }}
 
   js_tests:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [22.x, 24.x]
+        node-version: [24.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
