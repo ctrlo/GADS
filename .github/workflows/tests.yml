@@ -44,7 +44,7 @@ jobs:
       fail-fast: false
       matrix:
         browser:
-          - name: 'chrome'
+          - name: 'chromium'
             os: 'ubuntu-22.04'
             node_version: '24.21.0'
 
