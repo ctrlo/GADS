@@ -24,7 +24,6 @@ use DateTime::Format::Strptime qw( );
 use DBIx::Class::ResultClass::HashRefInflator;
 use GADS::AlertSend;
 use GADS::Config;
-use GADS::Chronology;
 use GADS::Datum::Autocur;
 use GADS::Datum::Calc;
 use GADS::Datum::Count;
@@ -725,7 +724,14 @@ sub find_chronology_id
         or error __x"Record ID {id} not found", id => $current_id;
     my $instance_id = $current->instance_id;
     $self->_set_instance_id($current->instance_id);
-    $self->_find(current_id => $current_id, chronology => 1, chronology_page => $options{page} // 1);
+    my %args = (
+        current_id => $current_id,
+        chronology => 1,
+        chronology_page => $options{page} // 1,
+    );
+    $args{last_record_id} = $options{last_record_id}
+        if defined $options{last_record_id};
+    $self->_find(%args);
 }
 
 sub find_draftuser_id
@@ -852,6 +858,7 @@ sub _find
         if $find{deleted} && !$self->layout->user_can("purge") && !$GADS::Schema::IGNORE_PERMISSIONS;
 
     my $last_page;
+    my $last_record_id = $find{last_record_id};
 
     my %params = (
         user                    => $self->user,
@@ -908,6 +915,7 @@ sub _find
                 }
             );
             my @ids = map { $_->{id} } $record_search->all;
+            unshift @ids, $last_record_id if defined $last_record_id;
             $last_page = $record_search->pager->last_page == $find{chronology_page} ? 1: 0;
             push @$search, { 'record_single.id' => { -in => \@ids } };
         }
@@ -1100,7 +1108,6 @@ sub _find
         my @chronology; my $last_record;
         # First entry - this is the record as it currently stands
         if ($find{chronology_page} == 1) {
-            $self->clear_get_last_chronology_record;
             my $record = $record_objects[0];
             my @changed;
 
@@ -1132,7 +1139,7 @@ sub _find
                 changed  => \@changed,
               };
         } else {
-            unshift @record_objects, $self->get_last_chronology_record if $self->get_last_chronology_record;
+            unshift @record_objects, $self->last_chronology_record if $self->last_chronology_record;
         }
         # Show all changes from the original - ignore the last one as this will become the $last_record for comparison
         foreach my $i (0 .. $#record_objects-1)
@@ -1247,28 +1254,9 @@ sub _find
     $self; # Allow chaining
 }
 
-has get_last_chronology_record => (
-    is => 'lazy',
-    clearer => 1,
-    builder => sub {
-        my $self = shift;
-        my $chronology = GADS::Chronology->instance;
-        return $chronology->last_record;
-    }
+has last_chronology_record => (
+    is => 'rwp',
 );
-
-sub _clear_last_chronology_record {
-    my $self = shift;
-    my $chronology = GADS::Chronology->instance;
-    $chronology->clear;
-    $self->_clear_get_last_chronology_record;
-}
-
-sub _set_last_chronology_record {
-    my ($self, $record) = @_;
-    my $chronology = GADS::Chronology->instance;
-    $chronology->last_record($record);
-}
 
 has last_chronology_page => (
     is => 'rwp',

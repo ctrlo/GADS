@@ -10,6 +10,6 @@
       <div class="spinner-border text-primary" role="status"></div>
       <div class="h1 font-weight-bolder ml-2 mb-0 text-secondary">Loading...</div>
     </div>
-    <button class="btn btn-default btn-js-load-chronology" data-record-id="[% record.current_id %]">Load more</button>
+    <button class="btn btn-primary btn-js-load-chronology" data-record-id="[% record.current_id %]">Load more</button>
   </div>
 </div>

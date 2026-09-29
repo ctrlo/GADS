@@ -10,8 +10,10 @@
     final_page      = loop.last ? last_page : 0;
     action_type     = initial ? 'Current Version' : final_page ? 'created' : 'updated';
     action_by       = version.editor.id ? " by " _ version.editor.as_string : '';
+    next_record_id  = loop.last ? last_record_id : undef;
 %]
-<div class="card card--header">
+<div class="card card-secondary"[% IF next_record_id %] data-last-id="[% next_record_id %]"[% END %][% IF last_page %] data-last-page="true"[% END %]>
+    <div class="card-header">
     <h3 class="card__header">
     [% IF initial %]
         <span>Current Version</span>
@@ -19,8 +21,9 @@
         <span> [%  action_datetime _ " - " _ " record " _ action_type _ action_by | html %]</span>
     [% END %]
     </h3>
+    </div>
 
-    <div class="card__body row">
+    <div class="card-body">
     <div class="card__content">
         <div class="list list--vertical list--key-value list--no-borders">
         <ul class="list__items">

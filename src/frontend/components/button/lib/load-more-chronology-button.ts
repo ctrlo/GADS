@@ -1,15 +1,22 @@
 import { initializeRegisteredComponents } from "component";
 import ErrorHandler from "util/errorHandler";
 
+/**
+ * Button to load more chronology items
+ */
 export class LoadMoreChronologyButton {
     private page: number = 1;
     private $target: JQuery<HTMLElement>;
     private $spinner: JQuery<HTMLElement>;
     private errorHandler: ErrorHandler;
 
+    /**
+     * Create a new LoadMoreChronologyButton instance
+     * @param $el The element to use as the button
+     */
     constructor(private $el: JQuery<HTMLElement>) {
         // Where to put the chronology entries
-        this.$target = $('.chronology');
+        this.$target = $(".chronology");
         // Loading spinner
         this.$spinner = $(".chronology_spinner");
         // Error handler - attached to the chronology container
@@ -18,7 +25,10 @@ export class LoadMoreChronologyButton {
         this.init();
     }
 
-    init() {
+    /**
+     * Initialize the button and set up event handlers
+     */
+    private init() {
         // Set up the click event handler for the button
         this.$el.on("click", async () => {
             // When the button is clicked, fetch the next page of chronology data
@@ -28,15 +38,20 @@ export class LoadMoreChronologyButton {
         this.fetchChronology();
     }
 
-    async fetchChronology() {
+    /**
+     * Fetch the next page of chronology data and append it to the chronology list.
+     * @returns {Promise<void>} A promise that resolves when the chronology data has been fetched and appended.
+     */
+    private async fetchChronology(): Promise<void> {
         // Disable the button
         this.$el.prop("disabled", true);
         // Get the record ID from the button's data attribute
         const recordId = this.$el.data("record-id");
         // Get the current page number
         const page = this.page;
+        const lastRecordId = $("[data-last-id]").last().data("last-id");
         // Download the chronology data for the next page
-        const url = `/api/chronology/${recordId}?page=${page}`;
+        const url = `/api/chronology/${recordId}?page=${page}&last_record_id=${lastRecordId}`;
         try {
             // Show the spinner while loading
             this.$spinner.show();
@@ -65,7 +80,9 @@ export class LoadMoreChronologyButton {
             // Hide the spinner
             this.$spinner.hide();
             // Re-enable the button
-            this.$el.prop("disabled", false);
+            if(!$("[data-last-page]").length) {
+                this.$el.prop("disabled", false);
+            }
         }
     }
 }
