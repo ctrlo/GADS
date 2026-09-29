@@ -724,7 +724,14 @@ sub find_chronology_id
         or error __x"Record ID {id} not found", id => $current_id;
     my $instance_id = $current->instance_id;
     $self->_set_instance_id($current->instance_id);
-    $self->_find(current_id => $current_id, chronology => 1);
+    my %args = (
+        current_id => $current_id,
+        chronology => 1,
+        chronology_page => $options{page} // 1,
+    );
+    $args{last_record_id} = $options{last_record_id}
+        if defined $options{last_record_id};
+    $self->_find(%args);
 }
 
 sub find_draftuser_id
@@ -820,6 +827,24 @@ sub clear
     $self->clear_id_count;
 }
 
+sub _get_record_for_chronology {
+    my ( $self, $record, $records, %find ) = @_;
+    return unless $find{chronology};
+
+    my @changed;
+
+    $records->rewind($record->edited_time->values->[0], %find);
+
+    $records->fetch_multivalues(
+        record_ids   => [$record->record_id],
+        retrieved    => [$record->{$record->record_id}],
+        records      => [$record],
+        is_draft     => $find{draftuser_id},
+        already_seen => $records->already_seen,
+        chronology   => 1,
+    );
+}
+
 # XXX This whole section is getting messy and duplicating a lot of code from
 # GADS::Records. Ideally this needs to share the same code.
 sub _find
@@ -831,6 +856,9 @@ sub _find
     # If deleted, make sure user has access to purged records
     error __"You do not have access to this deleted record"
         if $find{deleted} && !$self->layout->user_can("purge") && !$GADS::Schema::IGNORE_PERMISSIONS;
+
+    my $last_page;
+    my $last_record_id = $find{last_record_id};
 
     my %params = (
         user                    => $self->user,
@@ -870,10 +898,28 @@ sub _find
         );
         # No linked here so that we get the ones needed in accordance with this loop (could be either)
         my @prefetches = $records->jpfetch(search => 1, %common); # Still need search in case of view limit
-        last if !@prefetches && !$first_run;
+        last unless @prefetches || $first_run; # Inverted - didn't like how the condition was (slightly) confusing.
         my %options = $find{current_id} || $find{draftuser_id} ? () : (root_table => 'record', no_current => 1);
         my $search = $records->search_query(linked => 1, chronology => $find{chronology}, rewind => $records->rewind_values, %common, %options);
-         # Still need search in case of view limit
+        if ($find{chronology}) {
+            my $record_search = $self->schema->resultset('Current')->find(
+                $find{current_id},
+            )->records->search(
+                {},
+                {
+                    select       => [ 'id' ],
+                    rows         => 10,
+                    page         => $find{chronology_page} // 1,
+                    result_class => 'DBIx::Class::ResultClass::HashRefInflator',
+                    order_by     => { '-desc' => 'created' },
+                }
+            );
+            my @ids = map { $_->{id} } $record_search->all;
+            unshift @ids, $last_record_id if defined $last_record_id;
+            $last_page = $record_search->pager->last_page == $find{chronology_page} ? 1: 0;
+            push @$search, { 'record_single.id' => { -in => \@ids } };
+        }
+        # Still need search in case of view limit
         @prefetches = $records->jpfetch(search => 1, linked => 0, %common, %options);
 
         my $root_table;
@@ -953,7 +999,7 @@ sub _find
             join     => [@prefetches],
             columns  => \@columns_fetch,
         };
-        $params->{order_by} = 'record_single.created'
+        $params->{order_by} = { -desc => 'record_single.created'}
             if $find{chronology};
         my $result = $self->schema->resultset($root_table)->search(
             [
@@ -1031,7 +1077,7 @@ sub _find
                 set_record_created_user => $self->set_record_created_user,
             );
             # Set data for this original record to the current version (latest)
-            $self->record($record->{$record_ids[-1]});
+            $self->record($record->{$record_ids[0]});
         }
     }
     else {
@@ -1060,23 +1106,58 @@ sub _find
     if ($find{chronology})
     {
         my @chronology; my $last_record;
-        foreach my $record (@record_objects)
+        # First entry - this is the record as it currently stands
+        if ($find{chronology_page} == 1) {
+            my $record = $record_objects[0];
+            my @changed;
+
+            $self->_get_record_for_chronology($record, $records, %find);
+            foreach my $column ( @{ $record->columns_render } ) {
+                next if $column->internal;
+                my $datum = $record->fields->{ $column->id };
+                if($column->type eq 'curval') {
+                    my %new_ids = map { $_->{id} => $_ } @{$datum->values};
+                    my @values;
+                    foreach my $id (keys %new_ids)
+                    {
+                        my $new_value = $new_ids{$id};
+                        $new_value->{status} = "current";
+                        $new_value->{version_id} = $new_value->{record}->record_id;
+                        push @values, $new_value;
+                    }
+                    push @changed, $column->presentation(datum_presentation => $datum->presentation(values => \@values));
+                }
+                else {
+                    push @changed, $column->presentation(datum_presentation => $datum->presentation);
+                }
+            }
+
+            push @chronology,
+              {
+                editor   => $record->edited_user,
+                datetime => $record->edited_time,
+                changed  => \@changed,
+              };
+        } else {
+            unshift @record_objects, $self->last_chronology_record if $self->last_chronology_record;
+        }
+        # Show all changes from the original - ignore the last one as this will become the $last_record for comparison
+        foreach my $i (0 .. $#record_objects-1)
         {
-            $records->rewind($record->edited_time->values->[0]);
-            $records->fetch_multivalues(
-                record_ids   => [$record->record_id],
-                retrieved    => [$record->{$record->record_id}],
-                records      => [$record],
-                is_draft     => $find{draftuser_id},
-                already_seen => $records->already_seen,
-                chronology   => 1,
-            );
+            $record = $record_objects[$i+1];
+
+            $self->_get_record_for_chronology($record, $records, %find);
+            $last_record = $record;
+
+            $record = $record_objects[$i];
+            $self->_get_record_for_chronology($record, $records, %find);
+
             my @changed;
             foreach my $column (@{$record->columns_render})
             {
                 next if $column->internal;
                 my $datum = $record->fields->{$column->id};
-                my $last_datum = $last_record && $last_record->fields->{$column->id};
+                my $last_datum = $last_record->fields->{$column->id};
 
                 if (
                     (!$last_record && !$datum->blank)
@@ -1088,8 +1169,6 @@ sub _find
                         my %old_ids = map { $_->{id} => $_ } @{$last_datum->values};
                         my %new_ids = map { $_->{id} => $_ } @{$datum->values};
                         my @values;
-                        # Check each value for whether it is added, removed or changed.
-                        # Look through old values first
                         foreach my $id (keys %old_ids)
                         {
                             my $old_value = $old_ids{$id};
@@ -1121,16 +1200,12 @@ sub _find
                             $new_value->{version_id} = $new_value->{record}->record_id;
                             push @values, $new_value;
                         }
-                        foreach my $v (@values)
-                        {
-                        }
-                        push @changed, $column->presentation(datum_presentation => $datum->presentation(values => \@values))
+                        push @changed, $column->presentation(datum_presentation => $datum->presentation(values => \@values));
                     }
                     else {
-                        push @changed, $column->presentation(datum_presentation => $datum->presentation)
+                        push @changed, $column->presentation(datum_presentation => $datum->presentation);
                     }
                 }
-
             }
             push @chronology, {
                 editor   => $record->edited_user,
@@ -1139,11 +1214,53 @@ sub _find
             } if @changed; # There may have been changes, but not ones the user has access to
             $last_record = $record;
         }
-        $self->_set_chronology(\@chronology);
+        # If we're on the last page, return the record state as it was created
+        if($last_page) {
+            my $record = $record_objects[-1];
+            $self->_get_record_for_chronology($record, $records, %find);
+
+            my @changed;
+            foreach my $column ( @{ $record->columns_render } ) {
+                next if $column->internal;
+                my $datum = $record->fields->{ $column->id };
+                if($column->type eq 'curval') {
+                    my %new_ids = map { $_->{id} => $_ } @{$datum->values};
+                    my @values;
+                    foreach my $id (keys %new_ids)
+                    {
+                        my $new_value = $new_ids{$id};
+                        $new_value->{status} = "created";
+                        $new_value->{version_id} = $new_value->{record}->record_id;
+                        push @values, $new_value;
+                    }
+                    push @changed, $column->presentation(datum_presentation => $datum->presentation(values => \@values));
+                }
+                else {
+                    push @changed, $column->presentation(datum_presentation => $datum->presentation);
+                }
+            }
+            push @chronology,
+            {
+                editor   => $record->edited_user,
+                datetime => $record->edited_time,
+                changed  => \@changed,
+            };
+        }
+        $self->_set_last_chronology_page($last_page // 0);
+        $self->_set_last_chronology_record($last_record) if $last_record;
+        $self->_set_chronology([@chronology]);
     }
 
     $self; # Allow chaining
 }
+
+has last_chronology_record => (
+    is => 'rwp',
+);
+
+has last_chronology_page => (
+    is => 'rwp',
+);
 
 has chronology => (
     is => 'rwp',
@@ -2414,7 +2531,7 @@ sub _field_write
                             # child records. This is used in chronology view to
                             # ensure the correct versions at the time of record
                             # edit are used
-                            version_datetime => $created, 
+                            version_datetime => $created,
                         );
                         push @{$self->_records_to_write_after}, $record
                             if $record->is_edited;

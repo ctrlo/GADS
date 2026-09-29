@@ -110,3 +110,7 @@ table.table-bordered {
     @extend .border-bottom
   }
 }
+
+.text-primary {
+  color: $brand-secundary !important;
+}
