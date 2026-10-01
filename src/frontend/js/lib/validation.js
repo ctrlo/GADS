@@ -240,7 +240,7 @@ const validateInput = (field) => {
     if(maxEl && maxEl.length) {
         const maxLen = maxEl.data("max");
         const fieldLen = maxEl.val().length;
-        if(fieldLen > maxLen) {
+        if(maxLen.length > 0 && fieldLen > maxLen) {
             maxEl.attr("aria-invalid", true);
             addErrorMessage(field, `${strFieldName} must be ${maxLen} characters or less`, strID, true);
             field.addClass("invalid");
