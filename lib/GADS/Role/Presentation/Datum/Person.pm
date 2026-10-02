@@ -42,10 +42,11 @@ sub presentation {
     my $base = $self->presentation_base(%options);
     delete $base->{value};
 
-    $base->{text}    = $self->as_string;
-    $base->{value}   = $self->as_string;
-    $base->{details} = [map $self->_presentation_details($_, %options), @{$self->value_hash}];
-    $base->{ids}     = $self->ids;
+    $base->{text}           = $self->as_string;
+    $base->{value}          = $self->as_string;
+    $base->{details}        = [map $self->_presentation_details($_, %options), @{$self->value_hash}];
+    $base->{ids}            = $self->ids;
+    $base->{deleted_values} = $self->deleted_values;
 
     return $base;
 }

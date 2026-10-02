@@ -7,7 +7,8 @@ sub presentation {
 
     my $base = $self->presentation_base;
 
-    $base->{id_hash} = $self->id_hash;
+    $base->{id_hash}        = $self->id_hash;
+    $base->{ids}            = $self->ids;
     $base->{deleted_values} = $self->deleted_values;
 
     return $base;
