@@ -60,17 +60,17 @@ my $verify_user_password_sub = sub {
     if ($user) {
         my $stored = $user->password;
 
-        if (!crypt_passphrase->verify_password($args{password}, $stored)) {
-            return (0, 'access_denied');
-        }
-        if (crypt_passphrase->needs_rehash($stored)) {
-            my $new_hash = crypt_passphrase->hash_password($args{password});
-            $user->update({ password => $new_hash });
-
+        if (crypt_passphrase->verify_password($args{password}, $stored)) 
+        {
+            if (crypt_passphrase->needs_rehash($stored))
+            {
+                my $new_hash = crypt_passphrase->hash_password($args{password});
+                $user->update({ password => $new_hash });
+            }
+            return ($client->id, undef, undef, $user->id);
         }
     }
-    
-    return ($client->id, undef, undef, $user->id);
+    return (0, 'access_denied');
 };
 
 my $store_access_token_sub = sub {
