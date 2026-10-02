@@ -98,7 +98,7 @@ has from_id => (
             'me.instance_id' => $self->instance_id,
         },{
             order_by => ['me.position', 'enumvals.id'],
-            prefetch => ['enumvals', 'calcs', 'rags', 'file_options' ],
+            prefetch => ['enumvals', 'calcs', 'rags' ],
         });
 
         $cols_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');

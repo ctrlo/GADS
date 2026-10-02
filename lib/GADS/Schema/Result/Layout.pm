@@ -193,13 +193,6 @@ __PACKAGE__->has_many(
 );
 
 __PACKAGE__->has_many(
-  "file_options",
-  "GADS::Schema::Result::FileOption",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-__PACKAGE__->has_many(
   "files",
   "GADS::Schema::Result::File",
   { "foreign.layout_id" => "self.id" },
