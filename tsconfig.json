@@ -10,7 +10,18 @@
         "moduleResolution": "bundler",
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
-        "types": ["node", "jest", "jquery"],
+        "types": [
+            "bootstrap",
+            "form-serialize",
+            "jest",
+            "jquery",
+            "jstree",
+            "node",
+            "react",
+            "react-dom",
+            "react-grid-layout",
+            "typeahead.js"
+        ],
         "paths": {
             "js/*": [
                 "./src/frontend/js/*"
