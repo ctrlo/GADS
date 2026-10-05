@@ -129,7 +129,7 @@ class MoreLessComponent extends Component {
         const $ml = $(this.el);
 
         if ($ml.hasClass("clipped")) {
-            const content = $ml.find(".expandable").html();
+            const content = $ml.find(".expandable").find(".card-body").html();
 
             $ml
                 .html(content)
