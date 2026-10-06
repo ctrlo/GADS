@@ -5,8 +5,8 @@ import { SearchableSelectOptions } from "./options";
  * SearchableSelect class provides a searchable dropdown interface for a standard HTML select element.
  */
 export class SearchableSelect {
-    dropdown: HTMLDivElement = null;
-    button: HTMLElement = null;
+    dropdown!: HTMLDivElement;
+    button!: HTMLElement;
     target: HTMLElement;
     element: HTMLSelectElement;
     classList: string[];

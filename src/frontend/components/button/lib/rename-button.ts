@@ -39,7 +39,7 @@ declare global {
  */
 class RenameButton {
     private readonly dataClass = "rename-button";
-    private value: string;
+    private value?: string;
 
     /**
      * Attach event to button
@@ -162,7 +162,7 @@ class RenameButton {
     private triggerRename(id: number, button: JQuery<HTMLButtonElement>) {
         const previousValue = $(`#current-${id}`).text();
         const extension = "." + previousValue.split(".").pop();
-        const newName = this.value.endsWith(extension) ? this.value : this.value + extension;
+        const newName = this.value?.endsWith(extension) ? this.value : this.value + extension;
         if (newName === "" || newName === previousValue) return;
         $(`#current-${id}`).text(newName);
         const event = $.Event("rename", { oldName: previousValue, newName, target: button });
@@ -195,14 +195,13 @@ class RenameButton {
     }
 }
 
-if (typeof jQuery !== "undefined") {
-    (function ($) {
-        $.fn.renameButton = function () {
-            return this.each(function (_: unknown, el: HTMLButtonElement) {
-                new RenameButton(el);
-            });
-        };
-    })(jQuery);
-}
+(function ($) {
+    $.fn.renameButton = function () {
+        return this.each(function (_: unknown, el: HTMLElement) {
+            if (!(el instanceof HTMLButtonElement)) return;
+            new RenameButton(el);
+        });
+    };
+})(jQuery);
 
 export { RenameEvent };

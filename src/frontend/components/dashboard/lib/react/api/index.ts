@@ -71,7 +71,7 @@ export default class ApiClient {
      * @param {T} body The body of the request
      * @returns {Promise<Response>} A promise that resolves to the response of the fetch request.
      */
-    POST<T extends object = object>(route: string, body: T): Promise<Response> { return this._fetch(route, "POST", body); }
+    POST<T extends object = object>(route: string, body: T | null): Promise<Response> { return this._fetch(route, "POST", body ?? {}); }
 
     /**
      * Perform a PUT request to the API.
@@ -100,6 +100,7 @@ export default class ApiClient {
             const strippedLayout = layout.map(widget => ({ ...widget, moved: undefined }));
             return this.PUT(`/dashboard/${id}`, strippedLayout);
         }
+        return Promise.resolve(new Response());
     };
 
     /**
@@ -127,7 +128,7 @@ export default class ApiClient {
      * @param {string} id The ID of the widget to delete.
      * @returns {Promise<Response>} A promise that resolves to the response of the delete request.
      */
-    deleteWidget = (id: string): Promise<Response> => !this.isDev && this.DELETE(`/widget/${id}`);
+    deleteWidget = (id: string): Promise<Response> => this.isDev ? Promise.reject("Running in dev mode") : this.DELETE(`/widget/${id}`);
 
     /**
      * Get the edit form for a widget.

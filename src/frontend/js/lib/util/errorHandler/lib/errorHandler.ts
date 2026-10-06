@@ -4,7 +4,7 @@
 export class ErrorHandler {
     private el: JQuery<HTMLElement>;
     private errors: string[] = [];
-    errorContainer: JQuery<HTMLElement>;
+    errorContainer!: JQuery<HTMLElement>;
 
     /**
      * Create a new ErrorHandler instance

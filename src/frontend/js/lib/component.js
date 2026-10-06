@@ -102,11 +102,11 @@ const getComponentElements = (scope, selector) => {
  * Will only initialize elements that have not been initialized.
  * @param {HTMLElement} scope The scope to initialize the objects on
  * @param {string|Function} selector The selector to select elements
- * @param {Component} ComponentClass The Component class to initialize
+ * @param {Component} componentClass The Component class to initialize
  * @returns {Array[Component]} An array of initialized components
  */
-const initializeComponent = (scope, selector, ComponentClass) => {
-    if (!(ComponentClass.prototype instanceof Component)) {
+const initializeComponent = (scope, selector, componentClass) => {
+    if (!(componentClass.prototype instanceof Component)) {
         throw new Error(
             "Components can only be initialized when they inherit the basecomponent"
         );
@@ -125,11 +125,10 @@ const initializeComponent = (scope, selector, ComponentClass) => {
     return elements
         .filter((el) => {
             return (
-                ComponentClass.allowReinitialization
+                componentClass.allowReinitialization
         // See comments for allowReinitialization()
-        || !componentIsInitialized(el, ComponentClass.name)
-            );
-        }).map((el) => new ComponentClass(el));
+        || !componentIsInitialized(el, componentClass.name));
+        }).map((el) => new componentClass(el));
 };
 
 export {
