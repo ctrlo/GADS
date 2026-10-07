@@ -1,14 +1,14 @@
 import { Component } from "component";
 
 /**
- *
+ * A component that reveals or hides an element based on the selected value of a target select element.
  */
 export default class SelectRevealComponent extends Component {
     private $el: JQuery<HTMLElement>;
-    private $target: JQuery<HTMLElement>;
+    private $target!: JQuery<HTMLElement>;
 
     /**
-     *
+     * Initializes the component and sets up event listeners.
      */
     constructor(element:HTMLElement) {
         super(element);
@@ -17,7 +17,7 @@ export default class SelectRevealComponent extends Component {
     }
 
     /**
-     *
+     * Sets the initial visibility of the element based on the target's value and attaches the change event listener.
      */
     private init():void {
         const target = this.$el.data("select-target");
@@ -30,7 +30,7 @@ export default class SelectRevealComponent extends Component {
             this.$el.hide();
         }
         this.$target.on("change", (ev) => {
-            const selectedValue = parseInt($(ev.currentTarget).val().toString());
+            const selectedValue = parseInt($(ev.currentTarget).val()!.toString());
             console.log(`Selected value: ${selectedValue}`);
             if (selectedValue === value) {
                 this.$el.show();
