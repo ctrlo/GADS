@@ -22,15 +22,16 @@ jobs:
     name: 'Unit Tests'
     runs-on: 'ubuntu-22.04'
     timeout-minutes: 30
+    # Bit quicker to download this - not an issue when running in CI,
+    # but it helps in local testing. Also all test functionality was tested
+    # with this image and it works correctly.
     container: debian:trixie-slim
 
     steps:
       - name: 'Check out the GADS repository'
         uses: 'actions/checkout@v4'
       - name: 'Install dependencies'
-        run: |
-          chmod +x ./.github/workflows/install.sh
-          ./.github/workflows/install.sh
+        run: ./.github/workflows/install.sh
       - name: 'Run the unit tests'
         run: prove -lrs -j4 t
 
@@ -66,17 +67,14 @@ jobs:
       - name: 'Check out the GADS code'
         uses: 'actions/checkout@v4'
       - name: 'Install Non-CPAN dependencies'
-        run: |
-          chmod +x ./.github/workflows/install.sh
-          ./.github/workflows/install.sh
+        run: ./.github/workflows/install.sh
       - name: 'Set up credentials for psql'
         # See https://wiki.postgresql.org/wiki/Pgpass
         run: |
           echo '*:*:*:postgres:postgrespassword' > ~/.pgpass
           chmod 600 ~/.pgpass
       - name: 'Install YARN dependencies'
-        run: |
-          apt-get install -yq libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+        run: apt-get install -y libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
       - name: 'create uploads directory'
         run: |
           mkdir -p /tmp/uploads
@@ -92,6 +90,9 @@ jobs:
           ./bin/setup_database
           perl bin/app.pl &
       - name: 'Run the Cypress tests'
+        # We don't use node server-side, just for building and testing so this is fine
+        # Node 20 is the default version on the container,
+        # but we override it with NVM to ensure compatibility with the latest libraries.
         run: |
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh | bash
           export NVM_DIR="$HOME/.nvm"
