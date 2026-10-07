@@ -42,9 +42,7 @@
         disabled[% END %][% IF is_readonly %]
         readonly[% END %][% IF is_required %]
         required
-        [% # If using $.defined, TT still defines the value even if it's undef instead of expected behaviour
-           # we use $.size instead, as we still want to allow a max length of 0 if it's set. %]
-        aria-required="true"[% END %][% IF max_length == 0 || max_length %]
+        aria-required="true"[% END %][% IF max_length.length %]
         data-max="[% max_length %]"[% END %]
       >[% INCLUDE fields/sub/filter.tt; %]</textarea>
     </div>
