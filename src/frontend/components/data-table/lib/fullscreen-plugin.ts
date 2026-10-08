@@ -1,10 +1,19 @@
 import DataTable, { Api, Config } from "datatables.net-bs5";
 
-// Extended config object to allow for fullscreen
-type DtConfig = Config & {
-    fullscreen?: boolean;
-    element?: JQuery<HTMLElement>;
-};
+declare module "datatables.net-bs5" {
+    interface Config {
+        element?: JQuery<HTMLElement> | HTMLElement,
+        fullscreen?: boolean
+    }
+
+    interface FullScreenOptions {
+        checked?: boolean
+    }
+
+    interface Feature {
+        fullscreen?: FullScreenOptions;
+    }
+}
 
 /**
  * Create a toggle button
@@ -32,7 +41,7 @@ function createToggleButton(id: string, label: string, checked: boolean, onToggl
  * @param api The DataTables API instance to use
  */
 const toggle = (api: Api) => {
-    let conf: DtConfig = api.init();
+    let conf: Config = api.init();
     let fullscreen = conf.fullscreen;
     const node = api.table().node();
 
@@ -74,19 +83,17 @@ const toggle = (api: Api) => {
 
         console.log("Reinitializing the DT in normal mode");
         conf = (Object.assign(conf, { reinitialize: true, fullscreen }));
-        conf.element?.DataTable(conf);
+        if(!conf.element) throw new Error("DataTable element is not defined");
+        $(conf.element!).DataTable(conf);
     }
 };
 
-// I feel using the "proper" toggle from bootstrap is better than the custom one and adding extra "fluff" to the datatables code in my opinion
-DataTable.feature.register("fullscreen", function (settings, opts) {
+DataTable.feature.register("fullscreen", function (settings, opts: FullscreenOptions) {
     const options = Object.assign({
         checked: settings.api.init().fullscreen
     }, opts);
     return createToggleButton("fullscreen-button", "Fullscreen", options.checked, () => {
         const api = settings.api;
         toggle(api);
-        // api.destroy();
-        // new DataTable(api.table().node(), result);
     });
 });

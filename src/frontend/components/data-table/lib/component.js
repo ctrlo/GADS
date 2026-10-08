@@ -3,7 +3,7 @@ import { Component, initializeRegisteredComponents } from "component";
 import "datatables.net-bs5";
 import "datatables.net-responsive-bs5";
 import "datatables.net-rowreorder-bs5";
-import "./fullscreen";
+import "./fullscreen-plugin";
 import { setupDisclosureWidgets, onDisclosureClick } from "components/more-less/lib/disclosure-widgets";
 import { moreLess } from "components/more-less/lib/more-less";
 import { bindToggleTableClickHandlers } from "./toggle-table";
@@ -21,8 +21,6 @@ class DataTableComponent extends Component {
      */
     constructor(element) {
         super(element);
-        // For fullscreen we need a clone of the table element
-        this.table = element.cloneNode(true);
         this.count = 0;
         this.el = $(this.element);
         this.hasCheckboxes = this.el.hasClass("table-selectable");
@@ -31,11 +29,11 @@ class DataTableComponent extends Component {
         this.searchParams = new URLSearchParams(window.location.search);
         this.base_url = this.el.data("href") ? this.el.data("href") : undefined;
         this.initTable();
-        $(window).on("resize", () => {
-            if (this.el.DataTable().responsive) {
+        if (this.el.DataTable().responsive) {
+            $(window).on("resize", () => {
                 this.el.DataTable().responsive.recalc();
-            }
-        });
+            });
+        }
     }
 
     /**
@@ -753,8 +751,8 @@ class DataTableComponent extends Component {
 
     /**
      * Get the configuration object for the DataTable
-     * @param {Readonly<Partial<import('datatables.net-bs5').Config>>=} overrides Any values to override in the configuration
-     * @returns {import('datatables.net-bs5').Config} The configuration object for the DataTable
+     * @param {Readonly<Partial<Config>>=} overrides Any values to override in the configuration
+     * @returns {Config} The configuration object for the DataTable
      */
     getConf(overrides = undefined) {
         const confData = (this.el).data("config");
