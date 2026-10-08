@@ -46,8 +46,6 @@ jobs:
       matrix:
         browser:
           - name: 'chromium'
-            os: 'ubuntu-22.04'
-            node_version: '24.21.0'
 
     services:
       postgres:
@@ -94,11 +92,10 @@ jobs:
         # Node 20 is the default version on the container,
         # but we override it with NVM to ensure compatibility with the latest libraries.
         run: |
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh | bash
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          nvm install ${{ matrix.browser.node_version }}
-          nvm use ${{ matrix.browser.node_version }}
+          sudo apt-get install -y curl
+          curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          node -v
           npm i -g yarn && npm i -g --allow-scripts=yarn
           yarn --frozen-lockfile
           yarn build --no-watch
