@@ -1,8 +1,8 @@
 <div class="row">
     <div class="col-md-12">
         <form action="/widget/[% widget.grid_id %]/edit">
-            <div class="form-group">
-                <label for="title">Title (optional):</label>
+            <div class="form-group mb-4">
+                <label class="form-label" for="title">Title (optional):</label>
                 <input type="text" class="form-control" id="title" name="title" value="[% widget.title | html %]">
             </div>
             [% IF widget.type == "notice" %]
@@ -32,8 +32,8 @@
 </div>
 
 [% BLOCK select_views %]
-    <div class="form-group">
-        <label for="view_id">View</label>
+    <div class="form-group mb-4">
+        <label class="form-label" for="view_id">View</label>
         <select class="form-control" id="view_id" name="view_id">
             [% IF NOT widget.view_id %]
                 <option></option>

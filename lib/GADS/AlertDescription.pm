@@ -23,7 +23,7 @@ use GADS::Layout;
 use GADS::Records;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(HashRef);
 
 has schema => (
     is       => 'ro',

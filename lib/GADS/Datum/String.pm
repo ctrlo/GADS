@@ -21,7 +21,7 @@ package GADS::Datum::String;
 use HTML::FromText;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/ArrayRef/;
 
 extends 'GADS::Datum';
 
@@ -58,6 +58,20 @@ after set_value => sub {
                 # Empty values are not checked - these should be done in optional value for field
                 if ($val && $val !~ /^$regex$/i)
                 {
+                    $changed ? error($msg) : warning($msg);
+                }
+            }
+        }
+        if (defined $self->column->max_length) {
+            my $maxlen = $self->column->max_length;
+            foreach my $val (@values)
+            {
+                if (defined $val && defined $maxlen && length($val) > $maxlen)
+                {
+                    my $msg = __x "Value \"{value}\" for {field} exceeds maximum length of {maxlen} characters",
+                        value  => $val,
+                        field  => $self->column->name,
+                        maxlen => $maxlen;
                     $changed ? error($msg) : warning($msg);
                 }
             }

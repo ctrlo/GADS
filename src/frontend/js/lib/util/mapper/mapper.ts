@@ -1,5 +1,12 @@
+/**
+ * Mapper module for transforming script responses into a format suitable for typeahead suggestions
+ */
 export type MappedResponse = { name: string, id: number };
-export type MapperFunction = (any) => MappedResponse[];
+
+/**
+ * MapperFunction type for functions that map script responses to MappedResponse arrays
+ */
+export type MapperFunction = (any: any) => MappedResponse[];
 
 /**
  * ScriptResponse interface for Typeahead class script responses
@@ -23,11 +30,11 @@ interface Record {
 
 /**
  * Map the script response to a response that the typeahead can use
- * @param r The response from the script
- * @returns The mapped response
+ * @param {ScriptResponse} r The response from the script
+ * @returns {MappedResponse[]} The mapped response
  */
-export const map: MapperFunction = (r: ScriptResponse) => {
-    const result = [];
+export const map: MapperFunction = (r: ScriptResponse):MappedResponse[] => {
+    const result: MappedResponse[] = [];
     let i = 0;
     r.records.forEach((record) => {
         if (record instanceof Object) {
@@ -41,6 +48,6 @@ export const map: MapperFunction = (r: ScriptResponse) => {
                 id: i++
             });
         }
-    })
+    });
     return result;
-}
+};

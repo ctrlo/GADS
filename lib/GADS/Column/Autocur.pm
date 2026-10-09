@@ -23,14 +23,20 @@ use GADS::Records;
 use Log::Report 'linkspace';
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Curcommon';
 
 with 'GADS::Role::Curcommon::RelatedField';
 
 has '+option_names' => (
-    default => sub { [qw/override_permissions limit_rows/] },
+    default => sub { [{
+            name              => 'override_permissions',
+            user_configurable => 1,
+        }, {
+            name              => 'limit_rows',
+            user_configurable => 1,
+        }]
+    },
 );
 
 has '+multivalue' => (
@@ -81,12 +87,15 @@ sub _build_refers_from_value_field
 }
 
 sub make_join
-{   my ($self, @joins) = @_;
+{   my ($self, $options, @joins) = @_;
+    my $join_current_version = $options->{join_current_version};
     +{
         $self->field => {
             record => {
                 current => {
-                    record_single => ['record_later', @joins],
+                    $join_current_version
+                        ? (current_version => [@joins])
+                        : (record_single => ['record_later', @joins])
                 }
             }
         }

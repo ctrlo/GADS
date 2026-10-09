@@ -1,8 +1,21 @@
 import "jstree";
-import "datatables.net";
-import "@lol768/jquery-querybuilder-no-eval"
+import "datatables.net-bs5";
+import "jQuery-QueryBuilder/dist/js/query-builder.standalone";
+import { validateQueryBuilder } from "validation";
 
-// TODO: This probably need refactoring
+declare global {
+    interface Window {
+        siteConfig: {
+            urls: {
+                treeApi: string;
+            }
+        }
+        UpdateFilter?: (filterEl: JQuery<HTMLElement> | undefined, ev: JQuery.ClickEvent) => void;
+    }
+    interface JQuery<TElement = HTMLElement> {
+        queryBuilder(operation: string): JQuery<TElement>;
+    }
+}
 
 /**
  * This class is responsible for handling the submit button on the field
@@ -12,34 +25,37 @@ export default class SubmitFieldButton {
 
     /**
      * Create a submit field button
-     * @param element The submit button element
+     * @param {JQuery<HTMLElement>} element The submit button element
      */
-    constructor(element:JQuery<HTMLElement>) {
-        element.on('click', (ev) => {
+    constructor(element: JQuery<HTMLElement>) {
+        element.on("click", (ev) => {
+            const $form = $(ev.currentTarget).closest("form") as JQuery<HTMLFormElement>;
 
-            const $jstreeContainer = $('#field_type_tree');
-            const $jstreeEl = $('#tree-config .tree-widget-container');
-            const $calcCode = $('#calcfield_card_header');
+            const $jstreeContainer = $("#field_type_tree");
+            const $jstreeEl = $("#tree-config .tree-widget-container");
+            const $calcCode = $("#calcfield_card_header");
 
-            const $displayConditionsBuilderEl = $('#displayConditionsBuilder');
-            //Bit of typecasting here, purely because the queryBuilder plugin doesn't have types
-            const res = $displayConditionsBuilderEl.length && (<any>$displayConditionsBuilderEl).queryBuilder('getRules');
-            const peopleConditionsFieldEl = $('.people-filter');
-            const $peopleConditionsFieldRes = peopleConditionsFieldEl.length && (<any>peopleConditionsFieldEl).queryBuilder('getRules');
-            const $displayConditionsField = $('#displayConditions');
+            const $displayConditionsBuilderEl = $("#displayConditionsBuilder");
+            const res = $displayConditionsBuilderEl.length && $displayConditionsBuilderEl.queryBuilder("getRules");
+            const peopleConditionsFieldEl = $(".people-filter");
+            const $peopleConditionsFieldRes = peopleConditionsFieldEl.length && $("#field_type").val() == "person" && peopleConditionsFieldEl.queryBuilder("getRules");
+            const $displayConditionsField = $("#displayConditions");
 
-            const $instanceIDField = $('#refers_to_instance_id');
-            const $filterEl = $instanceIDField.length && $(`[data-builder-id='${$instanceIDField.val()}']`);
+            const $instanceIDField = $("#refers_to_instance_id");
+            let $filterEl: JQuery<HTMLElement> | undefined = undefined;
+            if($instanceIDField.length) {
+                $filterEl =  $(`[data-builder-id='${$instanceIDField.val()}']`);
+            }
 
-            const $permissionTable = $('#default_field_permissions_table');
+            const $permissionTable = $("#default_field_permissions_table");
 
             let bUpdateTree = false;
             let bUpdateFilter = false;
             let bUpdateDisplayConditions = false;
             let bUpdatePeopleFilter = false;
 
-            const $showInEdit = $("#show_in_edit")
-            if (($calcCode.length && $calcCode.is(':visible')) && !$showInEdit.val()) {
+            const $showInEdit = $("#show_in_edit");
+            if (($calcCode.length && $calcCode.is(":visible")) && !$showInEdit.val()) {
                 if (!this.errored) {
                     const error = document.createElement("div");
                     error.classList.add("form-text", "form-text--error");
@@ -51,50 +67,48 @@ export default class SubmitFieldButton {
                 ev.preventDefault();
             }
 
-            if (($jstreeContainer.length && $jstreeContainer.is(':visible') && $jstreeEl.length) || (!$jstreeContainer.length && $jstreeEl.length)) {
+            if (($jstreeContainer.length && $jstreeContainer.is(":visible") && $jstreeEl.length) || (!$jstreeContainer.length && $jstreeEl.length)) {
                 bUpdateTree = true;
             }
 
-            if ($instanceIDField.length && !$instanceIDField.prop('disabled') && $filterEl.length) {
+            if ($instanceIDField.length && !$instanceIDField.prop("disabled") && $filterEl && $filterEl.length) {
                 bUpdateFilter = true;
             }
 
-            if (res && $displayConditionsField.length) {
+            if(!validateQueryBuilder($displayConditionsBuilderEl)) {
+                ev.preventDefault();
+            } else if (res && $displayConditionsField.length) {
                 bUpdateDisplayConditions = true;
             }
 
-            if(peopleConditionsFieldEl.length && $peopleConditionsFieldRes) {
+            if (peopleConditionsFieldEl.length && $peopleConditionsFieldRes) {
                 bUpdatePeopleFilter = true;
             }
 
             if (bUpdateTree) {
-                //Bit of typecasting here, purely because the jstree plugin doesn't have types
-                const v = (<any>$jstreeEl).jstree(true).get_json('#', {flat: false});
+                const v = $jstreeEl.jstree(true).get_json("#", { flat: false });
                 const mytext = JSON.stringify(v);
                 const data = $jstreeEl.data();
 
                 $.ajax({
                     async: false,
-                    type: 'POST',
+                    type: "POST",
                     url: this.getURL(data),
-                    data: {data: mytext, csrf_token: data.csrfToken}
+                    data: { data: mytext, csrf_token: data.csrfToken }
                 }).done(() => {
-                    // eslint-disable-next-line no-alert
-                    alert('Tree has been updated')
+                    alert("Tree has been updated");
                 });
             }
 
-            // @ts-expect-error - This is a global function
             if (bUpdateFilter && window.UpdateFilter) {
-                // @ts-expect-error - This is a global function
                 window.UpdateFilter($filterEl, ev);
             }
 
-            if(bUpdatePeopleFilter && window.UpdatePeopleFilter) {
+            if (bUpdatePeopleFilter && window.UpdatePeopleFilter) {
                 window.UpdatePeopleFilter(peopleConditionsFieldEl, ev);
             }
 
-            if (bUpdateDisplayConditions) {
+            if (bUpdateDisplayConditions && res) {
                 $displayConditionsField.val(JSON.stringify(res, null, 2));
             }
 
@@ -102,9 +116,8 @@ export default class SubmitFieldButton {
              * permission checkboxes on other pages will not be submitted and will
              * therefore be cleared. This code gets all the inputs in the datatable
              * and appends them to the form manually */
-            const $inputs = $permissionTable.DataTable().$('input,select,textarea');
+            const $inputs = $permissionTable.DataTable().$("input,select,textarea");
             $inputs.hide(); // Stop them appearing to the user in a strange format
-            const $form = $(ev.currentTarget).closest('form');
             $permissionTable.remove();
             $form.append($inputs);
         });
@@ -112,14 +125,15 @@ export default class SubmitFieldButton {
 
     /**
      * Get the URL for the tree API
-     * @param data The data for the tree
-     * @returns The URL for the tree API
+     * @param {JQuery.PlainObject} data The data for the tree
+     * @returns {string} The URL for the tree API
      */
-    private getURL(data:JQuery.PlainObject):string {
-        if (window.test) return "";
+    private getURL(data: JQuery.PlainObject): string {
+        // TS6 is a bit odd - it recognises window.test as a function and wants to call it so we resort to typechecks
+        if (typeof window.test !== "undefined") return "";
 
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;
 
-        return devEndpoint ? devEndpoint : `/${data.layoutIdentifier}/tree/${data.columnId}`
+        return devEndpoint ? devEndpoint : `/${data.layoutIdentifier}/tree/${data.columnId}`;
     }
 }

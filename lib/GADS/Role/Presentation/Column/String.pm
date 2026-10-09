@@ -5,7 +5,8 @@ use Moo::Role;
 sub after_presentation
 {   my ($self, $return) = @_;
 
-    $return->{textbox} = $self->textbox;
+    $return->{textbox}    = $self->textbox;
+    $return->{max_length} = $self->max_length;
 }
 
 1;

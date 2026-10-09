@@ -154,6 +154,21 @@ sub _build_views_limit_extra
     \@views;
 }
 
+has views_limit_override => (
+    is => 'lazy',
+);
+
+sub _build_views_limit_override
+{   my $self = shift;
+    my @views = $self->schema->resultset('View')->search({
+        is_limit_override => 1,
+        instance_id       => $self->instance_id,
+    },{
+        order_by => 'me.name',
+    });
+    \@views;
+}
+
 sub _build_global
 {   my $self = shift;
     my @views = $self->schema->resultset('View')->search({

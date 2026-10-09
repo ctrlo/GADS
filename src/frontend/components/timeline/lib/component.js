@@ -7,23 +7,24 @@ import './handlebars/handlebars-timeline-item-template.js'
 import './print/timeline'
 
 class TimelineComponent extends Component {
-    constructor(element)  {
-        super(element)
-        this.el = $(this.element)
+  constructor(element) {
+    super(element)
+    this.el = $(this.element)
 
-        this.initTimeline()
-    }
+    this.initTimeline()
+  }
 
-    initTimeline() {
+  initTimeline() {
+    Promise.resolve().then(() => {
       const $container = $(this.element).find('.timeline__visualization')
       const records_base64 = $container.data('records')
-      const json = Buffer.from(records_base64, 'base64')
+      const json = atob(records_base64)
       const dataset = JSON.parse(json)
       this.injectContrastingColor(dataset)
 
       const items = new DataSet(dataset)
       let groups = $container.data('groups')
-      const json_group = Buffer.from(groups, 'base64')
+      const json_group = atob(groups)
       groups = JSON.parse(json_group)
       const is_dashboard = !!$container.data('dashboard')
       const layout_identifier = $('body').data('layout-identifier')
@@ -35,7 +36,7 @@ class TimelineComponent extends Component {
             horizontal: -1
           }
         },
-        moment: function(date) {
+        moment: function (date) {
           return moment(date).utc()
         },
         clickToUse: is_dashboard,
@@ -83,7 +84,7 @@ class TimelineComponent extends Component {
         tl.setGroups(groups)
       }
 
-      let firstshow=true
+      let firstshow = true
       const self = this
       tl.on("changed", function (properties) {
         if (firstshow) {
@@ -91,11 +92,11 @@ class TimelineComponent extends Component {
           firstshow = false
         }
       })
-      
+
       // functionality to add new items on range change
       let persistent_max
       let persistent_min
-      tl.on('rangechanged', function(props) {
+      tl.on('rangechanged', function (props) {
         if (!props.byUser) {
           if (!persistent_min) {
             persistent_min = props.start.getTime()
@@ -147,7 +148,7 @@ class TimelineComponent extends Component {
         }
 
         // Get date range with latest end
-        val = items.max('end') 
+        val = items.max('end')
 
         // Get earliest single date item
         val = items.min('single')
@@ -261,14 +262,14 @@ class TimelineComponent extends Component {
           async: false,
           url: url,
           dataType: 'json',
-          success: function(data) {
+          success: function (data) {
             items.add(data)
           }
         })
       }
 
       $('#tl_group')
-        .on('change', function() {
+        .on('change', function () {
           const fixedvals = $(this)
             .find(':selected')
             .data('fixedvals')
@@ -281,44 +282,45 @@ class TimelineComponent extends Component {
         .trigger('change')
 
       return tl
-    }
+    });
+  }
 
-    setupTippy() {
-      const $tippyElements = this.el.find('[data-tippy-content]')
+  setupTippy() {
+    const $tippyElements = this.el.find('[data-tippy-content]')
 
-      $tippyElements.each((i, tippyElement) => {
-        const tippyEl = new TippyComponent(tippyElement)
-        const wrapperEl = tippyElement.closest('.vis-group')
+    $tippyElements.each((i, tippyElement) => {
+      const tippyEl = new TippyComponent(tippyElement)
+      const wrapperEl = tippyElement.closest('.vis-group')
 
-        tippyEl.initTippy(wrapperEl)
-      })
-    }
+      tippyEl.initTippy(wrapperEl)
+    })
+  }
 
-    snapToDay(datetime) {
-      // A bit of a mess, as the input to this function is in the browser's
-      // local timezone, but we need to return it from the function in UTC.
-      // Pull the UTC values from the local date, and then construct a new
-      // moment using those values.
-      const year = datetime.getUTCFullYear()
-      const month = ("0" + (datetime.getUTCMonth() + 1)).slice(-2)
-      const day = ("0" + datetime.getUTCDate()).slice(-2)
-      return moment.utc("" + year + month + day)
-    }
-    
-    // If the perceived background color is dark, switch the font color to white.
-    injectContrastingColor(dataset) {
-      const self = this
+  snapToDay(datetime) {
+    // A bit of a mess, as the input to this function is in the browser's
+    // local timezone, but we need to return it from the function in UTC.
+    // Pull the UTC values from the local date, and then construct a new
+    // moment using those values.
+    const year = datetime.getUTCFullYear()
+    const month = ("0" + (datetime.getUTCMonth() + 1)).slice(-2)
+    const day = ("0" + datetime.getUTCDate()).slice(-2)
+    return moment.utc("" + year + month + day)
+  }
 
-      dataset.forEach(function(entry) {
-        if (entry.style && typeof entry.style === 'string') {
-          const backgroundColorMatch = entry.style.match(
-            /background-color:\s(#[0-9A-Fa-f]{6})/
-          )
-          if (backgroundColorMatch && backgroundColorMatch[1]) {
-            const backgroundColor = backgroundColorMatch[1]
-            const backgroundColorLightOrDark = self.lightOrDark(backgroundColor)
-            if (backgroundColorLightOrDark === 'dark') {
-              entry.style = `
+  // If the perceived background color is dark, switch the font color to white.
+  injectContrastingColor(dataset) {
+    const self = this
+
+    dataset.forEach(function (entry) {
+      if (entry.style && typeof entry.style === 'string') {
+        const backgroundColorMatch = entry.style.match(
+          /background-color:\s(#[0-9A-Fa-f]{6})/
+        )
+        if (backgroundColorMatch && backgroundColorMatch[1]) {
+          const backgroundColor = backgroundColorMatch[1]
+          const backgroundColorLightOrDark = self.lightOrDark(backgroundColor)
+          if (backgroundColorLightOrDark === 'dark') {
+            entry.style = `
                 ${entry.style};
                 color: #FFFFFF;
                 text-shadow:-1px -1px 0.1em ${backgroundColor},
@@ -328,20 +330,20 @@ class TimelineComponent extends Component {
                   1px 1px 2px ${backgroundColor},
                   0 0 1em ${backgroundColor},
                   0 0 0.2em ${backgroundColor};`
-            }
           }
         }
-      })
-    }
+      }
+    });
+  }
 
-    /**
-   * This function takes a color (hex) as the argument, calculates the color’s HSP value, and uses that
-   * to determine whether the color is light or dark.
-   * Source: https://awik.io/determine-color-bright-dark-using-javascript/
-   *
-   * @param {string} color
-   * @returns {string}
-   */
+  /**
+ * This function takes a color (hex) as the argument, calculates the color’s HSP value, and uses that
+ * to determine whether the color is light or dark.
+ * Source: https://awik.io/determine-color-bright-dark-using-javascript/
+ *
+ * @param {string} color
+ * @returns {string}
+ */
   lightOrDark(color) {
     // Convert it to HEX: http://gist.github.com/983661
     const hexColor = +(

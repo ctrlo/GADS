@@ -2,7 +2,7 @@
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       [% INCLUDE wizard/sub/modal_header.tt label="Upload a file"; %]
-      
+
       <form role="form" method="post" enctype="multipart/form-data" action="?is_independent">
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
         <div class="modal-frame">
@@ -19,7 +19,7 @@
               %]
             </div>
           </div>
-          
+
           [%-
             INCLUDE wizard/sub/modal_footer.tt
               left_buttons = [{
@@ -29,7 +29,7 @@
               }]
               right_buttons = [{
                 type  = "submit"
-                class = "btn-default"
+                class = "btn-primary"
                 name  = "submit"
                 value = "submit"
                 label = "Submit"

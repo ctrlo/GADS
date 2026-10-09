@@ -1,0 +1,62 @@
+.field--changed {
+    input, .jstree-container-ul, .form-control {
+        background-color: $field-highlight;
+        border-radius: $input-border-radius;
+    }
+}
+
+.modal-autosave {
+    max-height: 20rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+li.li-success {
+    list-style: none;
+    &::before {
+        content: '\2713';
+        color: green;
+        font-size: 1.5em;
+        margin-right: 0.5em;
+    }
+}
+
+li.li-error {
+    list-style: none;
+    &::before {
+        content: '\2717';
+        color: red;
+        font-size: 1.5em;
+        margin-right: 0.5em;
+    }
+}
+
+// I don't know why this button wasn't hidden before, but it is now
+#restoreValuesModal .btn-js-delete-values {
+    visibility: hidden;
+    display: none;
+}
+
+.alert-restore {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    p {
+        flex-grow: 1;
+    }
+
+    .btn-alert-restore {
+        @include button-variant($white, $brand-secundary, $white, $white, $brand-primary, $white);
+        color: $brand-secundary;
+
+        &:hover {
+            color: $brand-primary;
+        }
+    }
+
+    .btn-alert-restore-cancel {
+        @extend .btn-danger;
+    }
+}

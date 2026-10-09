@@ -29,6 +29,7 @@ sub presentation {
 
     my $return = {
         id                  => $self->id,
+        full_id             => $self->full_id,
         type                => $self->type,
         name                => $self->name,
         name_short          => $self->name_short,
@@ -59,6 +60,7 @@ sub presentation {
         return_type         => $self->return_type,
         show_in_edit        => $self->show_in_edit,
         has_typeahead       => $self->has_filter_typeahead,
+        show_view_all       => $self->has_options && $self->options->{show_view_all},
     };
 
     if (my $sort = $options{sort})

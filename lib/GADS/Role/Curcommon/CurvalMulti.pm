@@ -29,6 +29,7 @@ sub fetch_multivalues
     my $child = Tree::DAG_Node->new({name => $self->id});
     $tree->add_daughter($child);
 
+    my $limit_rows = defined $options{limit_rows} ? $options{limit_rows} : $self->limit_rows;
     # Now retrive the records
     my $records = GADS::Records->new(
         user                    => $self->layout->user,
@@ -40,7 +41,7 @@ sub fetch_multivalues
         include_deleted         => 1,
         is_draft                => $options{is_draft},
         columns                 => $self->curval_field_ids_retrieve(%options, already_seen => $child),
-        max_results             => $self->limit_rows,
+        max_results             => $limit_rows,
         ignore_view_limit_extra => 1,
     );
     my %retrieved; my $order; my @return;
@@ -50,7 +51,7 @@ sub fetch_multivalues
     # would use a lateral join to retrieve in one go, see:
     # https://stackoverflow.com/questions/1124603/ and
     # http://lists.scsys.co.uk/pipermail/dbix-class/2015-February/011920.html
-    if ($self->limit_rows)
+    if ($limit_rows)
     {
         # Group the values into each record
         my %values_grouped;

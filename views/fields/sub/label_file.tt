@@ -13,16 +13,16 @@
         filter       = "html";
     END;
   %]
-  <label for="[% id %]"[% IF label_class %] class="[% label_class %]"[% END %]>
+  <label for="[% id %]"[% IF label_class %] class="form-label [% label_class %]"[% END %]>
     <span class="input__file-label" role="button" aria-controls="[% id %]" tabindex="0">
       [% INCLUDE fields/sub/filter.tt value=label; %]
     </span>
   </label>
-  
+
   [%- IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body popover_class="popover-container--top"; END; -%]
-  
+
   <div class="file">
-    <label class="file__name" for="[% id %]">
+    <label class="file__name form-label" for="[% id %]">
       [% INCLUDE fields/sub/filter.tt value=placeholder; %]
     </label>
     <button type="button" class="file__delete close" aria-label="Delete">

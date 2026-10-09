@@ -51,7 +51,7 @@
     INCLUDE fields/checkbox_list.tt
         fieldset_name = "permissions"
         list_class = list_class
-        name = "permission"
+        name = "permissions"
         label = "User's system-wide permissions"
         items = [{
           id = "superadmin",

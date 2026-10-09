@@ -14,14 +14,16 @@
         action_datetime = version.datetime.as_string;
         action_type     = initial ? 'created' : 'updated';
         action_by       = version.editor.id ? " by " _ version.editor.as_string : '';
-    
+
     %]
-    <div class="card card--header">
-      <h3 class="card__header">
-        <span> [%  action_datetime _ " - " _ " record " _ action_type _ action_by | html %] </span>
-      </h3>
-    
-      <div class="card__body row">
+    <div class="card card-secondary">
+      <div class="card-header">
+        <h2 class="card__header">
+          <span> [%  action_datetime _ " - " _ " record " _ action_type _ action_by | html %] </span>
+        </h2>
+      </div>
+
+      <div class="card-body">
         <div class="card__content">
           <div class="list list--vertical list--key-value list--no-borders">
             <ul class="list__items">

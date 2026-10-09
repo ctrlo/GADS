@@ -24,7 +24,7 @@ use Log::Report 'linkspace';
 use Scalar::Util qw/blessed/;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Maybe Bool Int ArrayRef HashRef/;
 
 extends 'GADS::Column';
 
@@ -119,7 +119,14 @@ has '+use_id_in_filter' => (
 
 sub tjoin
 {   my ($self, %options) = @_;
-    $self->make_join(map { $_->tjoin(already_seen => $options{already_seen}) } grep { !$_->internal } @{$self->curval_fields_retrieve(%options)});
+    $self->make_join(
+        { join_current_version => $options{join_current_version} },
+        map {
+            $_->tjoin(already_seen => $options{already_seen})
+        } grep {
+            !$_->internal
+        } @{$self->curval_fields_retrieve(%options)}
+    );
 }
 
 sub _build_fetch_with_record
@@ -225,16 +232,6 @@ sub curval_fields_retrieve
 sub curval_fields_all
 {   my $self = shift;
     [ map { $self->layout_parent->column($_, permission => 'read') } @{$self->curval_field_ids_all} ];
-}
-
-sub sort_columns
-{   my $self = shift;
-    map { $_->sort_columns } @{$self->curval_fields};
-}
-
-sub sort_parent
-{   my $self = shift;
-    $self; # This field is the parent for sort columns
 }
 
 # Does this column reference the field?
@@ -470,6 +467,14 @@ sub ids_to_values
 sub _get_rows
 {   my ($self, $ids, %options) = @_;
     @$ids or return;
+    # Sanity check for duplicates
+    my %want;
+    foreach (@$ids) {
+        error __x"Duplicate value requested for field ID {field_id}: {id}",
+            field_id => $self->id, id => $_
+                if $want{$_};
+        $want{$_} = 1;
+    };
     my $return;
     if ($self->has_values_index) # Do not build unnecessarily (expensive)
     {
@@ -502,8 +507,21 @@ sub _get_rows
     my %deleted = map { $_->current_id => 1 } grep $_->deleted, @$return;
     my @ids = grep !$deleted{$_}, @$ids;
     $return = [grep !$deleted{$_->current_id}, @$return];
-    error __x"Invalid Curval ID list {ids}", ids => "@ids"
-        if @$return != @ids;
+    if (@$return != @ids)
+    {
+        my %found = map { $_->current_id => 1 } @$return;
+        my @not_found = grep !$found{$_}, @ids;
+        if (@not_found)
+        {
+            # If a curval field has had its related table changed then there
+            # may be IDs from the old table
+            error __x"Could not find these requested Curval IDs for field ID {field_id}: {ids}",
+                field_id => $self->id, ids => "@not_found";
+        }
+        else {
+            error __x"Invalid Curval ID list {ids}", ids => "@ids";
+        }
+    }
     $return;
 }
 

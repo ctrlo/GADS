@@ -20,7 +20,7 @@ package GADS::Datum::File;
 
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Bool ArrayRef/;
 use namespace::clean;
 
 extends 'GADS::Datum';
@@ -40,7 +40,7 @@ after set_value => sub {
         # hashref for tests etc
         if (ref $val eq 'HASH')
         {
-            my $file = $self->schema->resultset('Fileval')->create({
+            my $file = $self->schema->resultset('Fileval')->create_with_file({
                 name     => $val->{name},
                 mimetype => $val->{mimetype},
                 content  => $val->{content},
@@ -68,11 +68,12 @@ after set_value => sub {
             my $old_value   = $self->schema->resultset('Fileval')->find($old[0]); # Only do one fetch here
             my $old_content = $old_value->content;
             my $old_name    = $old_value->name;
-            $changed = 0 if $self->schema->resultset('Fileval')->search({
+            if(my $fl = $self->schema->resultset('Fileval')->search({
                 id      => $values[0],
-                content => $old_content,
                 name    => $old_name
-            })->count;
+            })->next) {
+                $changed = 0 if $fl && $fl->content eq $old_content;
+            }
         }
     }
     if ($changed)

@@ -20,7 +20,6 @@ package GADS::Column::Id;
 
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Intgr';
 
@@ -48,7 +47,7 @@ has '+value_field' => (
 
 sub cleanup {}
 
-sub tjoin {}
+sub tjoin { undef }
 
 1;
 

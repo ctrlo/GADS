@@ -84,10 +84,11 @@ sub send
     my $content_type = @parts > 1 ? 'multipart/alternative' : $parts[0]->type;
 
     my $msg = Mail::Message->build(
-        Subject        => $subject,
-        From           => $self->email_from,
-        'Content-Type' => $content_type,
-        attach         => \@parts,
+        Subject                    => $subject,
+        From                       => $self->email_from,
+        'Content-Type'             => $content_type,
+        'X-Auto-Response-Suppress' => 'All',
+        attach                     => \@parts,
     );
     $msg->head->add('Reply-to' => $reply_to) if $reply_to;
 

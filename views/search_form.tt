@@ -1,15 +1,15 @@
 [% IF page == "data" OR page == "index" OR page == "table_index" OR page == "record" %]
     [% UNLESS session.rewind %]
     <div class="btn-group search_container">
-        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="search_form" aria-haspopup="true">
+        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="search_form" aria-haspopup="true">
             Search
         </button>
         <form id="search_form" class="dropdown-menu" role="search" action="/[% layout.identifier %]/data" method="get">
-            <div class="form-group">
-                <label for="search_text">Search (use * as wildcard):</label>
+            <div class="form-group mb-4">
+                <label class="form-label" for="search_text">Search (use * as wildcard):</label>
                 <input id="search_text" type="text" name="search_text" class="form-control" value="[% search | html_entity %]">
             </div>
-            <button type="submit" name="search" value="search" class="pull-right btn btn-default">Search</button>
+            <button type="submit" name="search" value="search" class="pull-right btn btn-primary">Search</button>
         </form>
     </div>
     [% END %]

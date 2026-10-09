@@ -20,7 +20,6 @@ package GADS::Column::Serial;
 
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
@@ -58,7 +57,7 @@ has '+value_field' => (
     default => 'serial',
 );
 
-sub tjoin {}
+sub tjoin { undef }
 
 sub validate_search
 {   my ($self, $value) = @_;

@@ -20,7 +20,6 @@ package GADS::RecordsGlobe;
 
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
 extends 'GADS::Records';

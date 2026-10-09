@@ -1,12 +1,6 @@
 use utf8;
 package GADS::Schema::Result::Current;
 
-=head1 NAME
-
-GADS::Schema::Result::Current
-
-=cut
-
 use strict;
 use warnings;
 
@@ -15,80 +9,17 @@ use Moo;
 extends 'DBIx::Class::Core';
 sub BUILDARGS { $_[2] || {} }
 
-=head1 COMPONENTS LOADED
-
-=over 4
-
-=item * L<DBIx::Class::InflateColumn::DateTime>
-
-=back
-
-=cut
-
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<current>
-
-=cut
-
 __PACKAGE__->table("current");
-
-=head1 ACCESSORS
-
-=head2 id
-
-  data_type: 'bigint'
-  is_auto_increment: 1
-  is_nullable: 0
-
-=head2 serial
-
-  data_type: 'bigint'
-  is_nullable: 1
-
-=head2 parent_id
-
-  data_type: 'bigint'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 instance_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 linked_id
-
-  data_type: 'bigint'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 deleted
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-
-=head2 deletedby
-
-  data_type: 'bigint'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 draftuser_id
-
-  data_type: 'bigint'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=cut
 
 __PACKAGE__->add_columns(
   "id",
   { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
   "serial",
   { data_type => "bigint", is_nullable => 1 },
+  "current_version_id",
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "parent_id",
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "instance_id",
@@ -107,29 +38,9 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
 );
 
-=head1 PRIMARY KEY
-
-=over 4
-
-=item * L</id>
-
-=back
-
-=cut
-
 __PACKAGE__->set_primary_key("id");
 
 __PACKAGE__->add_unique_constraint("current_ux_instance_serial", ["instance_id", "serial"]);
-
-=head1 RELATIONS
-
-=head2 alert_caches
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::AlertCache>
-
-=cut
 
 __PACKAGE__->has_many(
   "alert_caches",
@@ -138,14 +49,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 alerts_send
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::AlertSend>
-
-=cut
-
 __PACKAGE__->has_many(
   "alerts_send",
   "GADS::Schema::Result::AlertSend",
@@ -153,13 +56,30 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 currents
+__PACKAGE__->belongs_to(
+  "current_version",
+  "GADS::Schema::Result::Record",
+  { id => "current_version_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
 
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Current>
-
-=cut
+# See comments below regarding record_single_alternative
+__PACKAGE__->belongs_to(
+  "current_version_alternative",
+  "GADS::Schema::Result::Record",
+  { id => "current_version_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
 
 __PACKAGE__->has_many(
   "currents",
@@ -168,14 +88,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 currents_linked
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Current>
-
-=cut
-
 __PACKAGE__->has_many(
   "currents_linked",
   "GADS::Schema::Result::Current",
@@ -183,28 +95,12 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 curvals
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Curval>
-
-=cut
-
 __PACKAGE__->has_many(
   "curvals",
   "GADS::Schema::Result::Curval",
   { "foreign.value" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
-
-=head2 instance
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::Instance>
-
-=cut
 
 __PACKAGE__->belongs_to(
   "instance",
@@ -218,14 +114,6 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 linked
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::Current>
-
-=cut
-
 __PACKAGE__->belongs_to(
   "linked",
   "GADS::Schema::Result::Current",
@@ -237,14 +125,6 @@ __PACKAGE__->belongs_to(
     on_update     => "NO ACTION",
   },
 );
-
-=head2 parent
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::Current>
-
-=cut
 
 __PACKAGE__->belongs_to(
   "parent",
@@ -258,14 +138,6 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 deletedby
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::User>
-
-=cut
-
 __PACKAGE__->belongs_to(
   "deletedby",
   "GADS::Schema::Result::User",
@@ -277,18 +149,6 @@ __PACKAGE__->belongs_to(
     on_update     => "NO ACTION",
   },
 );
-
-=head2 records
-
-Type: has_many
-
-=head2 draftuser
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::User>
-
-=cut
 
 __PACKAGE__->belongs_to(
   "draftuser_id",
@@ -302,24 +162,12 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 records
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Record>
-
-=cut
-
 __PACKAGE__->has_many(
   "records",
   "GADS::Schema::Result::Record",
   { "foreign.current_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
-
-
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rxAxdyOBz/25FzoaWbC+Bg
 
 __PACKAGE__->might_have(
   "record_single",

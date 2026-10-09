@@ -60,9 +60,16 @@ sub as_string
     join ', ', $self->as_strings;
 }
 
-sub _parse_date
-{   $_[1] or return;
-    $_[0]->schema->storage->datetime_parser->parse_date($_[1]);
+sub parse_date
+{   my ($self, $val) = @_;
+    $val or return;
+    return $self->schema->storage->datetime_parser->parse_date($val);
+}
+
+sub parse_datetime
+{   my ($self, $val) = @_;
+    $val or return;
+    return $self->schema->storage->datetime_parser->parse_datetime($val);
 }
 
 sub _convert_date
@@ -115,6 +122,11 @@ sub convert_value
             $val->truncate(to => 'day') if $val;
             push @return, $val || undef;
         }
+        elsif ($column->return_type eq "datetime")
+        {
+            $val = $self->_convert_date($val);
+            push @return, $val || undef;
+        }
         elsif ($column->return_type eq "daterange") # Currently always has time element
         {
             if (!$val)
@@ -143,7 +155,11 @@ sub convert_value
         }
         elsif ($column->return_type eq 'globe')
         {
-            if ($self->column->check_country($val))
+            if (!$val)
+            {
+                # Do nothing
+            }
+            elsif ($self->column->check_country($val))
             {
                 push @return, $val;
             }
@@ -202,7 +218,7 @@ sub equal
             $a2 += 0; $b2 += 0; # Remove trailing zeros
             return 0 if $a2 != $b2;
         }
-        elsif ($rt eq 'date')
+        elsif ($rt eq 'date' || $rt eq 'datetime')
         {
             # Type might have changed and old value be string
             ref $a2 eq 'DateTime' && ref $b2 eq 'DateTime' or return 0;
@@ -236,7 +252,7 @@ sub _build_for_code
     my @return;
     foreach my $val (@{$self->value})
     {
-        if ($rt eq 'date')
+        if ($rt eq 'date' || $rt eq 'datetime')
         {
             push @return, $self->date_for_code($val);
         }

@@ -96,7 +96,8 @@
               is_readonly  = is_readonly
               hide_group   = 1
               multi_value_style = 1
-              rows         = 10;
+              rows         = 10
+              max_length   = max_length;
           ELSE;
             INCLUDE fields/input.tt
               id           = id
@@ -112,7 +113,8 @@
               is_required  = is_required
               is_readonly  = is_readonly
               hide_group   = 1
-              type         = field_input_type;
+              type         = field_input_type
+              max_length   = max_length;
           END;
         %]
           <button

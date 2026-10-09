@@ -21,7 +21,7 @@ package GADS::Group;
 use GADS::Type::Permissions;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(Bool HashRef Int Str);
 
 has schema => (
     is       => 'rw',

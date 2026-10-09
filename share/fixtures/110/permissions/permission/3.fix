@@ -1,0 +1,7 @@
+$HASH1 = {
+           description
+                  => 'User can manage other user accounts',
+           id     => 3,
+           name   => 'useradmin',
+           order  => 3
+         };
