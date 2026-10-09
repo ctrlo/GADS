@@ -45,11 +45,9 @@ const toggle = (api: Api) => {
     let fullscreen = conf.fullscreen;
     const node = api.table().node();
 
-    console.log("Destroy the DT");
     api.destroy();
 
     if (!fullscreen) {
-        console.log("Entering fullscreen mode");
         fullscreen = true;
 
         const frame = document.createElement("div");
@@ -73,15 +71,12 @@ const toggle = (api: Api) => {
         document.body.appendChild(frame);
 
         conf = Object.assign(conf, { responsive: false, reinitialize: true, el: $table, fullscreen });
-        console.log("Reinitializing the DT in fullscreen mode");
         $table.DataTable(conf);
     } else {
         fullscreen = false;
 
-        console.log("Removing the fullscreen frame");
         $("#fullscreen-frame").remove();
 
-        console.log("Reinitializing the DT in normal mode");
         conf = (Object.assign(conf, { reinitialize: true, fullscreen }));
         if(!conf.element) throw new Error("DataTable element is not defined");
         $(conf.element!).DataTable(conf);
@@ -89,9 +84,7 @@ const toggle = (api: Api) => {
 };
 
 DataTable.feature.register("fullscreen", function (settings, opts: FullscreenOptions) {
-    const options = Object.assign({
-        checked: settings.api.init().fullscreen
-    }, opts);
+    const options = Object.assign({checked: settings.api.init().fullscreen}, opts);
     return createToggleButton("fullscreen-button", "Fullscreen", options.checked, () => {
         const api = settings.api;
         toggle(api);
