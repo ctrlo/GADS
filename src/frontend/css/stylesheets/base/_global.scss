@@ -103,9 +103,9 @@ table.table-bordered {
 }
 
 .hft-lines {
-  @extend .mb-2;
 
   &:not(:last-of-type) {
+    @extend .mb-2;
     @extend .pb-2;
     @extend .border-bottom
   }

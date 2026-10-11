@@ -51,6 +51,10 @@ has color_col_id => (
     is => 'ro',
 );
 
+has label_as_field => (
+    is => 'ro',
+);
+
 has all_group_values => (
     is => 'ro',
 );
@@ -301,7 +305,7 @@ sub _build_items
                             from       => $start,
                             to         => $end,
                             color      => $color,
-                            column     => $column_datum->id,
+                            column     => $column_datum,
                             count      => ++$seqnr,
                             daterange  => $is_range,
                             has_time   => $column->has_time,
@@ -358,7 +362,7 @@ sub _build_items
 
       DATE: foreach my $d (@dates)
             {   my $add = $date_column_count > 1
-                  ? ' ('.$layout->column($d->{column})->name.')' : '';
+                  ? ' ('.$d->{column}->name.')' : '';
 
                 my $cid = $d->{current_id} || $record->current_id;
 
@@ -377,7 +381,7 @@ sub _build_items
                 # Additional items for the same record and field can appear at
                 # any time, in particular if grouped by the field. Ensure that
                 # exactly the same items is not added twice.
-                my $uid  = join '+', $cid, $d->{column};
+                my $uid  = join '+', $cid, $d->{column}->id;
                 $uid  = join '+', $uid, $group_to_add if $group_to_add;
                 ! $self->_all_items_index->{$uid}
                     or next DATE;
@@ -390,12 +394,12 @@ sub _build_items
                 }, grep !$_->{col}->name_short || $_->{col}->name_short ne '_id', @values;
 
                 my %item = (
-                    content    => "$title$add",
+                    content    => $self->label_as_field ? $d->{column}->name : "$title$add",
                     id         => $uid,
                     current_id => $cid,
                     start      => _tick $d->{from},
                     group      => $item_group,
-                    column     => $d->{column},
+                    column     => $d->{column}->id,
                     dt         => $d->{from},
                     dt_to      => $d->{to},
                     values     => \@popup_values,

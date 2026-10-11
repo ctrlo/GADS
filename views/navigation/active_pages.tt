@@ -9,6 +9,7 @@
   # table top bar menu
   # ------------------
   records_active_pages = [
+    "record/dashboard",
     "data_table",
     "data_graph",
     "data_timeline",

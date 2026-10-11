@@ -36,6 +36,7 @@ export default function App(props: AppProps): React.JSX.Element {
     useEffect(() => {
         if (editModalOpen && !loadingEditHtml && formRef) {
             initializeSummernoteComponent();
+            initializeRegisteredComponents(formRef.current);
         }
 
         if (!editModalOpen && !loadingEditHtml) {
@@ -51,7 +52,6 @@ export default function App(props: AppProps): React.JSX.Element {
      * Initialize all components that need to be set up
      */
     const initializeComponents = () => {
-        initializeRegisteredComponents(document.body);
         initializeGlobeComponents();
     };
 
@@ -60,7 +60,7 @@ export default function App(props: AppProps): React.JSX.Element {
      * @param {string} id The ID of the widget to update
      */
     const updateWidgetHtml = async (id: string) => {
-        const newHtml = await props.api.getWidgetHtml(id);
+        const newHtml = await props.api.getWidgetHtml(id, props.currentId);
         const newWidgets = widgets.map(widget => {
             if (widget.config.i === id) {
                 return {

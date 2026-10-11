@@ -263,6 +263,18 @@ has sort_type => (
     builder => sub { $_[0]->_rset->sort_type },
 );
 
+has record_as_dashboard => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    clearer => 1,
+    builder => sub {
+        my $self = shift;
+        my $rset = $self->_rset;
+        $rset->record_display eq 'dashboard' ? 1 : 0;
+    },
+);
+
 # Reference to the relevant record using this layout if applicable. Used for
 # filtered curvals
 has record => (
@@ -1132,6 +1144,16 @@ sub all_user_read
     $self->all(user_can_read => 1);
 }
 
+sub all_curcommon
+{   my $self = shift;
+    grep $_->is_curcommon, $self->all;
+}
+
+sub columns_for_dashboard_timeline
+{   my $self = shift;
+    grep $_->{return_type} =~ /date/, $self->columns_for_filter;
+}
+
 # A bit hacky, used as a stash for full records that have been retrieved by
 # columns in this layout. As the layout is (currently) rebuilt each request, we
 # can afford to do this
@@ -1468,6 +1490,17 @@ sub _build_global_view_summary
         order_by => 'me.name',
     })->all;
     \@views;
+}
+
+sub user_views
+{   my $self = shift;
+    my $views = GADS::Views->new(
+        user          => $self->user,
+        schema        => $self->schema,
+        layout        => $self,
+        instance_id   => $self->instance_id,
+    );
+    $views->user_views;
 }
 
 sub export

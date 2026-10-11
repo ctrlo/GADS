@@ -117,8 +117,12 @@ export default class ApiClient {
      * @param id The ID of the widget to get HTML for.
      * @returns {Promise<string>} The HTML content of the widget.
      */
-    getWidgetHtml = async (id: string): Promise<string> => {
-        const html = this.isDev ? await this.GET(`/widget/${id}/create`) : await this.GET(`/widget/${id}`);
+    getWidgetHtml = async (id: string, currentId: number | null): Promise<string> => {
+        let url  = `/widget/${id}`;
+        if (currentId) {
+            url += `?current_id=${currentId}`;
+        }
+        const html = this.isDev ? await this.GET(`/widget/${id}/create`) : await this.GET(url);
         return html.text();
     };
 

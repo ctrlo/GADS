@@ -415,6 +415,29 @@ has current_id => (
     },
 );
 
+has _url => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        my $current_id = $self->current_id
+            or return undef;
+        join "", map "/$_", $self->layout->identifier, "record", $current_id;
+    }
+);
+
+sub url_dashboard
+{   my $self = shift;
+    $self->_url;
+}
+
+sub url_full
+{   my $self = shift;
+    $self->layout->record_as_dashboard
+        ? $self->_url."?view=full"
+        : $self->_url;
+}
+
 has fields => (
     is      => 'rw',
     lazy    => 1,

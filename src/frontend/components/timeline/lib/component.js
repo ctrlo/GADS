@@ -25,7 +25,7 @@ class TimelineComponent extends Component {
       const items = new DataSet(dataset)
       let groups = $container.data('groups')
       const json_group = atob(groups)
-      groups = JSON.parse(json_group)
+      groups = json_group ? JSON.parse(json_group) : []
       const is_dashboard = !!$container.data('dashboard')
       const layout_identifier = $('body').data('layout-identifier')
 

@@ -4,7 +4,7 @@ package GADS::Schema::Result::Widget;
 use strict;
 use warnings;
 
-__PACKAGE__->mk_group_accessors('simple' => qw/layout/);
+__PACKAGE__->mk_group_accessors('simple' => qw/layout current_id/);
 
 use base 'DBIx::Class::Core';
 
@@ -49,9 +49,11 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "rows",
   { data_type => "integer", is_nullable => 1 },
-  "tl_options",
+  "options",
   { data_type => "text", is_nullable => 1 },
-  "globe_options",
+  "tl_options", # Deprecated
+  { data_type => "text", is_nullable => 1 },
+  "globe_options", # Deprecated
   { data_type => "text", is_nullable => 1 },
 );
 
@@ -95,16 +97,10 @@ __PACKAGE__->belongs_to(
   },
 );
 
-sub tl_options_inflated
+sub options_inflated
 {   my $self = shift;
-    return undef if !$self->tl_options;
-    decode_json $self->tl_options;
-}
-
-sub globe_options_inflated
-{   my $self = shift;
-    return undef if !$self->globe_options;
-    decode_json $self->globe_options;
+    return {} if !$self->options;
+    decode_json $self->options;
 }
 
 sub before_create
@@ -133,8 +129,15 @@ sub is_integer
 sub validate
 {   my $self = shift;
     $self->type('notice') if !$self->type; # XXX Temp until widget type can be defined
-    $self->type =~ /^(notice|table|graph|timeline|globe)$/
-        or error __x"Invalid widget type: {type}", type => $self->type;
+    if ($self->dashboard->is_record)
+    {
+        $self->type =~ /^(notice|timeline|field|table)$/
+            or error __x"Invalid widget type: {type}", type => $self->type;
+    }
+    else {
+        $self->type =~ /^(notice|table|graph|timeline|globe)$/
+            or error __x"Invalid widget type: {type}", type => $self->type;
+    }
     ! defined $self->h || is_integer($self->h)
         or error __x"Invalid h value {value}", value => $self->h;
     ! defined $self->w || is_integer($self->w)
@@ -145,6 +148,22 @@ sub validate
         or error __x"Invalid y value {value}", value => $self->y;
     ! defined $self->rows || is_integer($self->rows)
         or error __x"Invalid rows value {value}", value => $self->rows;
+
+    # Validate individual options
+    if ($self->type eq 'timeline' && $self->dashboard->is_record)
+    {
+        my %options = %{$self->options_inflated};
+        my $column_ids = delete $options{column_ids} || [];
+        ref $column_ids eq 'ARRAY'
+            or error "Incorrect value type for columns";
+        error "Invalid column ID in columns configuration"
+            if grep $_ !~ /^[_0-9]+$/, @$column_ids;
+        my $timeline_range = delete $options{timeline_range};
+        !$timeline_range || $timeline_range =~ /^(3|6|12|24)$/
+            or error __x"Invalid timeline range: {range}", range => $timeline_range;
+        error "Unexpected keys in widget configuration"
+            if keys %options;
+    }
 }
 
 sub html
@@ -173,7 +192,73 @@ sub html
             layout                   => $self->layout,
         );
 
-        if ($self->type eq 'table')
+        if ($self->type eq 'table' && $self->dashboard->is_record)
+        {
+            # The field from the record from which the referenced table is
+            # being rendered
+            my $source_column = $layout->column($self->options_inflated->{column_id});
+            if (!$self->view_id || !$self->rows || !$source_column)
+            {
+                $params->{type} = 'notice';
+                $params->{content} = 'Configuration required';
+            }
+            elsif ($view->current_user_has_access)
+            {
+                # Need to construct a view which is the one from the
+                # destination table selected, but only included the records
+                # relevant to the the curcommon of this particular record.
+                my $layout_parent = $source_column->layout_parent;
+                # First need to find the remote field referring this one:
+                my ($remote_field) = $source_column->type eq 'curval'
+                    ? grep { $_->type eq 'autocur' && $_->related_field->id == $source_column->id } $layout_parent->all
+                    : $source_column->related_field;
+                if ($remote_field)
+                {
+                    my $filter = GADS::Filter->new(
+                        as_hash => {
+                            rules     => [
+                                {
+                                    id       => $remote_field->id,
+                                    type     => 'string',
+                                    value    => $self->current_id,
+                                    operator => 'equal',
+                                },
+                                $view->filter->as_hash,
+                            ],
+                            operator => 'AND',
+                        },
+                    );
+                    # Temporarily store new filter, but do not write
+                    $view->filter($filter);
+                    my $records = GADS::Records->new(
+                        user   => $user,
+                        layout => $layout_parent,
+                        schema => $schema,
+                        page   => 1,
+                        view   => $view,
+                        rows   => $self->rows,
+                        #rewind => session('rewind'), # Maybe add in the future
+                    );
+                    my @columns = @{$records->columns_render};
+                    $params->{records} = $records->presentation;
+                    $params->{layout}  = $layout_parent,
+                    $params->{columns} = [ map $_->presentation(sort => $records->sort_first), @columns ];
+                }
+                else {
+                    # Graceful error
+                    $params->{type} = 'notice';
+                    $params->{content} = 'The table that this value refers to requires an autocur field';
+                }
+            }
+            else {
+                # Fail cleanly with useful message. If attempting previous step
+                # using a view with no access, then a Log::Report error will be
+                # thrown instead.
+                $params->{type} = 'notice';
+                $params->{content} = 'You do not have access to the configured view for this widget';
+            }
+        }
+        elsif ($self->type eq 'table')
         {
             if (!$self->view_id || !$self->rows)
             {
@@ -230,6 +315,40 @@ sub html
             $params->{plot_data}    = $plot_data;
             $params->{plot_options} = $options_in;
         }
+        elsif ($self->type eq 'timeline' && $self->dashboard->is_record)
+        {
+            my $options = $self->options_inflated;
+            my $range   = $options->{timeline_range} || 12;
+            my ($lower, $upper)
+                = $range == 3 ? (1, 2)
+                : $range == 6 ? (1, 5)
+                : $range == 12 ? (2, 10)
+                : (3, 21); # 24
+
+            # XXX Columns can be normal IDs from the same table, or can be
+            # parent/child IDs (with underscore) for curcommons. For the
+            # latter, GADS::Records currently does not support retrieval as
+            # such, so convert these into the parent only. Thus these dates
+            # will only be rendered if the field in question is included as a
+            # displayed field in the curcommon field.
+            my @column_ids = map {
+                $_ =~ /([0-9]+)_/ ? $1 : $_
+            } @{$options->{column_ids}};
+            my $records = GADS::Records->new(
+                current_ids => [$self->current_id],
+                columns     => \@column_ids,
+                user        => $user,
+                layout      => $layout,
+                from        => DateTime->now->subtract(months => $lower),
+                to          => DateTime->now->add(months => $upper),
+                schema      => $schema,
+            );
+            my $timeline = $records->data_timeline(label_as_field => 1);
+
+            $params->{records}   = encode_base64(encode_json(delete $timeline->{items}), '');
+            $params->{dashboard} = 1;
+            $params->{timeline}  = $timeline;
+        }
         elsif ($self->type eq 'timeline')
         {
             return 'Configuration required' if !$self->view_id;
@@ -241,7 +360,7 @@ sub html
                 from                => DateTime->now, # Default
                 schema              => $schema,
             );
-            my $tl_options = $self->tl_options_inflated;
+            my $tl_options = $self->options_inflated;
             my $timeline = $records->data_timeline(%{$tl_options});
 
             $params->{records}   = encode_base64(encode_json(delete $timeline->{items}), '');
@@ -259,7 +378,7 @@ sub html
                 layout => $layout,
                 schema => $schema,
             };
-            my $globe_options = $self->globe_options_inflated;
+            my $globe_options = $self->options_inflated;
             my $globe = GADS::Globe->new(
                 group_col_id    => $globe_options->{group},
                 color_col_id    => $globe_options->{color},
@@ -267,6 +386,23 @@ sub html
                 records_options => $records_options,
             );
             $params->{globe_data} = encode_base64(encode_json($globe->data), '');
+        }
+        elsif ($self->type eq 'field')
+        {
+            my $options = $self->options_inflated;
+            my $current_id = $self->current_id
+                or error __x"No record ID provided for field widget {id}", id => $self->id;
+            my $records = GADS::Records->new(
+                current_ids => [$current_id],
+                columns     => $options->{column_ids},
+                user        => $user,
+                layout      => $layout,
+                schema      => $schema,
+            );
+            my $record = $records->single
+                or error __x"Record ID {id} not found", id => $self->current_id;
+            $params->{record} = $record->presentation;
+            $params->{show_field_labels} = $options->{show_field_labels};
         }
     }
 

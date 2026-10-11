@@ -1914,6 +1914,7 @@ get '/chronology/:id?' => require_login sub {
 any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
 
     my ($action, $id) = splat;
+    my $view_query    = query_parameters->get('view') || ''; # display as dashboard or record
 
     my $user   = logged_in_user;
 
@@ -1970,6 +1971,49 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
     return $return if $is_raw;
     $return->{is_history} = $action eq 'history';
     $return->{reports} = $layout->reports();
+
+    if ($layout->record_as_dashboard && $view_query ne 'full')
+    {
+        my $dashboard = schema->resultset('Dashboard')->record_dashboard(
+            current_id  => $id,
+            instance_id => $layout->instance_id,
+            layout      => $layout,
+        ) or error __"A record overview dashboard has not been created for this table";
+
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
+        return template 'record/dashboard' => {
+            page            => 'record/dashboard',
+            current_id      => $id,
+            header_type     => "table_title",
+            header_back_url => "${base_url}${tableIdentifier}/data",
+            layout_obj      => $layout,
+            # Remove default excess padding top and left
+            content_block_main_custom_classes => "pt-0",
+            content_block_custom_classes => "ps-0",
+            breadcrumbs     => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", $id ? ucfirst($layout->record_name)." ID: " . $id : "New ".$layout->record_name)
+            ],
+            readonly        => !$layout->user_can('layout'),
+            dashboards_json => encode_json ([
+                        +{
+                            id   => 1,
+                            url  => $record->url_dashboard,
+                            name => 'Overview',
+                        },
+                        +{
+                            id   => 2,
+                            url  => $record->url_full,
+                            name => 'Full record',
+                        }
+                ]),
+            dashboard  => $dashboard,
+        };
+    }
+
     template 'edit' => $return, $options;
 };
 

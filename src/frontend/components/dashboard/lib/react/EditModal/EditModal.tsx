@@ -21,6 +21,7 @@ export default function EditModal({ editModalOpen, closeModal, editError, loadin
             marginRight: "-50%",
             transform: "translate(-50%, -50%)",
             msTransform: "translate(-50%, -50%)",
+            overflow: "visible", /* Allow select drop-downs to overflow modal container */
             padding: "2rem 1.5rem"
         },
         overlay: {

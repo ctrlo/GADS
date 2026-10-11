@@ -1630,6 +1630,16 @@ has _next_single_id => (
     default => 0,
 );
 
+# Whether specific record IDs were specified when this object was created
+has _has_specific_ids => (
+    is => 'lazy',
+);
+
+sub _build__has_specific_ids
+{   my $self = shift;
+    $self->_next_single_id == 0 && $self->_single_page == 0 && $self->has_current_ids;
+}
+
 # This could be called thousands of times (e.g. download), so fetch
 # the rows in chunks
 my $chunk = 100;
@@ -1638,7 +1648,7 @@ sub single
 
     my $next_id = $self->_next_single_id;
 
-    if (!$self->is_group) # Don't retrieve in chunks for group records
+    if (!$self->is_group && !$self->_has_specific_ids) # Don't retrieve in chunks for group records
     {
         if (
             ($next_id == 0 && $self->_single_page == 0) # First run
@@ -2958,9 +2968,10 @@ sub csv_line
 sub data_timeline
 {   my ($self, %options) = @_;
 
-    my $original_from = $self->from;
-    my $original_to   = $self->to;
-    my $limit_qty     = $original_from && ! $original_to;
+    my $original_from     = $self->from;
+    my $original_to       = $self->to;
+    my $limit_qty         = $original_from && ! $original_to;
+    my $limit_current_ids = $self->has_current_ids && $self->current_ids;
 
     my $timeline = GADS::Timeline->new(
         type             => 'timeline',
@@ -2969,6 +2980,7 @@ sub data_timeline
         group_col_id     => $options{group},
         color_col_id     => $options{color},
         all_group_values => $options{all_group_values},
+        label_as_field   => $options{label_as_field},
     );
     $self->separate_records_for_multicol($options{group});
 
@@ -3006,6 +3018,8 @@ sub data_timeline
         $self->exclusive('to');
         $self->from(undef);
         $self->max_results(50); # search 50
+        $self->_set_current_ids($limit_current_ids)
+            if $limit_current_ids;
         $self->clear_sorts;
 
         @retrieved = @{$timeline->items};
@@ -3029,6 +3043,8 @@ sub data_timeline
         }
 
         $timeline->clear;
+        $self->_set_current_ids($limit_current_ids)
+            if $limit_current_ids;
 
         # Clear max_results otherwise message will be rendered stating the max
         # results retrieved (as per search - see search_limit_reached)
