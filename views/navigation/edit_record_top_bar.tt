@@ -1,0 +1,24 @@
+<div class="content-block__navigation">
+  <div class="content-block__navigation-left">
+    <div class="list list--horizontal list--no-borders">
+        [%
+          edit_table_buttons = [{
+            type        = "link",
+            target      = record.url_dashboard,
+            class       = "link link--primary",
+            label       = "Overview"
+          },{
+            type        = "link",
+            target      = record.url_full,
+            # Always active, as non-active rendered by dashboard
+            class       = "link link--primary link--active",
+            label       = "Full record"
+          }];
+
+          INCLUDE snippets/button_list.tt
+            list_class = "list--horizontal list--no-borders"
+            buttons    = edit_table_buttons;
+        %]
+    </div>
+  </div>
+</div>

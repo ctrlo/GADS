@@ -8,7 +8,7 @@ use base 'DBIx::Class::Core';
 
 use JSON qw(decode_json encode_json);
 
-__PACKAGE__->mk_group_accessors('simple' => qw/layout/);
+__PACKAGE__->mk_group_accessors('simple' => qw/layout current_id/);
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
@@ -23,6 +23,10 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "user_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "group_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "type",
+  { data_type => "varchar", is_nullable => 1, size => 16 },
 );
 
 __PACKAGE__->set_primary_key("id");
@@ -43,6 +47,18 @@ __PACKAGE__->belongs_to(
   "instance",
   "GADS::Schema::Result::Instance",
   { id => "instance_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+__PACKAGE__->belongs_to(
+  "group",
+  "GADS::Schema::Result::Group",
+  { id => "group_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -88,7 +104,8 @@ sub display_widgets
     # Then widgets part of the specific dashboard
     push @widgets, $self->widgets;
 
-    $_->layout($self->layout) foreach @widgets;
+    $_->layout($self->layout), $_->current_id($self->current_id)
+        foreach @widgets;
 
     return [ map {
         +{
@@ -115,7 +132,9 @@ sub as_json
 
 sub name
 {   my $self = shift;
-    $self->user_id && $self->instance_id
+    $self->is_record
+        ? 'Overview'
+        : $self->user_id && $self->instance_id
         ? $self->instance->name." dashboard (personal)"
         : $self->instance_id
         ? $self->instance->name." dashboard (shared)"
@@ -146,6 +165,11 @@ sub is_shared
 sub is_empty
 {   my $self = shift;
     ! $self->widgets->count;
+}
+
+sub is_record
+{   my $self = shift;
+    $self->type eq 'record';
 }
 
 1;

@@ -79,6 +79,7 @@ sub shared_dashboard
     my $dashboard = $self->search({
         'me.instance_id' => $params{layout} && $params{layout}->instance_id,
         'me.user_id'     => undef,
+        'me.type'        => 'table',
     })->next;
     $dashboard = $self->create_dashboard(%params, type => 'shared')
         if !$dashboard;
@@ -100,6 +101,7 @@ sub dashboard
     my $dashboard_rs = $self->search({
         'me.id'      => $id,
         'me.user_id' => [undef, $user->id],
+        'me.type'    => 'table',
     },{
         prefetch => 'widgets',
     });
@@ -112,6 +114,21 @@ sub dashboard
     }
 
     error __x"Dashboard {id} not found for this user", id => $id;
+}
+
+sub record_dashboard
+{   my ($self, %params) = @_;
+    my $layout = $params{layout};
+    my $dashboard = $self->search({
+        instance_id => $params{instance_id},
+        type        => 'record',
+    })->next || $self->create({
+        instance_id => $params{instance_id},
+        type        => 'record',
+    });
+    $dashboard->layout($layout);
+    $dashboard->current_id($params{current_id});
+    $dashboard;
 }
 
 sub create_dashboard

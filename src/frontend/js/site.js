@@ -45,7 +45,8 @@ import SelectAllComponent from "components/select-all";
 import HelpView from "components/help-view";
 import PeopleFilterComponent from "components/form-group/people-filter";
 import FieldLengthComponent from "components/form-group/field-length";
-import SelectRevealComponent from "components/select-reveal";
+// Conflicts with existing select-reveal
+// import SelectRevealComponent from "components/select-reveal";
 import handleActions from "util/actionsHandler";
 
 // Register them
@@ -87,7 +88,8 @@ registerComponent(HelpView);
 registerComponent(PeopleFilterComponent);
 registerComponent(AutosaveComponent);
 registerComponent(FieldLengthComponent);
-registerComponent(SelectRevealComponent);
+// Comflicts with existing select-reveal
+//registerComponent(SelectRevealComponent);
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body);

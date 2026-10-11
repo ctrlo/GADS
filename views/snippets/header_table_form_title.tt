@@ -21,6 +21,9 @@
       "New " _ layout.record_name;
     END;
 
+  # record dashboard
+  ELSIF page == 'record/dashboard';
+    layout.record_name.ucfirst _ " ID: " _ current_id;
 
   # bulk record actions
   ELSIF page == 'bulk';

@@ -101,6 +101,8 @@ sub presentation {
         has_rag_column  => !!(grep { $_->type eq 'rag' } @columns),
         new_entry       => $self->new_entry,
         is_draft        => $self->is_draft,
+        url_dashboard   => $self->url_dashboard,
+        url_full        => $self->url_full,
     };
 
     if ($options{edit})
