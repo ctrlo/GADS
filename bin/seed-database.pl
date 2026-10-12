@@ -61,6 +61,7 @@ unless ($host)
 
 my $migration = DBIx::Class::Migration->new(
     schema_class => 'GADS::Schema',
+    target_dir   => "$FindBin::Bin/../share",
     schema_args  => [{
         user         => $dbic->{user},
         password     => $dbic->{password},
