@@ -205,9 +205,9 @@ export default class App extends Component<AppProps, AppState> {
         }
 
         const form = serialize(formEl, { hash: true });
-        const result = await this.props.api.saveWidget(formEl.getAttribute("action"), form);
+        const result = await props.api.saveWidget(formEl.getAttribute("action")!, form);
         if (result.is_error) {
-            this.setState({ editError: result.message });
+            setEditError(result.message!);
             return;
         }
         this.updateWidgetHtml(this.state.activeItem);
@@ -245,8 +245,8 @@ export default class App extends Component<AppProps, AppState> {
     private firstAvailableSpot = (w: number, h: number): { x: number; y: number; } => {
         let x = 0;
         let y = 0;
-        while (this.isGridConflict(x, y, w, h)) {
-            if ((x + w) < this.props.gridConfig.cols) {
+        while (isGridConflict(x, y, w, h)) {
+            if ((x + w) < props.gridConfig.cols!) {
                 x += 1;
             } else {
                 y += 1;
@@ -268,8 +268,8 @@ export default class App extends Component<AppProps, AppState> {
             alert(result.message);
             return;
         }
-        const id = result.message;
-        const { x, y } = this.firstAvailableSpot(1, 1);
+        const id = result.message!;
+        const { x, y } = firstAvailableSpot(1, 1);
         const widgetLayout = {
             i: id,
             x,

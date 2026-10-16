@@ -333,9 +333,12 @@ sub record_single_rewind
         my $id = $_ == 1 ? '' : "_$_";
         my $alt = $options{alt} ? "_alternative" : "";
         push @search, (
-            "$record_single$alt$id.created" => {
-                '<=' => $self->dt_parser->format_datetime($rewind),
-            }
+            "$record_single$alt$id.created" => [
+                undef,
+                {
+                    '<=' => $self->dt_parser->format_datetime($rewind),
+                },
+            ],
         );
     }
     @search;

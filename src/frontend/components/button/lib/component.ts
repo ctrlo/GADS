@@ -125,7 +125,7 @@ class ButtonComponent extends Component {
             if (!this.buttonsMap) throw "Buttons map is not initialized";
             if (!this.buttonsMap.has(className)) return;
             this.linkedClasses.push(className);
-            this.buttonsMap.get(className)(el);
+            this.buttonsMap.get(className)?.(el);
         });
     }
 }
