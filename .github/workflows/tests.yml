@@ -36,16 +36,13 @@ jobs:
         run: prove -lrs -j4 t
 
   cypress_tests:
-    name: 'Cypress Tests for ${{ matrix.browser.name }}'
-    runs-on: '${{ matrix.browser.os }}'
+    name: 'Cypress Tests'
+    runs-on: 'ubuntu-22.04'
     timeout-minutes: 30
     container: debian:trixie-slim
 
     strategy:
       fail-fast: false
-      matrix:
-        browser:
-          - name: 'chromium'
 
     services:
       postgres:
@@ -87,26 +84,23 @@ jobs:
         run: |
           ./bin/setup_database
           perl bin/app.pl &
-      - name: 'Run the Cypress tests'
-        # We don't use node server-side, just for building and testing so this is fine
-        # Node 20 is the default version on the container,
-        # but we override it with NVM to ensure compatibility with the latest libraries.
+      - name: 'Set up node dependencies'
+        # Build deletes fengari-web.js, so we need to check it out again below
         run: |
-          sudo apt-get install -y curl
-          curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
-          sudo apt-get install -y nodejs
-          node -v
-          npm i -g yarn && npm i -g --allow-scripts=yarn
+          apt-get install -y nodejs
+          npm i -g yarn npm --force
           yarn --frozen-lockfile
           yarn build --no-watch
-          yarn cypress run --browser ${{ matrix.browser.name }}
+          git checkout ./public/js/fengari-web.js
+      - name: 'Run the Cypress tests'
+        run: yarn cypress run --browser chromium
 
   js_tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
-        node-version: [24.x]
+        node-version: [22.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
