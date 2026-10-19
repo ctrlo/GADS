@@ -42,7 +42,7 @@ sub _build_blank {
 sub for_table
 {   my $self = shift;
     my $return = $self->for_table_template;
-    $return->{values} = [$self->as_string];
+    $return->{values} = $self->is_purged ? ["[purged]"] : [$self->as_string];
     $return;
 }
 

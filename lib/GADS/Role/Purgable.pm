@@ -10,7 +10,7 @@ use Moo::Role;
 has value_fields => (
     is      => 'lazy',
     isa     => ArrayRef,
-    builder => sub { ['value']; }
+    builder => sub { ['value'] }
 );
 
 sub is_purged {

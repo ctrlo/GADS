@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::Date;
 
-use GADS::SchemaInstance;
 use DateTime;
 use DateTime::Format::DateManip;
 use Log::Report 'linkspace';
@@ -28,14 +27,6 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 with 'GADS::DateTime';
-
-has schema => (
-    is      => 'ro',
-    lazy    => 1,
-    builder => sub {
-        GADS::SchemaInstance->instance;
-    },
-);
 
 after set_value => sub {
     my ($self, $all, %options) = @_;
@@ -67,7 +58,7 @@ after set_value => sub {
 sub for_table
 {   my $self = shift;
     my $return = $self->for_table_template;
-    $return->{values} = $self->text_all;
+    $return->{values} = $self->is_purged ? ["[purged]"] : $self->text_all;
     $return;
 }
 

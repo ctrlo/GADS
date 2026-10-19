@@ -6,7 +6,7 @@ sub presentation { shift->presentation_base(@_) } # Default, overridden
 
 sub presentation_base {
     my ($self, %options) = @_;
-    return {
+    my $return = {
         type                => $options{type} || ($self->isa('GADS::Datum::Count') ? 'count' : $self->column->type),
         value               => $self->as_string,
         has_value           => $self->has_value,
@@ -18,6 +18,10 @@ sub presentation_base {
         column_id           => $self->column && $self->column->id,
         column_name         => $self->column && $self->column->name,
     };
+    if ($self->can('is_purged')) {
+        $return->{purged} = $self->is_purged;
+    }
+    return $return;
 }
 
 1;

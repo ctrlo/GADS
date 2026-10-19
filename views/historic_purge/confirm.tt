@@ -2,6 +2,7 @@
     <h3>Confirm Purge</h3>
     <p>Below is a list of the fields and their values you have chosen to purge. Please confirm that you wish to proceed.</p>
     <p class="text-danger">WARNING: This is a destructive action and cannot be undone. This will remove all field values from all current and historical versions of the records, and chronology in the selected fields from the current view.</p>
+    <p class="text-danger">Once this action is performed, the record will no longer be editable.</p>
     <input type="hidden" name="csrf_token" value="[% csrf_token %]">
 
     [%

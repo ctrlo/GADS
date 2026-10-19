@@ -112,7 +112,7 @@ around 'clone' => sub {
 sub for_table
 {   my $self = shift;
     my $return = $self->for_table_template;
-    $return->{values} = $self->values;
+    $return->{values} = $self->is_purged ? ["[purged]"] : $self->values;
     $return;
 }
 

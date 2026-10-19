@@ -53,14 +53,18 @@
 [% END %]
 
 [% MACRO render_file_datum(file, full_content) BLOCK %]
-    [% FOREACH file IN file.files %]
-        <a href="/file/[% file.id %]">
-            [% IF full_content  AND file.mimetype.match('^image/') %]
-                <img class="autosize" src="/file/[% file.id %]">
-            [% ELSE %]
-                [% file.name | html %]<br>
-            [% END %]
-        </a>
+    [% IF file.purged %]
+        <p><em>File has been purged.</em></p>
+    [% ELSE %]
+      [% FOREACH file IN file.files %]
+          <a href="/file/[% file.id %]">
+              [% IF full_content  AND file.mimetype.match('^image/') %]
+                  <img class="autosize" src="/file/[% file.id %]">
+              [% ELSE %]
+                  [% file.name | html %]<br>
+              [% END %]
+          </a>
+      [% END %]
     [% END %]
 [% END %]
 
@@ -145,35 +149,39 @@
 
 [%
   MACRO render_datum(col, render_options) BLOCK;
-    IF render_options == 'group';
-      render_group(col);
+    IF col.data.purged;
+      '<span class="purged">Data has been purged.</span>';
     ELSE;
-      full_content = 1 IF render_options == 'full';
+      IF render_options == 'group';
+        render_group(col);
+      ELSE;
+        full_content = 1 IF render_options == 'full';
 
-      SWITCH col.data.type;
-        CASE ['curval', 'autocur', 'filval'];
-          render_curcommon_datum(col.multivalue, col.data, col.name, full_content);
-        CASE 'file';
-          IF render_options == 'semi';
-              full_content = 1;
-          END;
-          render_file_datum(col.data, full_content);
-        CASE ['person', 'createdby'];
-          FOR person IN col.data.details;
-            render_person_datum(person);
-          END;
-        CASE 'string';
-          render_string_datum(col.data, col.name, full_content);
-        CASE 'enum';
-          render_enum_datum(col.data, col.name, full_content);
-        CASE 'tree';
-          render_enum_datum(col.data, col.name, full_content);
-        CASE 'rag';
-          render_rag_datum(col.data);
-        CASE 'calc';
-          render_string_datum(col.data, col.name, full_content);
-        CASE;
-          col.data.value | html;
+        SWITCH col.data.type;
+          CASE ['curval', 'autocur', 'filval'];
+            render_curcommon_datum(col.multivalue, col.data, col.name, full_content);
+          CASE 'file';
+            IF render_options == 'semi';
+                full_content = 1;
+            END;
+            render_file_datum(col.data, full_content);
+          CASE ['person', 'createdby'];
+            FOR person IN col.data.details;
+              render_person_datum(person);
+            END;
+          CASE 'string';
+            render_string_datum(col.data, col.name, full_content);
+          CASE 'enum';
+            render_enum_datum(col.data, col.name, full_content);
+          CASE 'tree';
+            render_enum_datum(col.data, col.name, full_content);
+          CASE 'rag';
+            render_rag_datum(col.data);
+          CASE 'calc';
+            render_string_datum(col.data, col.name, full_content);
+          CASE;
+            col.data.value | html;
+        END;
       END;
     END;
   END;

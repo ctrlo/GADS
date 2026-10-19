@@ -6,3 +6,9 @@
     padding: $padding-large-vertical 0;
     border-top: solid 2px $gray-extra-dark;
   }
+
+  .purged {
+    font-style: italic;
+    color: $danger;
+  }
+  
