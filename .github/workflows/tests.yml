@@ -91,7 +91,7 @@ jobs:
           npm i -g yarn npm --force
           yarn --frozen-lockfile
           yarn build --no-watch
-          git checkout ./public/js/fengari-web.js
+          (which git || apt-get install git -y) && git checkout ./public/js/fengari-web.js
       - name: 'Run the Cypress tests'
         run: yarn cypress run --browser chromium
 
