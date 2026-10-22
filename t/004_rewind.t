@@ -84,6 +84,9 @@ foreach my $multivalue (0..3)
     my $daterange1 = $sheet->columns->{daterange1};
     my $person1    = $sheet->columns->{person1};
 
+    $integer1->aggregate('sum');
+    $integer1->write;
+
     # First check historical view on only one record (with blank curval value
     # to check for a subrecord that is completely missing and will therefore
     # not have a version date)
@@ -209,6 +212,9 @@ foreach my $multivalue (0..3)
     is($record->fields->{$daterange1->id}->as_string, '2025-02-10 to 2025-06-15', "Correct old value for daterange (2014)");
     is($record->fields->{$person1->id}->as_string, 'User1, User1', "Correct old value for person (2014)");
 
+    my $aggregate = $records->aggregate_results;
+    is($aggregate->fields->{$integer1->id}->as_string, 10, "Correct aggregate value 2014");
+
     # Go back to second set (2015)
     $previous->add(years => 1);
     $records = GADS::Records->new(
@@ -228,6 +234,9 @@ foreach my $multivalue (0..3)
     is($record->fields->{$daterange1->id}->as_string, '2025-03-10 to 2025-07-15', "Correct old value for daterange (2015)");
     is($record->fields->{$person1->id}->as_string, 'User2, User2', "Correct old value for person (2015)");
 
+    $aggregate = $records->aggregate_results;
+    is($aggregate->fields->{$integer1->id}->as_string, 20, "Correct aggregate value 2015");
+
     # And back to today
     $records = GADS::Records->new(
         user    => $sheet->user,
@@ -244,6 +253,9 @@ foreach my $multivalue (0..3)
     is($record->fields->{$date1->id}->as_string, '2024-12-10', "Correct value for date current date");
     is($record->fields->{$daterange1->id}->as_string, '2025-04-10 to 2025-08-15', "Correct value for daterange current date");
     is($record->fields->{$person1->id}->as_string, 'User3, User3', "Correct value for person current date");
+
+    $aggregate = $records->aggregate_results;
+    is($aggregate->fields->{$integer1->id}->as_string, 130, "Correct aggregate value 2015");
 
     # Retrieve single record
     $record = GADS::Record->new(
