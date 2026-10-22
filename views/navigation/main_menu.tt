@@ -8,7 +8,7 @@
       <div class="sidebar__logo">
         <img src="[% url.page %]/images/logo_linkspace.svg" aria-label="LinkSpace Logo" />
       </div>
-      <button type="button" class="sidebar__toggle btn btn-default" aria-expanded="true">
+      <button type="button" class="sidebar__toggle btn btn-primary" aria-expanded="true">
         <span>Hide menu</span>
       </button>
     </div>

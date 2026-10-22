@@ -1,6 +1,8 @@
-import "../../../testing/globals.definitions";
-import {validateRequiredFields} from 'validation';
-import CreateReportButtonComponent from "./create-report-button";
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* @ts-ignore */
+import { validateRequiredFields } from 'validation';
+import CreateReportButtonComponent from './create-report-button';
+import { describe, it, expect, jest } from '@jest/globals';
 
 describe('create-report-button', () => {
     it('does not submit form if no checkboxes are checked', () => {
@@ -14,7 +16,7 @@ describe('create-report-button', () => {
           <input id="2" type="checkbox">
           <input id="3" type="checkbox">
           <input id="4" type="checkbox">
-          <input id="1" type="checkbox">
+          <input id="5" type="checkbox">
           <input id="6" type="checkbox">
           <input id="7" type="checkbox">
         </fieldset>
@@ -54,7 +56,7 @@ describe('create-report-button', () => {
       </form>
     `;
 
-        let $submit = $('#submit');
+        const $submit = $('#submit');
         new CreateReportButtonComponent($submit);
         const submitSpy = jest.fn((ev) => {
             ev.preventDefault();

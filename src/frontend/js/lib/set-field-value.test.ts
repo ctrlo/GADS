@@ -1,12 +1,17 @@
-import "../../testing/globals.definitions";
-import "components/button/lib/rename-button";
-import inputComponent from "../../components/form-group/input";
-import buttonComponent from "../../components/button";
-import multipleSelectComponent from "../../components/form-group/multiple-select";
-import selectWidgetComponent from "../../components/form-group/select-widget";
-import textAreaComponent from "../../components/form-group/textarea";
-import { describe, it, expect } from '@jest/globals';
-import { setFieldValues } from "./set-field-values";
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import 'components/button/lib/rename-button';
+/* @ts-ignore */
+import inputComponent from 'components/form-group/input';
+/* @ts-ignore */
+import buttonComponent from 'components/button';
+/* @ts-ignore */
+import multipleSelectComponent from 'components/form-group/multiple-select';
+/* @ts-ignore */
+import selectWidgetComponent from 'components/form-group/select-widget';
+/* @ts-ignore */
+import textAreaComponent from 'components/form-group/textarea';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { setFieldValues } from './set-field-values';
 
 declare global {
     interface JQuery<TElement = HTMLElement> {
@@ -15,8 +20,10 @@ declare global {
     }
 }
 
-(($)=>{
+(($) => {
+    /* @ts-ignore */
     $.fn.renameButton = jest.fn().mockReturnThis();
+    /* @ts-ignore */
     $.fn.filedrag = jest.fn().mockReturnThis();
 })(jQuery);
 
@@ -564,7 +571,8 @@ describe('setFieldValue', () => {
         const dom = $(stringDom)[0];
         document.body.appendChild(dom);
         const field = $(dom);
-        expect(() => setFieldValues(field, 'test')).toThrowError('Attempt to set value for text without array');
+        /* @ts-ignore */
+        expect(() => setFieldValues(field, 'test')).toThrow('Attempt to set value for text without array');
     });
 
     describe('String field', () => {
@@ -617,6 +625,7 @@ describe('setFieldValue', () => {
             document.body.appendChild(dom);
             const field = $(dom);
             const values = [6];
+            /* @ts-ignore */
             setFieldValues(field, values);
             const input = field.find<HTMLInputElement>('input[type="radio"]');
             for (const val of input) {
@@ -637,6 +646,7 @@ describe('setFieldValue', () => {
             document.body.appendChild(dom);
             const field = $(dom);
             const values = [6, 7];
+            /* @ts-ignore */
             setFieldValues(field, values);
             const input = field.find<HTMLInputElement>('input[type="checkbox"]');
             for (const val of input) {
@@ -659,6 +669,7 @@ describe('setFieldValue', () => {
             document.body.appendChild(dom);
             const field = $(dom);
             const values = [1];
+            /* @ts-ignore */
             setFieldValues(field, values);
             const input = field.find<HTMLInputElement>('input[type="radio"]');
             for (const val of input) {
@@ -679,6 +690,7 @@ describe('setFieldValue', () => {
             document.body.appendChild(dom);
             const field = $(dom);
             const values = [1, 4];
+            /* @ts-ignore */
             setFieldValues(field, values);
             const input = field.find<HTMLInputElement>('input[type="checkbox"]');
             for (const val of input) {
@@ -765,7 +777,7 @@ describe('setFieldValue', () => {
             expect(inputs.length).toBe(3);
         });
 
-        it('sets a date field using an object', ()=>{
+        it('sets a date field using an object', () => {
             const dom = $(dateField)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -773,7 +785,7 @@ describe('setFieldValue', () => {
             selectWidgetComponent(dom);
             document.body.appendChild(dom);
             const field = $(dom);
-            const values = [{"year":2024,"month":11,"day":12,"hour":0,"minute":0,"second":0,"epoch":1731369600}];
+            const values = [{ 'year': 2024, 'month': 11, 'day': 12, 'hour': 0, 'minute': 0, 'second': 0, 'epoch': 1731369600 }];
             setFieldValues(field, values);
             const input = field.find<HTMLInputElement>('input');
             expect(input.val()).toBe(`${values[0].year}-${values[0].month}-${values[0].day}`);
@@ -790,6 +802,7 @@ describe('setFieldValue', () => {
             document.body.appendChild(dom);
             const field = $(dom);
             const values = [1];
+            /* @ts-ignore */
             setFieldValues(field, values);
             const input = field.find<HTMLInputElement>('input');
             expect(input.val()).toBe('1');
@@ -804,6 +817,7 @@ describe('setFieldValue', () => {
             document.body.appendChild(dom);
             const field = $(dom);
             const values = [1, 2, 3];
+            /* @ts-ignore */
             setFieldValues(field, values);
             const inputs = $('input');
             let i = 1;
@@ -828,7 +842,7 @@ describe('setFieldValue', () => {
             const inputs = field.find<HTMLInputElement>('input[type="checkbox"]');
             let i = 0;
             inputs.each((_, input) => {
-                expect(Number.parseInt($(input).val() ?? "")).toBe(values[i++].id);
+                expect(Number.parseInt($(input).val() ?? '')).toBe(values[i++].id);
             });
         });
 
@@ -839,7 +853,7 @@ describe('setFieldValue', () => {
             multipleSelectComponent(dom);
             selectWidgetComponent(dom);
             document.body.appendChild(dom);
-            const field = $("#fileDom");
+            const field = $('#fileDom');
             const values = [{ id: 1, filename: 'test' }, { id: 2, filename: 'test1' }];
             setFieldValues(field, values);
             const inputs = field.find('input[type="checkbox"]');
@@ -851,7 +865,7 @@ describe('setFieldValue', () => {
         });
     });
 
-    describe('Text area', ()=> {
+    describe('Text area', () => {
         it('Should set a text area field', () => {
             const dom = $(textAreaDom)[0];
             inputComponent(dom);

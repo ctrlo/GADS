@@ -1,1 +1,1 @@
-export {ErrorHandler as default} from './lib/errorHandler';
+export {ErrorHandler as default} from "./lib/errorHandler";

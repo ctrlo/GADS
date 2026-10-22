@@ -2,7 +2,6 @@
   min-height: $min-height-container;
   padding: 50px 0 80px;
   color: $white;
-  transition: all 0.2s ease;
 
   &::before {
     content: '';
@@ -58,7 +57,6 @@
 
     content: '\e805';
     transform: rotate(180deg);
-    transition: transform 0.2s ease;
     color: $white;
     font-size: 1.25rem;
   }
@@ -145,7 +143,6 @@
   display: flex;
   align-items: center;
   padding: 10px 15px;
-  transition: 0.2s all ease;
   color: $white;
 
   &:hover,

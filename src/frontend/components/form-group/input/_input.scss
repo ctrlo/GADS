@@ -31,6 +31,10 @@
 
     margin-top: 0.5rem;
   }
+
+  p {
+    color: $secondary;
+  }
 }
 
 .input__field {
@@ -206,7 +210,7 @@
     color: $brand-success;
     text-align: center;
     vertical-align: middle;
-    
+
     .progress-bar__progress {
       background-color: rgba($brand-success, 0.2);
       .progress-bar__percentage {

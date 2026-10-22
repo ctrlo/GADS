@@ -2,9 +2,9 @@ import { Component } from 'component'
 import tippy from 'tippy.js'
 
 class TippyComponent extends Component {
-  constructor(element)  {
-      super(element)
-      this.el = $(this.element)
+  constructor(element) {
+    super(element)
+    this.el = $(this.element)
   }
 
   initTippy(wrapperEl) {
@@ -12,7 +12,7 @@ class TippyComponent extends Component {
       theme: 'light',
       allowHTML: true,
       interactive: true,
-      appendTo: wrapperEl,      
+      appendTo: wrapperEl,
     })
   }
 }

@@ -3,7 +3,7 @@
   select_widget_class = is_required ? ' select-widget--required' : '';
 %]
 [% IF ! hide_group %]
-<div class="form-group [% formgroup_class %]">
+<div class="form-group mb-4 [% formgroup_class %]">
 [% END %]
   <fieldset class="fieldset [% fieldset_class %]">
     [% INCLUDE fields/sub/label_fieldset.tt; %]
@@ -15,7 +15,7 @@
             [%
               FOREACH item IN items;
                 value_hidden = " hidden";
-          
+
                 IF values AND values.size;
                   FOREACH value IN values;
                     IF item.value == value;
@@ -55,7 +55,7 @@
             [% END %]
           </ul>
         </div>
-        
+
         <ul hidden class="available select__menu dropdown-menu show [% with_details ? 'with-details' : ''; %]"
             id="[% id %]-values-multi"
             aria-labelledby="[% id %]-label"
@@ -65,7 +65,7 @@
           [% IF has_subvals OR has_typeahead %]
             <li class="spinner">
               <div class="spinner-border" role="status">
-                <span class="sr-only">Loading...</span>
+                <span class="visually-hidden">Loading...</span>
               </div>
             </li>
           [% END %]
@@ -77,7 +77,7 @@
             [% END %]
               [%
                 checkbox_checked = 0;
-              
+
                 IF values AND values.size;
                   FOREACH value IN values;
                     IF item.value == value;
@@ -87,7 +87,7 @@
                 ELSE;
                   checkbox_checked = item.value == value ? 1 : 0;
                 END;
-              
+
                 INCLUDE fields/sub/checkbox.tt
                   id              = id _ '_' _ item.value
                   name            = name
@@ -103,9 +103,9 @@
             <div class="details">
               <button
                 type="button"
-                class="btn btn-small btn-default btn-js-more-info"
-                data-toggle="modal"
-                data-target=#detailsModal
+                class="btn btn-sm btn-primary btn-js-more-info"
+                data-bs-toggle="modal"
+                data-bs-target="#detailsModal"
                 data-record-id="[% item.value %]"
                 aria-described-by="lbl-single-details-0"
               >

@@ -42,14 +42,13 @@ li.li-error {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    
+
     p {
         flex-grow: 1;
     }
 
-    // TODO: This will be moved over to BS5 on merge - remember, syntax is _completely_ different
     .btn-alert-restore {
-        @include button-variant($white, $brand-secundary, $white, $brand-primary, $brand-secundary, $brand-secundary);
+        @include button-variant($white, $brand-secundary, $white, $white, $brand-primary, $white);
         color: $brand-secundary;
 
         &:hover {

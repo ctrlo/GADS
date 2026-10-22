@@ -1,9 +1,10 @@
-import "../../../../../testing/globals.definitions";
+/* eslint-disable jsdoc/require-jsdoc */
+import { describe, it, expect, jest } from '@jest/globals';
 import FileDrag from './filedrag';
 
-class FileDragTest extends FileDrag {
-    constructor(element, onDrop?: (files: FileList | File) => void) {
-        super(element, { debug: true }, onDrop);
+class FileDragTest extends FileDrag<HTMLElement> {
+    constructor(element: HTMLElement, onDrop?: (files: FileList | File) => void) {
+        super(element, { debug: true }, onDrop ?? (() => { }));
     }
 
     setDragging(dragging: boolean) {
@@ -48,7 +49,6 @@ describe('FileDrag class tests', () => {
     });
 
     it('hides the correct element when dragging starts', () => {
-        //Who said testing was boring? This is fun!
         const child = createBaseDOM();
         const fileDrag = new FileDragTest(child);
         const parent = child.parentElement;
@@ -100,7 +100,7 @@ describe('FileDrag class tests', () => {
 
     it('triggers the event as expected when a file is dropped', () => {
         const child = createBaseDOM();
-        const dropFunction = jest.fn((files) => {
+        const dropFunction = jest.fn((files: File) => {
             const myFile = files;
             expect(myFile).toBeDefined();
             expect(myFile.name).toBe('test.txt');
@@ -116,10 +116,10 @@ describe('FileDrag class tests', () => {
                 dataTransfer: {
                     files: [
                         {
-                            name: 'test.txt',
-                        },
-                    ],
-                },
+                            name: 'test.txt'
+                        }
+                    ]
+                }
             }, preventDefault: jest.fn()
         });
         $(dropZone!).trigger(e);

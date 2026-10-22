@@ -105,7 +105,7 @@ $form-group-margin-bottom: $padding-large-vertical;
 // Tables
 $table-bg: $white;
 $table-accent-bg: $gray-light;
-$table-hover-bg: rgba($brand-secundary, 0.2);
+$table-hover-bg: $transparent;
 $table-border-color: $gray-light;
 $table-border-radius: 5px;
 $table-cell-padding: $padding-base-horizontal;
@@ -122,4 +122,4 @@ $modal-inner-padding: $padding-large-horizontal;
 $modal-header-padding-x: $padding-large-horizontal;
 $modal-header-padding-y: $padding-large-vertical;
 $modal-footer-border-color: $transparent;
-$modal-backdrop-bg: rgba(#707070, 0.38);
+$modal-backdrop-bg: rgba($gray-medium-dark, 0.38);

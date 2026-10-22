@@ -18,15 +18,16 @@ use DBIx::Class::Migration;
 use Dancer2::Plugin::LogReport 'linkspace', mode => 'NORMAL';
 use Getopt::Long;
 
-my ($prepare, $install, $upgrade, $downgrade, $status, $fixtures);
+my ($prepare, $install, $upgrade, $downgrade, $status, $fixtures, $to_version);
 
 GetOptions (
-    'prepare'    => \$prepare,
-    'install'    => \$install,
-    'upgrade'    => \$upgrade,
-    'downgrade'  => \$downgrade,
-    'status'     => \$status,
-    'fixtures=s' => \$fixtures,
+    'prepare'      => \$prepare,
+    'install'      => \$install,
+    'upgrade'      => \$upgrade,
+    'downgrade'    => \$downgrade,
+    'status'       => \$status,
+    'fixtures=s'   => \$fixtures,
+    'to-version=s' => \$to_version,
 ) or exit;
 
 $prepare || $install || $upgrade || $downgrade || $status || $fixtures
@@ -45,7 +46,7 @@ my @app_connect = (
     },
 );
 
-my $migration = DBIx::Class::Migration->new(
+my %args = (
     schema_class => 'GADS::Schema',
     schema_args  => \@app_connect,
     target_dir => "$FindBin::Bin/../share",
@@ -60,6 +61,9 @@ my $migration = DBIx::Class::Migration->new(
         },
     },
 );
+$args{dbic_dh_args}->{to_version} = $to_version
+    if $to_version;
+my $migration = DBIx::Class::Migration->new(%args);
 
 if ($prepare)
 { $migration->prepare }

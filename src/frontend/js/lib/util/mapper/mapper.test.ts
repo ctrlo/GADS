@@ -1,4 +1,5 @@
-import { map } from "./mapper";
+import { describe, it, expect } from '@jest/globals';
+import { map } from './mapper';
 
 describe('mapper', () => {
     it('should map from ScriptResponse to name/id pair', () => {
@@ -6,22 +7,22 @@ describe('mapper', () => {
             error: 0,
             records: [
                 {
-                    label: "test",
+                    label: 'test',
                     id: 1
                 },
                 {
-                    label: "test2",
+                    label: 'test2',
                     id: 2
                 }
             ]
         };
         const expected = [
             {
-                name: "test",
+                name: 'test',
                 id: 1
             },
             {
-                name: "test2",
+                name: 'test2',
                 id: 2
             }
         ];
@@ -30,14 +31,14 @@ describe('mapper', () => {
     });
 
     it('should map from a string to name/id pair', () => {
-        const response = { error: 0, records: ["test", "test2"] };
+        const response = { error: 0, records: ['test', 'test2'] };
         const expected = [
             {
-                name: "test",
+                name: 'test',
                 id: 0
             },
             {
-                name: "test2",
+                name: 'test2',
                 id: 1
             }
         ];

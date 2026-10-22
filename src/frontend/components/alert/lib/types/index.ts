@@ -1,1 +1,1 @@
-export type AlertType = 'info' | 'success' | 'warning' | 'danger';
+export type AlertType = "info" | "success" | "warning" | "danger";

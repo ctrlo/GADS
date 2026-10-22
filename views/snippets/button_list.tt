@@ -52,7 +52,7 @@
         type="button"[% IF button.id %]
         id="[% button.id %]"[% END %]
         class="[% button.class ? button.class : 'btn btn-cancel' %]"
-        data-dismiss="modal"
+        data-bs-dismiss="modal"
       >
         <span class="btn__title">[%- button.label || button.name | html -%]</span>
       </button>
@@ -62,8 +62,8 @@
         id="[% button.id %]"[% END %]
         class="[% button.class %]"[% IF button.style %]
         style="[% button.style %]"[% END %]
-        data-toggle="modal"
-        data-target="#[% button.modalId %]"[% IF button.dataTitle %]
+        data-bs-toggle="modal"
+        data-bs-target="#[% button.modalId %]"[% IF button.dataTitle %]
         data-title="[% button.dataTitle | html %]"[% END %][% IF button.dataId %]
         data-id="[% button.dataId %]"[% END %]
       >
@@ -75,7 +75,7 @@
             class="dropdown-toggle dropdown__toggle"
             type="button"
             id="[% id %]"
-            data-toggle="dropdown"
+            data-bs-toggle="dropdown"
             aria-haspopup="listbox"
             aria-expanded="false"
             aria-labelledby="=[% id %]">

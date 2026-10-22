@@ -204,7 +204,7 @@ sub write_cache
         {
             foreach my $oldval (@{$old->value})
             {
-                my $sv = $oldval && $self->column->value_field eq 'value_date'
+                my $sv = $oldval && ($self->column->value_field eq 'value_date' || $self->column->value_field eq 'value_datetime')
                     ? $formatter->format_date($oldval)
                     : $oldval;
                 # Ignore values from this record itself as it hasn't been
@@ -250,7 +250,7 @@ sub write_cache
                 my $old_value = $row->$vfield;
                 $row->update({ %blank, %to_write });
                 # Delete unique cache, unless exists in another
-                my $sv = $old_value && $self->column->value_field eq 'value_date'
+                my $sv = $old_value && ($self->column->value_field eq 'value_date' || $self->column->value_field eq 'value_datetime')
                     ? $formatter->format_date($old_value)
                     : $old_value;
                 $self->_delete_unique(%old)
@@ -319,7 +319,9 @@ sub _build_value
         } @{$self->init_value};
         @values = map {
             $column->return_type eq 'date'
-               ?  $self->_parse_date($_)
+               ? $self->parse_date($_)
+               : $column->return_type eq 'datetime'
+               ? $self->parse_datetime($_)
                : $column->return_type eq 'daterange'
                ? $self->parse_daterange($_, source => 'db')
                : $_;

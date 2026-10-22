@@ -2,12 +2,13 @@
  * Create a more info button that will load the record body into a modal.
  * @param {HTMLElement | JQuery<HTMLElement>} element The button element to attach the event to.
  */
-export default function createMoreInfoButton(element:HTMLElement | JQuery<HTMLElement>) {
+export default function createMoreInfoButton(element: HTMLElement | JQuery<HTMLElement>) {
     $(element).on("click", (ev) => {
-        const $button = $(ev.target).closest('.btn');
-        const record_id = $button.data('record-id');
-        const modal_id = $button.data('target');
+        const $button = $(ev.target).closest(".btn");
+        const record_id = $button.data("record-id");
+        const modal_id = $button.data("bs-target");
         const $modal = $(document).find(modal_id);
+        if(!$modal || !$modal.length) throw new Error("Modal not found: " + modal_id);
 
         $modal.find(".modal-title").text(`Record ID: ${record_id}`);
         $modal.find(".modal-body").text("Loading...");
@@ -18,7 +19,7 @@ export default function createMoreInfoButton(element:HTMLElement | JQuery<HTMLEl
             /* Only register focus restorer if modal will actually get shown */
             if (ev.isDefaultPrevented()) return;
             $modal.one("hidden.bs.modal", () => {
-                $button.is(":visible") && $button.trigger("focus");
+                if ($button.is(":visible")) $button.trigger("focus");
             });
         });
 

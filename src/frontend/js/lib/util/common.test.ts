@@ -1,12 +1,13 @@
-import "../../../testing/globals.definitions";
-import { fromJson, hideElement, showElement } from "./common";
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import { fromJson, hideElement, showElement } from './common';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 
 describe('common functions', () => {
-    describe.skip('CSS and ARIA - skipped as they are incorrect',()=>{
+    describe('CSS and ARIA', () => {
         let el: JQuery<HTMLElement>;
 
         beforeEach(() => {
-            el=$(document.createElement('div'));
+            el = $(document.createElement('div'));
         });
 
         afterEach(() => {
@@ -14,9 +15,9 @@ describe('common functions', () => {
         });
 
         it('hides an element', () => {
-            const hasClass = jest.spyOn(el, 'hasClass');
-            const addClass = jest.spyOn(el, 'addClass');
-            const attr = jest.spyOn(el, 'attr');
+            const hasClass = $.fn.hasClass = jest.fn().mockReturnValue(false);
+            const addClass = $.fn.addClass = jest.fn();
+            const attr = $.fn.attr = jest.fn();
             hideElement(el);
             expect(hasClass).toHaveBeenCalledWith('hidden');
             expect(addClass).toHaveBeenCalledWith('hidden');
@@ -25,9 +26,9 @@ describe('common functions', () => {
 
         it('does not hide a hidden element', () => {
             el.addClass('hidden');
-            const hasClass = jest.spyOn(el, 'hasClass');
-            const addClass = jest.spyOn(el, 'addClass');
-            const attr = jest.spyOn(el, 'attr');
+            const hasClass = $.fn.hasClass = jest.fn().mockReturnValue(true);
+            const addClass = $.fn.addClass = jest.fn();
+            const attr = $.fn.attr = jest.fn();
             hideElement(el);
             expect(hasClass).toHaveBeenCalledWith('hidden');
             expect(addClass).not.toHaveBeenCalled();
@@ -36,9 +37,9 @@ describe('common functions', () => {
 
         it('shows a hidden element', () => {
             el.addClass('hidden');
-            const hasClass = jest.spyOn(el, 'hasClass');
-            const removeClass = jest.spyOn(el, 'removeClass');
-            const removeAttr = jest.spyOn(el, 'removeAttr');
+            const hasClass = $.fn.hasClass = jest.fn().mockReturnValue(true);
+            const removeClass = $.fn.removeClass = jest.fn();
+            const removeAttr = $.fn.removeAttr = jest.fn();
             showElement(el);
             expect(hasClass).toHaveBeenCalledWith('hidden');
             expect(removeClass).toHaveBeenCalledWith('hidden');
@@ -46,9 +47,9 @@ describe('common functions', () => {
         });
 
         it('does not show a visible element', () => {
-            const hasClass = jest.spyOn(el, 'hasClass');
-            const removeClass = jest.spyOn(el, 'removeClass');
-            const removeAttr = jest.spyOn(el, 'removeAttr');
+            const hasClass = $.fn.hasClass = jest.fn().mockReturnValue(false);
+            const removeClass = $.fn.removeClass = jest.fn();
+            const removeAttr = $.fn.removeAttr = jest.fn();
             showElement(el);
             expect(hasClass).toHaveBeenCalledWith('hidden');
             expect(removeClass).not.toHaveBeenCalled();
@@ -56,33 +57,35 @@ describe('common functions', () => {
         });
     });
 
-    describe('JSON tests',() => {
+    describe('JSON tests', () => {
         it('parses a JSON string', () => {
             const json = '{"foo":"bar"}';
             const parsed = fromJson(json);
             expect(parsed.foo).toEqual('bar');
         });
 
-        it('parses a JSON object', ()=>{
-            const json = {foo: "bar"};
+        it('parses a JSON object', () => {
+            const json = { foo: 'bar' };
             const parsed = fromJson(json);
             expect(parsed.foo).toEqual('bar');
         });
 
-        it('returns an empty object for invalid JSON', ()=>{
-            const json = "foo";
+        it('returns an empty object for invalid JSON', () => {
+            const json = 'foo';
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });
 
-        it('returns an empty object for null', ()=>{
+        it('returns an empty object for null', () => {
             const json = null;
+            /* @ts-ignore */
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });
 
-        it('returns an empty object for undefined', ()=>{
+        it('returns an empty object for undefined', () => {
             const json = undefined;
+            /* @ts-ignore */
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });

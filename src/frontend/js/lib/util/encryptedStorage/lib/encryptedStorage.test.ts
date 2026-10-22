@@ -1,11 +1,15 @@
-import { setupCrypto } from '../../../../../testing/globals.definitions';
+/* eslint-disable jsdoc/require-jsdoc */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from '@jest/globals';
+/* @ts-ignore */
+import { setupCrypto } from 'testing/globals.definitions';
 import { EncryptedStorage } from './encryptedStorage';
 
 class TestStorage implements Storage {
     private map = new Map<string, string>();
 
     [name: string]: any;
-    length: number;
+    length: number = 0;
 
     clear(): void {
         this.map.clear();
@@ -43,9 +47,11 @@ describe('EncryptedStorage', () => {
     let encryptedStorageMock: EncryptedStorage;
 
     beforeAll(() => {
-        // @ts-expect-error This is a unit test, so this is not readonly
-        window.crypto && window.crypto.subtle && delete window.crypto.subtle; // We want to make sure the mock implementation of crypto is used
-    })
+        if (window.crypto && window.crypto.subtle) {
+            // @ts-expect-error This is a unit test, so this is not readonly
+            delete window.crypto.subtle; // We want to make sure the mock implementation of crypto is used}
+        }
+    });
 
     beforeEach(() => {
         setupCrypto();
@@ -54,37 +60,36 @@ describe('EncryptedStorage', () => {
     });
 
     afterEach(() => {
-        // @ts-expect-error This is a unit test, so this is not readonly
-        window.crypto && window.crypto.subtle && delete window.crypto.subtle; // We want to also clear the mock implementation of crypto
+        if (window.crypto && window.crypto.subtle) {
+            // @ts-expect-error This is a unit test, so this is not readonly
+            delete window.crypto.subtle; // We want to also clear the mock implementation of crypto
+        }
     });
 
     it('should set and get an item', async () => {
         const key = 'key';
         const value = 'value';
         const encryptionKey = 'encryptionKey';
-        await encryptedStorageMock.setItem(key, value, encryptionKey);
-        const result = await encryptedStorageMock.getItem(key, encryptionKey);
-        expect(result).toBe(value);
+        await expect(encryptedStorageMock.setItem(key, value, encryptionKey)).resolves.not.toThrow();
+        await expect(encryptedStorageMock.getItem(key, encryptionKey)).resolves.toBe(value);
     });
 
     it('should remove an item', async () => {
         const key = 'key';
         const value = 'value';
         const encryptionKey = 'encryptionKey';
-        await encryptedStorageMock.setItem(key, value, encryptionKey);
+        await expect(encryptedStorageMock.setItem(key, value, encryptionKey)).resolves.not.toThrow();
         encryptedStorageMock.removeItem(key);
-        const result = await encryptedStorageMock.getItem(key, encryptionKey);
-        expect(result).toBe(null);
+        await expect(encryptedStorageMock.getItem(key, encryptionKey)).resolves.toBe(null);
     });
 
     it('should clear all items', async () => {
         const key = 'key';
         const value = 'value';
         const encryptionKey = 'encryptionKey';
-        await encryptedStorageMock.setItem(key, value, encryptionKey);
+        await expect(encryptedStorageMock.setItem(key, value, encryptionKey)).resolves.not.toThrow();
         encryptedStorageMock.clear();
-        const result = await encryptedStorageMock.getItem(key, encryptionKey);
-        expect(result).toBe(null);
+        await expect(encryptedStorageMock.getItem(key, encryptionKey)).resolves.toBe(null);
         expect(encryptedStorageMock.length).toBe(0);
     });
 
@@ -94,7 +99,7 @@ describe('EncryptedStorage', () => {
         const key = 'key';
         const value = 'value';
         const encryptionKey = 'encryptionKey';
-        await encryptedStorageMock.setItem(key, value, encryptionKey);
+        await expect(encryptedStorageMock.setItem(key, value, encryptionKey)).resolves.not.toThrow();
         expect(encryptedStorageMock.length).toBe(1);
     });
 });

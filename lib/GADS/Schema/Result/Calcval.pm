@@ -28,6 +28,8 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_nullable => 1 },
   "value_date",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "value_datetime",
+  { data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "value_numeric",
   { data_type => "decimal", is_nullable => 1, size => [20, 5] },
   "value_date_from",
@@ -69,8 +71,9 @@ sub sqlt_deploy_hook {
     $sqlt_table->add_index(name => 'calcval_idx_value_numeric', fields => [ 'value_numeric' ]);
     $sqlt_table->add_index(name => 'calcval_idx_value_int', fields => [ 'value_int' ]);
     $sqlt_table->add_index(name => 'calcval_idx_value_date', fields => [ 'value_date' ]);
+    $sqlt_table->add_index(name => 'calcval_idx_value_datetime', fields => [ 'value_datetime' ]);
 }
 
-sub _build_valuefield { ('value_text','value_numeric','value_int','value_date','value_date_from','value_date_to'); }
+sub _build_valuefield { ('value_text','value_numeric','value_int','value_date','value_datetime','value_date_from','value_date_to'); }
 
 1;

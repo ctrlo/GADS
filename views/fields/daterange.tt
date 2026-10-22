@@ -4,7 +4,7 @@
 %]
 
 [% IF ! hide_group %]
-<div class="form-group">
+<div class="form-group mb-4">
 [% END %]
   <fieldset class="fieldset"[% IF fieldset_name %] data-name="[% fieldset_name %]"[% END %][% fieldset_style %]>
     [% IF label; INCLUDE fields/sub/label_fieldset.tt; END; %]
@@ -43,8 +43,8 @@
           label_checkbox_name = ""
           help_text    = from.help_text
           popover_body = from.popover_body
-          placeholder  = to.placeholder || config.dateformat_datepicker
-          dateformat   = to.placeholder || config.dateformat_datepicker
+          placeholder  = to.placeholder || config.dateformat
+          dateformat   = to.placeholder || config.dateformat
           value        = to.value
           filter       = to.filter || "html"
           is_required  = to.is_required ? 1 : 0

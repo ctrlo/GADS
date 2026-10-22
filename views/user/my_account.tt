@@ -13,9 +13,9 @@
         INCLUDE fields/hidden.tt name="page" value=page;
         INCLUDE fields/hidden.tt name="username" value=user.username filter="html_entity";
         INCLUDE fields/hidden.tt name="id" value=user.id;
-      
+
         field_counter = 0;
-        
+
         IF site.user_fields.size > 0;
       -%]
       <div class="row">
@@ -41,7 +41,7 @@
               sub_field  = "";
               sub_params = {};
             END;
-          
+
             IF field.type == "freetext";
               INCLUDE fields/input.tt
                 id = field.name
@@ -54,7 +54,7 @@
                 filter = "html"
                 sub_field = sub_field
                 sub_params = sub_params;
-          
+
             ELSIF field.type == "dropdown";
               INCLUDE fields/select_single.tt
                 id = field.name
@@ -86,12 +86,12 @@
       [% IF site.user_fields.size > 0 %]
       </div>
       [% END %]
-      
+
       <button
         type="submit"
         name="submit"
         value="1"
-        class="btn btn-default"
+        class="btn btn-primary"
       >
         <span class="btn__title">Save</span>
       </button>

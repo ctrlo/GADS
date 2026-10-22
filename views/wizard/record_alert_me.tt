@@ -2,7 +2,7 @@
   <div class="modal-dialog modal-dialog-centered " role="document">
     <div class="modal-content">
       [% INCLUDE wizard/sub/modal_header.tt label="Configure alert for view: " _  v.name; %]
-      
+
       <form method="post" class="">
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
         <div class="modal-frame">
@@ -14,7 +14,7 @@
             [%
               ELSE;
                 INCLUDE fields/hidden.tt name="view_id" value=v.id;
-            
+
                 INCLUDE fields/select.tt
                   id          = "frequency"
                   name        = "frequency"
@@ -29,12 +29,12 @@
               END;
             %]
           </div>
-          
+
           [%
           right_buttons = v.is_group ? [] : [
             {
                 type  = "submit",
-                class = "btn-default",
+                class = "btn-primary",
                 name  = "modal_alert",
                 value = "submit",
                 label = "Create"

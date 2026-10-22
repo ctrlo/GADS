@@ -1,7 +1,6 @@
-import "../../../../../testing/globals.definitions";
 import { describe, it, expect } from '@jest/globals';
 import { clearAutorecoverAction } from './clearAutorecoverAction';
-import StorageProvider from "../../storageProvider/lib/storageProvider";
+import StorageProvider from '../../storageProvider/lib/storageProvider';
 
 describe('clearAutorecoverAction', () => {
     it('Should not action if layout-identifier is undefined', async () => {
@@ -23,7 +22,7 @@ describe('clearAutorecoverAction', () => {
         $('body').data('layout-identifier', 'test');
         $('body').data('actions', btoa(JSON.stringify({ clear_saved_values: 1 })));
         const storage = new StorageProvider('linkspace-record-change-test-1');
-        await storage.setItem('key', 'value');
+        await expect(storage.setItem('key', 'value')).resolves.not.toThrow();
         await expect(clearAutorecoverAction()).resolves.toBe(true);
         await expect(storage.getItem('key')).resolves.toBe(undefined);
     });

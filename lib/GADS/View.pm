@@ -264,6 +264,21 @@ has columns => (
     },
 );
 
+has _columns_hash => (
+    is => 'lazy',
+);
+
+sub _build__columns_hash
+{   my $self = shift;
+    my %cols = map { $_ => 1 } @{$self->columns};
+    \%cols;
+}
+
+sub has_column_id
+{   my ($self, $column_id) = @_;
+    $self->_columns_hash->{$column_id};
+}
+
 # Whether the view has a variable "CURUSER" condition
 has has_curuser => (
     is      => 'lazy',

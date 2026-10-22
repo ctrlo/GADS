@@ -1,5 +1,8 @@
 import { AlertBase } from "./alertBase";
 
+/**
+ * Class representing a danger alert.
+ */
 export class DangerAlert extends AlertBase {
     /**
      * Create an instance of InfoAlert.
@@ -12,6 +15,6 @@ export class DangerAlert extends AlertBase {
      * @param {string} message - The message to be displayed in the alert.
      */
     constructor(message: string) {
-        super(message, 'danger');
+        super(message, "danger");
     }
 }

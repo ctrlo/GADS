@@ -62,7 +62,8 @@ after set_value => sub {
                 }
             }
         }
-        if (my $maxlen = $self->column->max_length) {
+        if (defined $self->column->max_length) {
+            my $maxlen = $self->column->max_length;
             foreach my $val (@values)
             {
                 if (defined $val && defined $maxlen && length($val) > $maxlen)

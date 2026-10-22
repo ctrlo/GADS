@@ -265,6 +265,18 @@ my @tests = (
         after  => '22'
     },
     {
+        name        => 'return type of date and time',
+        type        => 'Calc',
+        # Value needs to be fixed, as metadata fields such as created time
+        # continues to increase as tests run
+        code        => qq(function evaluate (_id) \n return 1781448310 \nend),
+        return_type => 'datetime',
+        # Returned as timezone Europe/London and this date is always in the
+        # summer so BST
+        before      => '2026-06-14 15:45:10',
+        after       => '2026-06-14 15:45:10'
+    },
+    {
         name   => 'tree node',
         type   => 'Calc',
         code   => qq(function evaluate (L1tree1) \n return L1tree1.value \nend),
@@ -441,7 +453,7 @@ foreach my $test (@tests)
             $record_check = $record;
         }
         $before = qr/^$before$/ unless ref $before eq 'Regexp';
-        my $ref = $test->{return_type} && $test->{return_type} eq 'date' ? 'DateTime' : '';
+        my $ref = $test->{return_type} && $test->{return_type} =~ /date/ ? 'DateTime' : '';
         is(ref $_, $ref, "Return value is not a reference or correct reference")
             foreach @{$record_check->fields->{$code_col->id}->value};
         like( $record_check->fields->{$code_col->id}->as_string, $before, "Correct code value for test $test->{name} (before)" );

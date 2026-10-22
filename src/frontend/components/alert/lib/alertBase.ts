@@ -1,6 +1,9 @@
-import { Hidable, Renderable } from 'util/renderable';
-import { AlertType } from './types';
+import { Hidable, Renderable } from "util/renderable";
+import { AlertType } from "./types";
 
+/**
+ * Base class for alert components that can be rendered to the DOM and hidden when necessary.
+ */
 export abstract class AlertBase extends Hidable implements Renderable<HTMLDivElement> {
     /**
      * Create an instance of AlertBase.
@@ -26,14 +29,14 @@ export abstract class AlertBase extends Hidable implements Renderable<HTMLDivEle
      * @returns {HTMLDivElement} The rendered HTML element representing the alert.
      */
     render(): HTMLDivElement {
-        if(this.element) throw new Error('AlertBase.render() should not be called multiple times without resetting the element.');
-        const alertDiv = document.createElement('div');
-        alertDiv.classList.add('alert', `alert-${this.type}`);
+        if(this.element) throw new Error("AlertBase.render() should not be called multiple times without resetting the element.");
+        const alertDiv = document.createElement("div");
+        alertDiv.classList.add("alert", `alert-${this.type}`);
         if(this.transparent) {
-            alertDiv.classList.add('alert-no-bg');
+            alertDiv.classList.add("alert-no-bg");
         }
-        for(const item of this.message.split('\n')) {
-            const pDiv = document.createElement('p');
+        for(const item of this.message.split("\n")) {
+            const pDiv = document.createElement("p");
             pDiv.textContent = item;
             alertDiv.appendChild(pDiv);
         }
