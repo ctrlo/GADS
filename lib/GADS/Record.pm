@@ -119,6 +119,12 @@ has record => (
     clearer => 1,
 );
 
+# A reference to the GADS::Records that this record belongs to
+has records => (
+    is       => 'rw',
+    weak_ref => 1,
+);
+
 # Subroutine to create a slightly more advanced predication for "record" above
 sub has_record
 {   my $self = shift;
@@ -1053,6 +1059,14 @@ sub _find
         $first_run = 0;
     }
 
+    # If viewing a chronology, at this point the record will only contain the
+    # versions that the user is allowed to see in accordance with any view
+    # limits. It could be that they can't see the actual latest version though,
+    # and that the latest version here is an old version. Check now whether
+    # they are allowed to see this record at all.
+    error __"Requested record not found"
+        if $find{chronology} && $find{current}->current_version_id != $record_ids[-1];
+
     $self->clear_is_draft;
 
     # Fetch and add multi-values
@@ -1438,19 +1452,9 @@ sub _transform_values
     {
         next if $column->internal;
         my $key = $self->linked_id && $column->link_parent ? $column->link_parent->field : $column->field;
-        # If this value was retrieved as part of a grouping, and if it's a sum,
-        # then the field key will be appended with "_sum". XXX Ideally we'd
-        # have a better way of knowing this has happened, but this should
-        # suffice for the moment.
         if ($self->is_group)
         {
-            if ($column->numeric)
-            {
-                $key = $key."_sum";
-            }
-            elsif (!$self->group_cols->{$column->id}) {
-                $key = $key."_distinct";
-            }
+            $key = $self->records->aggregate_name($column);
         }
         my $value = $self->linked_id && $column->link_parent ? $original->{$key} : $original->{$key};
         $fields->{$column->id} = $self->_create_datum($column, $value);

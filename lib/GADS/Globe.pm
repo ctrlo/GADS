@@ -363,8 +363,7 @@ sub _build_data
                     $value_color = $record->get_column('id_count');
                 }
                 else {
-                    my $field = $self->color_col->field;
-                    $field .= "_sum" if $self->color_col_operator eq 'sum';
+                    my $field = $self->records->aggregate_name($self->color_col, $self->color_col_parent, $self->color_col_operator);
                     $value_color = $record->get_column($field);
                     if (!$self->color_col->numeric)
                     {
@@ -377,23 +376,23 @@ sub _build_data
             if ($self->label_col)
             {
                 $value_label = $self->label_col->type eq 'curval'
-                    ? $self->_format_curcommon($self->label_col, $record)
-                    : $record->get_column($self->label_col->field);
+                    ? $self->_format_curcommon($self->label_col, $self->label_col_parent, $record)
+                    : $record->get_column($self->records->aggregate_name($self->label_col, $self->label_col_parent, 'max'));
                 $value_label ||= '<blank>';
             }
 
             if ($self->group_col)
             {
-                my $field = $self->group_col->field;
+                my $field = $self->records->aggregate_name($self->group_col, $self->group_col_parent, 'max');
                 $field .= "_sum" if $self->group_col_operator eq 'sum';
                 $value_group = $self->group_col->type eq 'curval'
-                    ? $self->_format_curcommon($self->group_col, $record)
+                    ? $self->_format_curcommon($self->group_col, $self->group_col_parent, $record)
                     : $record->get_column($field) || '<blank>';
             }
 
             foreach my $column (@{$self->_columns_globe})
             {
-                my $country = $record->get_column($column->field)
+                my $country = $record->get_column($self->records->aggregate_name($column, undef, 'max'))
                     or next;
 
                 push @this_countries, $country;
@@ -625,10 +624,13 @@ sub uniq_join
 }
 
 sub _format_curcommon
-{   my ($self, $column, $line) = @_;
-    $line->get_column($column->field) or return;
-    my $id = $line->get_column($column->field);
-    my $text = $column->format_value(map { $line->get_column($_->field) } @{$column->curval_fields});
+{   my ($self, $column, $parent, $line) = @_;
+    my $field = $self->records->aggregate_name($column, undef, 'max');
+    $line->get_column($field) or return;
+    my $id = $line->get_column($field);
+    my $text = $column->format_value(map {
+        $line->get_column($self->records->aggregate_name($_, $parent, 'max'))
+    } @{$column->curval_fields});
     qq(<a href="/record/$id">$text</a>);
 }
 

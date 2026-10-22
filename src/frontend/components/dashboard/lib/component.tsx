@@ -39,7 +39,7 @@ export default class DashboardComponent extends Component {
         const widgetsEls = Array.prototype.slice.call(document.querySelectorAll("#ld-app > div"));
         const widgets = widgetsEls.map((el: HTMLElement) => ({
             html: el.innerHTML,
-            config: JSON.parse(el.getAttribute("data-grid"))
+            config: JSON.parse(el.getAttribute("data-grid")!)
         }));
         const api = new ApiClient(this.element.getAttribute("data-dashboard-endpoint") || "");
 
@@ -48,7 +48,7 @@ export default class DashboardComponent extends Component {
         root.render(
             <App
                 widgets={widgets}
-                dashboardId={this.element.getAttribute("data-dashboard-id")}
+                dashboardId={this.element.getAttribute("data-dashboard-id")!}
                 currentDashboard={JSON.parse(this.element.getAttribute("data-current-dashboard") || "{}")}
                 readOnly={this.element.getAttribute("data-dashboard-read-only") === "true"}
                 hideMenu={this.element.getAttribute("data-dashboard-hide-menu") === "true"}

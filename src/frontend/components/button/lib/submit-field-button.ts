@@ -10,6 +10,7 @@ declare global {
                 treeApi: string;
             }
         }
+        UpdateFilter?: (filterEl: JQuery<HTMLElement> | undefined, ev: JQuery.ClickEvent) => void;
     }
     interface JQuery<TElement = HTMLElement> {
         queryBuilder(operation: string): JQuery<TElement>;
@@ -85,7 +86,6 @@ export default class SubmitFieldButton {
             }
 
             if (bUpdateTree) {
-                //Bit of typecasting here, purely because the jstree plugin doesn't have types
                 const v = $jstreeEl.jstree(true).get_json("#", { flat: false });
                 const mytext = JSON.stringify(v);
                 const data = $jstreeEl.data();
@@ -100,9 +100,7 @@ export default class SubmitFieldButton {
                 });
             }
 
-            // @ts-expect-error - This is a global function
             if (bUpdateFilter && window.UpdateFilter) {
-                // @ts-expect-error - This is a global function
                 window.UpdateFilter($filterEl, ev);
             }
 
@@ -131,7 +129,8 @@ export default class SubmitFieldButton {
      * @returns {string} The URL for the tree API
      */
     private getURL(data: JQuery.PlainObject): string {
-        if (window.test) return "";
+        // TS6 is a bit odd - it recognises window.test as a function and wants to call it so we resort to typechecks
+        if (typeof window.test !== "undefined") return "";
 
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;
 
