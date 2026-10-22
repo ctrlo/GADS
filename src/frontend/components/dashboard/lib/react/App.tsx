@@ -1,4 +1,4 @@
-import React, { RefObject, useEffect, useRef } from "react";
+import React, { Component } from "react";
 
 import Header from "./Header";
 import Footer from "./Footer";
@@ -10,58 +10,120 @@ import { AppProps } from "./types";
 import serialize from "form-serialize";
 import { initializeRegisteredComponents } from "component";
 
+type AppState = {
+    editModalOpen: boolean;
+    editHtml: string;
+    loadingEditHtml: boolean;
+    editError: string;
+    loading: boolean;
+    layout: any[];
+    widgets: any[];
+    activeItem: string;
+};
+
+
 /**
- * Create the application component
- * @param {AppProps} props The application properties
- * @returns {React.JSX.Element} The rendered application component
+ * Application class for the dashboard entry point
  */
-export default function App(props: AppProps): React.JSX.Element {
-    const formRef = useRef<HTMLDivElement>(null);
-
-    const [editModalOpen, setEditModalOpen] = React.useState(false);
-    const [editHtml, setEditHtml] = React.useState("");
-    const [loadingEditHtml, setLoadingEditHtml] = React.useState(false);
-    const [editError, setEditError] = React.useState("");
-    const [loading, setLoading] = React.useState(false); // eslint-disable-line @typescript-eslint/no-unused-vars
-    const [layout, setLayout] = React.useState(props.widgets.map((widget) => widget.config));
-    const [widgets, setWidgets] = React.useState(props.widgets);
-    const [activeItem, setActiveItem] = React.useState("");
-
-    useEffect(() => {
-        sidebarObservable.addSubscriberFunction(handleSideBarChange);
-
-        initializeGlobeComponents();
-    }, []);
-
-    useEffect(() => {
-        if (editModalOpen && !loadingEditHtml && formRef) {
-            initializeSummernoteComponent();
-        }
-
-        if (!editModalOpen && !loadingEditHtml) {
-            initializeComponents();
-        }
-    }, [editModalOpen, loadingEditHtml]);
-
-    useEffect(() => {
-        initializeComponents();
-    }, [layout]);
+export default class App extends Component<AppProps, AppState> {
+    private formRef = React.createRef<HTMLDivElement>();
 
     /**
-     * Initialize all components that need to be set up
+     * Constructor for the application class
+     * @param props The application properties
      */
-    const initializeComponents = () => {
-        initializeRegisteredComponents(document.body);
-        initializeGlobeComponents();
+    constructor(props: AppProps) {
+        super(props);
+        this.state = {
+            editModalOpen: false,
+            editHtml: "",
+            loadingEditHtml: false,
+            editError: "",
+            loading: false,
+            layout: props.widgets.map((widget) => widget.config),
+            widgets: props.widgets,
+            activeItem: ""
+        };
+        sidebarObservable.addSubscriber(this);
+        this.initializeGlobeComponents();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    componentDidUpdate(prevProps: Readonly<AppProps>, prevState: Readonly<AppState>): void {
+        if (prevState.layout !== this.state.layout) {
+            this.initializeGlobeComponents();
+        }
+        if (this.state.editModalOpen && !this.state.loadingEditHtml && this.formRef) {
+            this.initializeSummernoteComponent();
+            if (this.formRef.current) {
+                initializeRegisteredComponents(this.formRef.current);
+            }
+        }
+
+        if (!this.state.editModalOpen && !this.state.loadingEditHtml) {
+            initializeRegisteredComponents(document.body);
+        }
+    }
+
+    /**
+     * Initialize the Summernote component if it exists in the form
+     */
+    private initializeSummernoteComponent() {
+        if (!this.formRef.current) return;
+        const summernoteEl = this.formRef.current.querySelector(".summernote");
+        if (summernoteEl) {
+            import(/* WebpackChunkName: "summernote" */ "../../../summernote/lib/component")
+                .then(({ default: SummerNoteComponent }) => {
+                    new SummerNoteComponent(summernoteEl as HTMLElement);
+                });
+        }
+    }
+
+    /**
+     * Initialize the Globe components if they exist in the DOM
+     */
+    private initializeGlobeComponents = () => {
+        const arrGlobe = document.querySelectorAll(".globe");
+        import(/* WebpackChunkName: "globe" */ "../../../globe/lib/component").then(({ default: GlobeComponent }) => {
+            arrGlobe.forEach((globe) => {
+                new GlobeComponent(globe as HTMLElement);
+            });
+        });
+    };
+
+    /**
+     * Overwrite the submit event listener for the form
+     */
+    private overWriteSubmitEventListener = () => {
+        const formContainer = document.getElementById("ld-form-container");
+        if (!formContainer) return;
+
+        const form = formContainer.querySelector("form");
+        if (!form) return;
+
+        form.addEventListener("submit", this.saveActiveWidget);
+        const submitButton = document.createElement("input");
+        submitButton.setAttribute("type", "submit");
+        submitButton.setAttribute("style", "visibility: hidden");
+        form.appendChild(submitButton);
+    };
+
+    /**
+     * Handle sidebar changes
+     */
+    private handleSideBarChange = () => {
+        window.dispatchEvent(new Event("resize"));
     };
 
     /**
      * Update the HTML of a widget
      * @param {string} id The ID of the widget to update
      */
-    const updateWidgetHtml = async (id: string) => {
-        const newHtml = await props.api.getWidgetHtml(id);
-        const newWidgets = widgets.map(widget => {
+    private updateWidgetHtml = async (id: string) => {
+        const newHtml = await this.props.api.getWidgetHtml(id, this.props.currentId);
+        const newWidgets = this.state.widgets.map(widget => {
             if (widget.config.i === id) {
                 return {
                     ...widget,
@@ -70,70 +132,73 @@ export default function App(props: AppProps): React.JSX.Element {
             }
             return widget;
         });
-        setWidgets(newWidgets);
+        this.setState({ widgets: newWidgets }, () => initializeRegisteredComponents(document.body));
     };
 
     /**
      * Fetch the edit form HTML for a widget
      * @param {string} id The ID of the widget to fetch the edit form for
      */
-    const fetchEditForm = async (id: string) => {
-        const editFormHtml = await props.api.getEditForm(id);
+    private fetchEditForm = async (id: string) => {
+        const editFormHtml = await this.props.api.getEditForm(id);
         if (editFormHtml.is_error) {
-            setLoadingEditHtml(false);
-            setEditError(editFormHtml.message!);
+            this.setState({ loadingEditHtml: false, editError: editFormHtml.message });
             return;
         }
-        setLoadingEditHtml(false);
-        setEditError("");
-        setEditHtml(editFormHtml.content!);
+        this.setState({ loadingEditHtml: false, editError: "", editHtml: editFormHtml.content }, ()=>initializeRegisteredComponents(this.formRef.current));
     };
 
     /**
      * Action for the on edit click event
      * @param {string} id The ID of the widget to edit
      */
-    const onEditClick = (id: string) => (event: React.MouseEvent) => {
-        event.preventDefault();
-        showEditForm(id);
+    private onEditClick = (id: string) => {
+        return (event: React.MouseEvent) => {
+            event.preventDefault();
+            this.showEditForm(id);
+        };
     };
 
     /**
      * Show the edit form for a widget
      * @param {string} id The ID of the widget to show the edit form for
      */
-    const showEditForm = (id: string) => {
-        setEditModalOpen(true);
-        setLoadingEditHtml(true);
-        setActiveItem(id);
-        fetchEditForm(id);
+    private showEditForm = (id: string) => {
+        this.setState({
+            editModalOpen: true,
+            loadingEditHtml: true,
+            activeItem: id
+        });
+        this.fetchEditForm(id);
     };
 
     /**
      * Close the edit modal
      */
-    const closeModal = () => {
-        setEditModalOpen(false);
+    private closeModal = () => {
+        this.setState({ editModalOpen: false });
     };
 
     /**
      * Delete the active widget
      */
-    const deleteActiveWidget = () => {
+    private deleteActiveWidget = () => {
         if (!window.confirm("Deleting a widget is permanent! Are you sure?")) return;
 
-        setWidgets(widgets.filter(item => item.config.i !== activeItem));
-        setEditModalOpen(false);
-        props.api.deleteWidget(activeItem);
+        this.setState({
+            widgets: this.state.widgets.filter(item => item.config.i !== this.state.activeItem),
+            editModalOpen: false
+        }, () => initializeRegisteredComponents(document.body));
+        this.props.api.deleteWidget(this.state.activeItem);
     };
 
     /**
      * Save the active widget
      * @param {*} event The submit event
      */
-    const saveActiveWidget = async (event: any) => {
+    private saveActiveWidget = async (event: any) => {
         event.preventDefault();
-        const formEl = formRef.current!.querySelector("form");
+        const formEl = this.formRef.current.querySelector("form");
         if (!formEl) {
             console.error("No form element was found!");
             return;
@@ -145,8 +210,8 @@ export default function App(props: AppProps): React.JSX.Element {
             setEditError(result.message!);
             return;
         }
-        updateWidgetHtml(activeItem);
-        closeModal();
+        this.updateWidgetHtml(this.state.activeItem);
+        this.closeModal();
     };
 
     /**
@@ -157,10 +222,10 @@ export default function App(props: AppProps): React.JSX.Element {
      * @param {number} h The height of the widget
      * @returns {boolean} Whether the grid conflicts with existing widgets
      */
-    const isGridConflict = (x: number, y: number, w: number, h: number): boolean => {
+    private isGridConflict = (x: number, y: number, w: number, h: number): boolean => {
         const ulc = { x, y };
         const drc = { x: x + w, y: y + h };
-        return layout.some((widget) => {
+        return this.state.layout.some((widget) => {
             if (ulc.x >= (widget.x + widget.w) || widget.x >= drc.x) {
                 return false;
             }
@@ -177,7 +242,7 @@ export default function App(props: AppProps): React.JSX.Element {
      * @param {number} h The height of the widget
      * @returns {{ x: number, y: number }} The first available position for the widget
      */
-    const firstAvailableSpot = (w: number, h: number): { x: number; y: number; } => {
+    private firstAvailableSpot = (w: number, h: number): { x: number; y: number; } => {
         let x = 0;
         let y = 0;
         while (isGridConflict(x, y, w, h)) {
@@ -195,11 +260,11 @@ export default function App(props: AppProps): React.JSX.Element {
      * Add a new widget to the dashboard
      * @param {string} type The type of widget to add
      */
-    const addWidget = async (type: string) => {
-        setLoading(true);
-        const result = await props.api.createWidget(type);
+    private addWidget = async (type: string) => {
+        this.setState({ loading: true });
+        const result = await this.props.api.createWidget(type);
         if (result.error) {
-            setLoading(false);
+            this.setState({ loading: false });
             alert(result.message);
             return;
         }
@@ -212,26 +277,29 @@ export default function App(props: AppProps): React.JSX.Element {
             w: 1,
             h: 1
         };
-        const newLayout = layout.concat(widgetLayout);
-        setWidgets(widgets.concat({
-            config: widgetLayout,
-            html: "Loading..."
-        }));
-        setLayout(newLayout);
-        setLoading(false);
-        props.api.saveLayout(props.dashboardId, newLayout);
-        showEditForm(id);
+        const newLayout = this.state.layout.concat(widgetLayout);
+        this.setState({
+            widgets: this.state.widgets.concat({
+                config: widgetLayout,
+                html: "Loading...",
+                layout: newLayout,
+                loading: false
+            })
+        });
+        this.setState({ layout: newLayout, loading: false }, () => initializeRegisteredComponents(document.body));
+        this.props.api.saveLayout(this.props.dashboardId, newLayout);
+        this.showEditForm(id);
     };
 
     /**
      * Triggered when the layout of the dashboard changes
      * @param {*} newLayout The new layout of the dashboard
      */
-    const onLayoutChange = (newLayout: any) => {
-        if (shouldSaveLayout(layout, newLayout)) {
-            props.api.saveLayout(props.dashboardId, newLayout);
+    private onLayoutChange = (newLayout: any) => {
+        if (this.shouldSaveLayout(this.state.layout, newLayout)) {
+            this.props.api.saveLayout(this.props.dashboardId, newLayout);
         }
-        setLayout(newLayout);
+        this.setState({ layout: newLayout }, () => initializeRegisteredComponents(document.body));
     };
 
     /**
@@ -240,7 +308,7 @@ export default function App(props: AppProps): React.JSX.Element {
      * @param {*} newLayout The new layout of the dashboard
      * @returns {boolean} Whether the layout should be saved
      */
-    const shouldSaveLayout = (prevLayout: any, newLayout: any): boolean => {
+    private shouldSaveLayout = (prevLayout: any, newLayout: any): boolean => {
         if (prevLayout.length !== newLayout.length) {
             return true;
         }
@@ -258,87 +326,41 @@ export default function App(props: AppProps): React.JSX.Element {
     };
 
     /**
-     * Overwrite the submit event listener for the form
+     * Render the application component
      */
-    const overWriteSubmitEventListener = () => { // eslint-disable-line
-        const formContainer = document.getElementById("ld-form-container");
-        if (!formContainer)
-            return;
-
-        const form = formContainer.querySelector("form");
-        if (!form)
-            return;
-
-        form.addEventListener("submit", saveActiveWidget);
-        const submitButton = document.createElement("input");
-        submitButton.setAttribute("type", "submit");
-        submitButton.setAttribute("style", "visibility: hidden");
-        form.appendChild(submitButton);
-    };
-
-    /**
-     * Handle sidebar changes
-     */
-    const handleSideBarChange = () => {
-        window.dispatchEvent(new Event("resize"));
-    };
-
-    /**
-     * Initialize the Summernote component if it exists in the form
-     */
-    const initializeSummernoteComponent = () => {
-        const summernoteEl = formRef.current!.querySelector(".summernote");
-        if (summernoteEl) {
-            import(/* WebpackChunkName: "summernote" */ "../../../summernote/lib/component")
-                .then(({ default: SummerNoteComponent }) => {
-                    new SummerNoteComponent(summernoteEl as HTMLElement);
-                });
-        }
-    };
-
-    /**
-     * Initialize the Globe components if they exist in the DOM
-     */
-    const initializeGlobeComponents = () => {
-        const arrGlobe = document.querySelectorAll(".globe");
-        import(/* WebpackChunkName: "globe" */ "../../../globe/lib/component").then(({ default: GlobeComponent }) => {
-            arrGlobe.forEach((globe) => {
-                new GlobeComponent(globe as HTMLElement);
-            });
-        });
-    };
-
-    return (
-        <div className="content-block">
-            {props.hideMenu || <Header
-                hMargin={props.gridConfig.containerPadding![0]}
-                dashboards={props.dashboards}
-                currentDashboard={props.currentDashboard}
-                includeH1={props.includeH1}
-            />}
-            <EditModal
-                closeModal={closeModal}
-                deleteActiveWidget={deleteActiveWidget}
-                editError={editError}
-                editHtml={editHtml}
-                editModalOpen={editModalOpen}
-                formRef={formRef as RefObject<HTMLDivElement>}
-                loadingEditHtml={loadingEditHtml}
-                saveActiveWidget={saveActiveWidget} />
-            <DashboardView
-                gridConfig={props.gridConfig}
-                layout={layout}
-                onEditClick={onEditClick}
-                onLayoutChange={onLayoutChange}
-                readOnly={props.readOnly}
-                widgets={widgets} />
-            {props.hideMenu || <Footer
-                addWidget={addWidget}
-                widgetTypes={props.widgetTypes}
-                currentDashboard={props.currentDashboard}
-                noDownload={props.noDownload}
-                readOnly={props.readOnly}
-            />}
-        </div>
-    );
+    render() {
+        return (
+            <div className="content-block">
+                {this.props.hideMenu || <Header
+                    hMargin={this.props.gridConfig.containerPadding[0]}
+                    dashboards={this.props.dashboards}
+                    currentDashboard={this.props.currentDashboard}
+                    includeH1={this.props.includeH1}
+                />}
+                <EditModal
+                    closeModal={this.closeModal}
+                    deleteActiveWidget={this.deleteActiveWidget}
+                    editError={this.state.editError}
+                    editHtml={this.state.editHtml}
+                    editModalOpen={this.state.editModalOpen}
+                    formRef={this.formRef}
+                    loadingEditHtml={this.state.loadingEditHtml}
+                    saveActiveWidget={this.saveActiveWidget} />
+                <DashboardView
+                    gridConfig={this.props.gridConfig}
+                    layout={this.state.layout}
+                    onEditClick={this.onEditClick}
+                    onLayoutChange={this.onLayoutChange}
+                    readOnly={this.props.readOnly}
+                    widgets={this.state.widgets} />
+                {this.props.hideMenu || <Footer
+                    addWidget={this.addWidget}
+                    widgetTypes={this.props.widgetTypes}
+                    currentDashboard={this.props.currentDashboard}
+                    noDownload={this.props.noDownload}
+                    readOnly={this.props.readOnly}
+                />}
+            </div>
+        );
+    }
 }

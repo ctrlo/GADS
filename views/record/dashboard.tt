@@ -1,0 +1,24 @@
+<div class="content-block__main [% content_block_main_custom_classes %]">
+  <div class="content-block__main-content">
+    <div id="ld-app"
+         class="dashboard"
+         data-dashboard-id="[% dashboard.id %]"
+         data-current-id="[% current_id %]"
+         data-current-dashboard="[% dashboard.as_json | html %]"
+         data-dashboard-endpoint="[% IF layout %]/[% layout.identifier %][% END %]/api/dashboard/[% dashboard.id %]"
+         data-widget-types='["notice", "field", "timeline", "table"]'
+         data-dashboard-read-only="[% IF readonly %]true[% ELSE %]false[% END %]"
+         data-dashboard-hide-menu="[% IF page_as_mech %]true[% ELSE %]false[% END %]"
+         data-dashboard-include-h1="[% IF dashboard.instance_id %]false[% ELSE %]true[% END %]"
+         data-dashboard-no-download="[% IF layout.no_download_pdf %]true[% ELSE %]false[% END %]"
+         data-dashboards="[% dashboards_json | html %]"
+    >
+      [% FOREACH widget IN dashboard.display_widgets %]
+      <div class="ld-widget-container" data-grid='[% widget.grid | html %]'>
+        [% widget.html %]
+      </div>
+      [% END %]
+    </div>
+  </div>
+  
+</div>

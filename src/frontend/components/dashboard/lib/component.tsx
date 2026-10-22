@@ -48,6 +48,7 @@ export default class DashboardComponent extends Component {
         root.render(
             <App
                 widgets={widgets}
+                currentId={this.element.getAttribute("data-current-id") ? Number(this.element.getAttribute("data-current-id")) : null}
                 dashboardId={this.element.getAttribute("data-dashboard-id")!}
                 currentDashboard={JSON.parse(this.element.getAttribute("data-current-dashboard") || "{}")}
                 readOnly={this.element.getAttribute("data-dashboard-read-only") === "true"}

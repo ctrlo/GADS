@@ -502,7 +502,8 @@ prefix '/:layout_name' => sub {
 
     get '/api/dashboard/:dashboard_id/widget/:id' => require_login sub {
         my $layout = var('layout') or pass;
-        _get_dashboard_widget($layout);
+        my $current_id = query_parameters->get('current_id');
+        _get_dashboard_widget(layout => $layout, current_id => $current_id);
     };
 
     get '/api/dashboard/:dashboard_id/widget/:id/edit' => require_login sub {
@@ -610,10 +611,12 @@ sub _put_dashboard_dashboard {
 }
 
 sub _get_dashboard_widget {
-    my $layout = shift;
-    my $user   = logged_in_user;
+    my %params     = @_;
+    my $layout     = $params{layout};
+    my $current_id = $params{current_id};
+    my $user       = logged_in_user;
     # _get_widget will raise an exception if it does not exist
-    return  _get_widget(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user)->html;
+    return  _get_widget(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user, $current_id)->html;
 }
 
 sub _get_dashboard_widget_edit {
@@ -622,9 +625,8 @@ sub _get_dashboard_widget_edit {
     my $widget = _get_widget_write(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user);
 
     my $params = {
-        widget          => $widget,
-        tl_options      => $widget->tl_options_inflated,
-        globe_options   => $widget->globe_options_inflated,
+        widget         => $widget,
+        widget_options => $widget->options_inflated,
     };
 
     unless ($widget->type eq 'notice')
@@ -683,6 +685,18 @@ sub _put_dashboard_widget_edit {
             view_id  => $body->{'view_id'},
         });
     }
+    elsif ($widget->type eq 'table' && $widget->dashboard->is_record)
+    {
+        my $column_id = $body->{'layout_id'};
+        my $field_options = {
+            column_id => $column_id,
+        };
+        $widget->set_columns({
+            options => encode_json($field_options),
+            rows    => $body->{'rows'},
+            view_id => $body->{"view_id_$column_id"},
+        });
+    }
     elsif ($widget->type eq 'table')
     {
         $widget->set_columns({
@@ -690,29 +704,51 @@ sub _put_dashboard_widget_edit {
             view_id  => $body->{'view_id'},
         });
     }
+    elsif ($widget->type eq 'timeline' && $widget->dashboard->is_record)
+    {
+        my $column_ids = ref $body->{layout_id} ? $body->{layout_id} : [$body->{layout_id}];
+        my $field_options = {
+            column_ids     => $column_ids,
+            timeline_range => $body->{timeline_range},
+        };
+        $widget->set_columns({
+            options => encode_json($field_options),
+        });
+    }
     elsif ($widget->type eq 'timeline')
     {
-        my $tl_options = {
+        my $options = {
             label   => $body->{'tl_label'},
             group   => $body->{'tl_group'},
             color   => $body->{'tl_color'},
             overlay => $body->{'tl_overlay'},
         };
         $widget->set_columns({
-            tl_options => encode_json($tl_options),
-            view_id    => $body->{'view_id'},
+            options => encode_json($options),
+            view_id => $body->{'view_id'},
         });
     }
     elsif ($widget->type eq 'globe')
     {
-        my $globe_options = {
+        my $options = {
             label   => $body->{'globe_label'},
             group   => $body->{'globe_group'},
             color   => $body->{'globe_color'},
         };
         $widget->set_columns({
-            globe_options => encode_json($globe_options),
-            view_id       => $body->{'view_id'},
+            options => encode_json($options),
+            view_id => $body->{'view_id'},
+        });
+    }
+    elsif ($widget->type eq 'field')
+    {
+        my $column_ids = ref $body->{layout_id} ? $body->{layout_id} : [$body->{layout_id}];
+        my $field_options = {
+            column_ids        => $column_ids,
+            show_field_labels => $body->{show_field_labels} ? JSON->true : JSON->false,
+        };
+        $widget->set_columns({
+            options => encode_json($field_options),
         });
     }
     $widget->update;
@@ -1265,7 +1301,7 @@ sub _get_widget_write
 }
 
 sub _get_widget
-{   my ($widget_id, $dashboard_id, $layout, $user) = @_;
+{   my ($widget_id, $dashboard_id, $layout, $user, $current_id) = @_;
     my $widget = schema->resultset('Widget')->search({
         dashboard_id => $dashboard_id,
         grid_id      => route_parameters->get('id'),
@@ -1280,6 +1316,7 @@ sub _get_widget
     _get_dashboard($widget->dashboard->id, $layout, $user);
 
     $widget->layout($layout);
+    $widget->current_id($current_id);
     return $widget;
 }
 
