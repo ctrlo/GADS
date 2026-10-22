@@ -76,7 +76,7 @@ jobs:
           chmod 777 /tmp/uploads
       - name: 'Start the application'
         env:
-          DANCER_CONFDIR: 'webdriver'
+          DANCER_CONFDIR: 'cypress'
           PGDATABASE: 'postgres'
           PGHOST: 'localhost'
           PGUSER: 'postgres'
