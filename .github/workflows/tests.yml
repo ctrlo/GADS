@@ -90,8 +90,10 @@ jobs:
           apt-get install -y nodejs
           npm i -g yarn npm --force
           yarn --frozen-lockfile
+          mv ./public/js/fengari-web.js ./fengari-web.js.bak
           yarn build --no-watch
-          (which git || apt-get install git -y) && git checkout ./public/js/fengari-web.js
+          mv ./fengari-web.js.bak ./public/js/fengari-web.js
+
       - name: 'Run the Cypress tests'
         run: yarn cypress run --browser chromium
 
