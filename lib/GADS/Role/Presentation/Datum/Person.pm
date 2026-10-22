@@ -16,17 +16,19 @@ sub _presentation_details {
         };
     }
 
-    for (
-        [$person->{freetext1}, $site->register_freetext1_name],
-        [$person->{freetext2}, $site->register_freetext2_name]
-    ) {
-        next unless $_->[0];
+    if($site) {
+        for (
+            [$person->{freetext1}, $site->register_freetext1_name],
+            [$person->{freetext2}, $site->register_freetext2_name]
+        ) {
+            next unless $_->[0];
 
-        push @details, {
-            definition => $_->[1],
-            value      => $_->[0],
-            type       => 'text'
-        };
+            push @details, {
+                definition => $_->[1],
+                value      => $_->[0],
+                type       => 'text'
+            };
+        }
     }
 
     return {

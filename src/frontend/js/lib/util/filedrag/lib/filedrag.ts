@@ -68,7 +68,7 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
             showElement($("[data-draggable=\"true\"]"));
             if (this.options.debug) console.log(files);
             showElement(this.el);
-            console.log(files);
+            if(this.options.debug) console.log(e.originalEvent?.dataTransfer?.files ?? []);
             if (this.options.allowMultiple) {
                 // For some reason the function will not accept a FileList, so we convert it to an array
                 const f2 = Array.from(files);
