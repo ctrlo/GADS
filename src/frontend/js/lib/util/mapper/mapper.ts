@@ -34,7 +34,7 @@ interface Record {
  * @returns {MappedResponse[]} The mapped response
  */
 export const map: MapperFunction = (r: ScriptResponse):MappedResponse[] => {
-    const result = [];
+    const result: MappedResponse[] = [];
     let i = 0;
     r.records.forEach((record) => {
         if (record instanceof Object) {

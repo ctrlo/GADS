@@ -5,7 +5,7 @@ use Moo::Role;
 sub after_presentation
 {   my ($self, $return) = @_;
 
-    $return->{enumvals} = $self->enumvals;
+    $return->{select_values} = $self->enumvals;
 }
 
 1;

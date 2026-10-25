@@ -24,7 +24,7 @@ export default function DashboardView({ readOnly, layout, onLayoutChange, gridCo
         >
             {widgets.map(widget => (
                 <div key={widget.config.i} className={`ld-widget-container ${readOnly || widget.config.static ? "" : "ld-widget-container--editable"}`}>
-                    <Widget key={widget.config.i} html={widget.html} readOnly={readOnly || widget.config.static} onEditClick={onEditClick(widget.config.i)} />
+                    <Widget key={widget.config.i} html={widget.html} readOnly={readOnly || widget.config.static || false} onEditClick={onEditClick(widget.config.i)} />
                 </div>
             ))}
         </ReactGridLayout>
