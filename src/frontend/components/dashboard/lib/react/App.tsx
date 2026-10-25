@@ -36,7 +36,7 @@ export default function App(props: AppProps): React.JSX.Element {
     useEffect(() => {
         if (editModalOpen && !loadingEditHtml && formRef) {
             initializeSummernoteComponent();
-            initializeRegisteredComponents(formRef.current);
+            initializeRegisteredComponents(formRef.current as HTMLElement);
         }
 
         if (!editModalOpen && !loadingEditHtml) {
