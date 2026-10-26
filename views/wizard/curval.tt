@@ -1,4 +1,5 @@
-<div class="modal modal--curval" id="[% modalId %]" tabindex="-1" role="dialog" aria-labelledby="[% modalId %]]Label" aria-hidden="true">
+[%# This is only a template, class modal--curval is added after cloning to ensure this modal is not incorrectly used %]
+<div class="modal" id="[% modalId %]" tabindex="-1" role="dialog" aria-labelledby="[% modalId %]]Label" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered " role="document">
     <div class="modal-content">
       [% INCLUDE wizard/sub/modal_header.tt; %]
