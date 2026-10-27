@@ -19,7 +19,7 @@ export default function EditModal({ editModalOpen, closeModal, editError, loadin
             {editError
                 && <p className="alert alert-danger">{editError}</p>}
             {loadingEditHtml
-                ? <span className='ld-modal__loading'>Loading...</span> : <div ref={formRef} dangerouslySetInnerHTML={{ __html: editHtml }} />}
+                ? <span className='ld-modal__loading'>Loading...</span> : <div ref={formRef} dangerouslySetInnerHTML={{ __html: editHtml ?? "" }} />}
         </ModalBody>
         <ModalFooter>
             <div className='modal-footer__left'>

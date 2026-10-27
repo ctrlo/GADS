@@ -45,8 +45,6 @@ import SelectAllComponent from "components/select-all";
 import HelpView from "components/help-view";
 import PeopleFilterComponent from "components/form-group/people-filter";
 import FieldLengthComponent from "components/form-group/field-length";
-// Conflicts with existing select-reveal
-// import SelectRevealComponent from "components/select-reveal";
 import handleActions from "util/actionsHandler";
 
 // Register them
