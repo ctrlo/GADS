@@ -183,16 +183,6 @@ sub id_to_hash
     return $prs->next;
 }
 
-after build_values => sub {
-    my ($self, $original) = @_;
-
-    my ($file_option) = $original->{file_options}->[0];
-    if ($file_option)
-    {
-        $self->file_options({ filesize => $file_option->{filesize} });
-    }
-};
-
 sub tjoin
 {   my $self = shift;
     +{$self->field => 'value'};
