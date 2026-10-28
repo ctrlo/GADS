@@ -408,6 +408,7 @@ get '/' => require_login sub {
         id     => $dashboard_id,
         user   => $user,
         site   => var('site'),
+        type   => 'table'
     );
 
     my $dashboard = schema->resultset('Dashboard')->dashboard(%params)

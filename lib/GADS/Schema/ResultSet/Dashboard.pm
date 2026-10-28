@@ -150,6 +150,7 @@ sub create_dashboard
         # homepage text if it exists
         $dashboard = $self->create({
             instance_id => $layout && $layout->instance_id,
+            type        => 'table',
         });
 
         my $homepage_text  = $layout ? $layout->homepage_text  : $site->homepage_text;
@@ -186,6 +187,7 @@ sub create_dashboard
         $dashboard = $self->create({
             instance_id => $layout && $layout->instance_id,
             user_id     => $user->id,
+            type        => 'table',
         });
 
         my $content = "<p>Welcome to your personal dashboard</p>
