@@ -24,7 +24,7 @@ export default class FieldLengthComponent extends Component {
     private init() {
         const input = this.element as HTMLTextAreaElement | HTMLInputElement;
         if (!input) return;
-        if(!input.dataset.max) return;
+        if(!input.dataset.maxLength) return;
         this.createCounter(input);
         input.addEventListener("keyup", () => this.updateCounter(input));
     }
@@ -34,7 +34,7 @@ export default class FieldLengthComponent extends Component {
      * @param input The input field to assign the counter to
      */
     private createCounter(input: HTMLTextAreaElement | HTMLInputElement) {
-        const max = parseInt(input.dataset.max || "0", 10);
+        const max = parseInt(input.dataset.maxLength || "0", 10);
         const counter = document.createElement("div");
         counter.classList.add("counter");
         counter.textContent = `${input.value.length}/${max}`;
@@ -46,7 +46,7 @@ export default class FieldLengthComponent extends Component {
      * @param input The input field to update the counter for
      */
     private updateCounter(input: HTMLTextAreaElement | HTMLInputElement) {
-        const max = parseInt(input.dataset.max || "0", 10);
+        const max = parseInt(input.dataset.maxLength || "0", 10);
         const counter = input.nextElementSibling as HTMLElement;
         const length = input.value.length;
         counter.textContent = `${length}/${max}`;

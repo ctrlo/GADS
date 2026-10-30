@@ -155,7 +155,12 @@ export type AppProps = {
      * The ID of the current dashboard
      * @type {string}
      */
-    dashboardId: string;
+    dashboardId?: string;
+    /**
+     * The ID of the current dashboard
+     * @type {string}
+     */
+    currentId: number | null;
     /**
      * The API client for making requests
      * @type {ApiClient}

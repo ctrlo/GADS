@@ -10,4 +10,24 @@
     [% PROCESS snippets/data_globe_inner.tt %]
 [% ELSIF type == "notice" %]
     [% content %]
+[% ELSIF type == "field" %]
+    [% PROCESS snippets/datum.tt %]
+    [%# First column is ID, shift it into a void %]
+    [% void = record.columns.shift %]
+    <div class="list--key-value">
+        <ul class="list__items">
+            [% FOREACH datum IN record.columns %]
+                <li class="list__item">
+                    [% IF show_field_labels %]
+                        <span class="list__key">
+                            [% datum.name | html %]
+                        </span>
+                    [% END %]
+                    <span class="list__value">
+                        [% render_datum(datum, 'full') %]
+                    </span>
+                </li>
+            [% END %]
+        </ul>
+    </div>
 [% END %]

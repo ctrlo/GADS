@@ -52,20 +52,28 @@
                         </div>
                         <div class="row">
                           <div class="col">
-                            <select class="form-select bg-white" name="viewType" id="viewType">
-                              <option value="personal">Personal</option>
-                              <option value="shared">Shared</option>
-                              <option value="admin">Admin (only visible to table administrators)</option>
-                            </select>
+                            [% INCLUDE fields/select.tt
+                                    id="view_type"
+                                    name="view_type"
+                                    select_class="select--reveal"
+                                    value = view_edit.is_admin == 1 ? "admin" : view_edit.global == 1 ? "global" : "personal"
+                                    filter = "html"
+                                    items = [
+                                        { id="personal", name="personal"},
+                                        { id="global", name="shared"},
+                                        { id="admin", name="admin"}
+                                    ]
+                            %]
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div class="row">
-                    <div class="col">
 
-                      <div class="select-reveal" data-select-target="viewType" data-select-value="shared">
+                  <div class="select-reveal select-reveal--view_type">
+                    <div class="select-reveal__instance" id="view_type_global">
+                      <div class="row">
+                        <div class="col">
                         [%
                           group_id_items = layout.user_can("layout") ? [{id="", name="<All users>"}] : [];
 
@@ -81,13 +89,13 @@
                             label        = "Share with"
                             placeholder  = "Select option"
                             value        = ! view_edit.group_id ? "" : view_edit.group_id
-                            select_class = "select--select"
+                            select_class = "select--reveal"
                             filter       = "html"
                             hide_group   = 0
                             items        = group_id_items;
                         %]
+                        </div>
                       </div>
-
                     </div>
                   </div>
                   [% END %]

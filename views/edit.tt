@@ -6,6 +6,10 @@
   END;
 %]
 
+[% IF layout.record_as_dashboard %]
+    [% INCLUDE navigation/edit_record_top_bar.tt %]
+[% END %]
+
 <div class="content-block__main">
   <form
     class="[% IF edit_modal %]curval-edit-form[% ELSE %]form-edit[% END %]"

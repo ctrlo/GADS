@@ -65,7 +65,7 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
         .find("a")
         .eq(0)
         .click();
-      cy.get("[aria-label='Edit Modal']").find("button.btn-cancel").click();
+      cy.get(".edit-widget-modal").find("button.btn-cancel").click();
       cy.get(".ld-widget").should("have.length", 0);
     });
 
@@ -80,10 +80,10 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
         .find("a")
         .eq(0)
         .click();
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find("input[name='title']", { timeout: 10000 })
         .should("be.visible");
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find(".modal-footer__right")
         .find("button.btn-primary").click();
       cy.get(".ld-widget").should("have.length", 1);
@@ -92,13 +92,13 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
 
     it("Should edit a shared dashboard widget", () => {
       cy.get(".ld-widget").find(".ld-edit-button").click();
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find("input[name='title']", { timeout: 10000 })
         .should("be.visible");
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find("input[name='title']")
         .type("With a new title");
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find(".modal-footer__right")
         .find("button.btn-primary").click();
       cy.get(".ld-widget").find("h4").contains("With a new title");
@@ -106,24 +106,24 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
 
     it("Should edit a shared dashboard widget with a lot of text", () => {
       cy.get(".ld-widget").find(".ld-edit-button").click();
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find("input[name='title']", { timeout: 10000 })
         .should("be.visible");
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find("div[contenteditable='true']")
         .clear()
         .type(bigLipsum);
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find(".modal-footer__right")
         .find("button.btn-primary").click();
     });
 
     it("Should delete a shared dashboard widget", () => {
       cy.get(".ld-widget").find(".ld-edit-button").click();
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find("input[name='title']", { timeout: 10000 })
         .should("be.visible");
-      cy.get("[aria-label='Edit Modal']").find("button.btn-cancel").click();
+      cy.get(".edit-widget-modal").find("button.btn-cancel").click();
       cy.get(".ld-widget").should("have.length", 0);
     });
   });
@@ -141,7 +141,7 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
         .find("a")
         .eq(0)
         .click();
-      cy.get("[aria-label='Edit Modal']").find("button.btn-cancel").click();
+      cy.get(".edit-widget-modal").find("button.btn-cancel").click();
       cy.get(".ld-widget").should("have.length", 1);
     });
 
@@ -157,10 +157,10 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
         .find("a")
         .eq(0)
         .click();
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find("input[name='title']", { timeout: 10000 })
         .should("be.visible");
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find(".modal-footer__right")
         .find("button.btn-primary").click();
       cy.get(".ld-widget").should("have.length", 2);
@@ -170,13 +170,13 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
     it("Should edit a personal dashboard widget", () => {
       cy.get("a.nav-link").eq(1).click();
       cy.get(".ld-widget").eq(1).find(".ld-edit-button").click();
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find("input[name='title']", { timeout: 10000 })
         .should("be.visible");
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find("input[name='title']")
         .type("With a new title");
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find(".modal-footer__right")
         .find("button.btn-primary").click();
       cy.get(".ld-widget").eq(1).find("h4").contains("With a new title");
@@ -185,14 +185,14 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
     it("Should edit a personal dashboard widget with a lot of text", () => {
       cy.get("a.nav-link").eq(1).click();
       cy.get(".ld-widget").eq(1).find(".ld-edit-button").click();
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find("input[name='title']", { timeout: 10000 })
         .should("be.visible");
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find("div[contenteditable='true']")
         .clear()
         .type(bigLipsum);
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find(".modal-footer__right")
         .find("button.btn-primary").click();
     });
@@ -200,10 +200,10 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
     it("Should delete a personal dashboard widget", () => {
       cy.get("a.nav-link").eq(1).click();
       cy.get(".ld-widget").eq(1).find(".ld-edit-button").click();
-      cy.get("[aria-label='Edit Modal']")
+      cy.get(".edit-widget-modal")
         .find("input[name='title']", { timeout: 10000 })
         .should("be.visible");
-      cy.get("[aria-label='Edit Modal']").find("button.btn-cancel").click();
+      cy.get(".edit-widget-modal").find("button.btn-cancel").click();
       cy.get(".ld-widget").should("have.length", 1);
     });
   });

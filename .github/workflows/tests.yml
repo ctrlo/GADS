@@ -40,6 +40,7 @@ jobs:
     runs-on: 'ubuntu-22.04'
     timeout-minutes: 30
     container: debian:trixie-slim
+    needs: js_tests
 
     strategy:
       fail-fast: false
@@ -98,7 +99,9 @@ jobs:
         run: yarn cypress run --browser chromium
 
   js_tests:
+    name: JS Tests
     runs-on: ubuntu-22.04
+    needs: lint
 
     strategy:
       matrix:
@@ -114,3 +117,15 @@ jobs:
           cache: 'npm'
       - run: yarn
       - run: yarn jest --passWithNoTests
+
+  lint:
+    name: Lint JS Code
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+      - run: yarn
+      - run: yarn lint --max-warnings=0

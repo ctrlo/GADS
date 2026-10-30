@@ -10,14 +10,20 @@
                 <input type="hidden" class="summernote_content" name="content" value="[% widget.content | html %]">
             [% ELSIF widget.type == "graph" %]
                 [% PROCESS form_graph %]
+            [% ELSIF widget.type == "table" AND widget.dashboard.is_record %]
+                [% PROCESS form_table_record %]
             [% ELSIF widget.type == "table" %]
                 [% PROCESS form_table %]
+            [% ELSIF widget.type == "timeline" AND widget.dashboard.is_record %]
+                [% PROCESS form_timeline_record %]
             [% ELSIF widget.type == "timeline" %]
                 [% PROCESS form_timeline %]
             [% ELSIF widget.type == "globe" %]
                 [% PROCESS form_globe %]
+            [% ELSIF widget.type == "field" %]
+                [% PROCESS form_field %]
             [% END %]
-            [% IF widget.dashboard.is_shared %]
+            [% IF widget.dashboard.is_shared AND NOT widget.dashboard.is_record %]
               [%
                 INCLUDE fields/sub/checkbox.tt
                   id = "static"
@@ -33,8 +39,8 @@
 
 [% BLOCK select_views %]
     <div class="form-group mb-4">
-        <label class="form-label" for="view_id">View</label>
-        <select class="form-control" id="view_id" name="view_id">
+        <label class="form-label" for="[% select_id OR 'view_id' %]">View</label>
+        <select class="form-control" id="[% select_id OR 'view_id' %]" name="[% select_id OR 'view_id' %]">
             [% IF NOT widget.view_id %]
                 <option></option>
             [% END %]
@@ -99,6 +105,41 @@
     </div>
 [% END %]
 
+[% BLOCK form_table_record %]
+    [%
+        select_items = [];
+        select_views = [];
+        FOREACH column IN layout.all_curcommon;
+            # Options for field selector
+            select_items.push({name=column.name, id=column.id});
+            # Add a views drop-down for each field
+            select_views.push(column);
+        END;
+    %]
+    [%
+        INCLUDE fields/select.tt
+          id           = "layout_id"
+          name         = "layout_id"
+          label        = "Field values to display"
+          placeholder  = "Select field"
+          value        = widget_options.column_id
+          items        = select_items
+          select_class = "select--reveal"
+          filter       = "html";
+    %]
+    [% FOREACH column IN select_views %]
+        <div class="select-reveal select-reveal--layout_id">
+            <div class="select-reveal__instance" id="layout_id_[% column.id %]">
+                [% PROCESS select_views user_views = column.layout_parent.user_views select_id = "view_id_" _ column.id %]
+            </div>
+        </div>
+    [% END %]
+    <div class="form-group">
+        <label for="rows">Number of rows to display in table</label>
+        <input type="text" class="form-control" name="rows" id="rows" value="[% widget.rows %]">
+    </div>
+[% END %]
+
 [% BLOCK form_table %]
     [% PROCESS select_views %]
     <div class="form-group">
@@ -109,10 +150,61 @@
 
 [% BLOCK form_timeline %]
     [% PROCESS select_views %]
-    [% PROCESS snippets/timeline_options.tt %]
+    [% PROCESS snippets/timeline_options.tt tl_options = widget_options %]
+[% END %]
+
+[% BLOCK form_timeline_record %]
+    [%
+        select_items  = [];
+        FOREACH column IN layout.columns_for_dashboard_timeline;
+            select_items.push({label_plain=column.filter_name, value=column.filter_id});
+        END;
+    %]
+    [% PROCESS field_selector %]
+    <div class="form-group mb-4">
+        <label class="form-label" for="timeline_range">Display date range:</label>
+        <select class="form-control" id="timeline_range" name="timeline_range">
+            <option value="3" [% IF widget_options.timeline_range == 3 %]selected[% END %]>3 months</option>
+            <option value="6" [% IF widget_options.timeline_range == 6 %]selected[% END %]>6 months</option>
+            <option value="12" [% IF NOT widget_options.timeline_range OR widget_options.timeline_range == 12 %]selected[% END %]>1 year</option>
+            <option value="24" [% IF widget_options.timeline_range == 24 %]selected[% END %]>2 years</option>
+        </select>
+    </div>
 [% END %]
 
 [% BLOCK form_globe %]
     [% PROCESS select_views %]
-    [% PROCESS snippets/globe_options.tt %]
+    [% PROCESS snippets/globe_options.tt globe_options = widget_options %]
+[% END %]
+
+[% BLOCK form_field %]
+    [%
+        select_items  = [];
+        FOREACH column IN layout.all;
+            select_items.push({label_plain=column.name, value=column.id});
+        END;
+    %]
+    [% PROCESS field_selector %]
+    [%
+      INCLUDE fields/sub/checkbox.tt
+        id      = "show_field_labels"
+        name    = "show_field_labels"
+        label   = "Show labels of displayed fields"
+        value   = "1"
+        checked = widget_options.show_field_labels ? 1 : 0;
+    %]
+[% END %]
+
+[% BLOCK field_selector %]
+    [%
+        INCLUDE fields/select_multiple.tt
+          id                   = "layout_id"
+          name                 = "layout_id"
+          label                = "Field values to display"
+          fieldset_class       = "input"
+          placeholder          = "Select field(s)"
+          items                = select_items
+          values               = widget_options.column_ids
+          filter               = "html";
+    %]
 [% END %]

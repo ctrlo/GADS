@@ -236,9 +236,9 @@ const validateInput = (field) => {
 
     removeErrorMessage($(field));
 
-    const maxEl = field.find("[data-max]");
+    const maxEl = field.find("[data-max-length]");
     if(maxEl && maxEl.length) {
-        const maxLen = maxEl.data("max");
+        const maxLen = maxEl.data("max-length");
         const fieldLen = maxEl.val().length;
         if(fieldLen > maxLen) {
             maxEl.attr("aria-invalid", true);

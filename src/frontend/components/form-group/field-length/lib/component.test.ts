@@ -7,7 +7,7 @@ describe('FieldLengthComponent', () => {
         expect(() => new FieldLengthComponent(div)).toThrow('Element must be a textarea or input');
     });
 
-    it('should not create a counter if the element lacks the data-max attribute', () => {
+    it('should not create a counter if the element lacks the data-max-length attribute', () => {
         const input = document.createElement('input');
         document.body.appendChild(input);
         new FieldLengthComponent(input);
@@ -17,7 +17,7 @@ describe('FieldLengthComponent', () => {
 
     it('should create a counter with the correct values when the input is empty', () => {
         const input = document.createElement('input');
-        input.dataset.max = '10';
+        input.dataset.maxLength = '10';
         document.body.appendChild(input);
         new FieldLengthComponent(input);
         const counter = input.nextElementSibling as HTMLElement;
@@ -27,7 +27,7 @@ describe('FieldLengthComponent', () => {
 
     it('should create a counter with the correct values when the input has some text', () => {
         const input = document.createElement('input');
-        input.dataset.max = '10';
+        input.dataset.maxLength = '10';
         input.value = 'Hello';
         document.body.appendChild(input);
         new FieldLengthComponent(input);
@@ -38,7 +38,7 @@ describe('FieldLengthComponent', () => {
 
     it('should update the counter with the correct values when the input value changes', () => {
         const input = document.createElement('input');
-        input.dataset.max = '10';
+        input.dataset.maxLength = '10';
         document.body.appendChild(input);
         new FieldLengthComponent(input);
         const counter = input.nextElementSibling as HTMLElement;
@@ -50,7 +50,7 @@ describe('FieldLengthComponent', () => {
 
     it('should add the invalid class to the counter when the input value exceeds the max length', () => {
         const input = document.createElement('input');
-        input.dataset.max = '10';
+        input.dataset.maxLength = '10';
         document.body.appendChild(input);
         new FieldLengthComponent(input);
         const counter = input.nextElementSibling as HTMLElement;
@@ -62,7 +62,7 @@ describe('FieldLengthComponent', () => {
 
     it('should remove the invalid class from the counter when the input value is reduced to be within the max length', () => {
         const input = document.createElement('input');
-        input.dataset.max = '10';
+        input.dataset.maxLength = '10';
         document.body.appendChild(input);
         new FieldLengthComponent(input);
         const counter = input.nextElementSibling as HTMLElement;
@@ -77,7 +77,7 @@ describe('FieldLengthComponent', () => {
 
     it('Should work with textarea elements', () => {
         const textarea = document.createElement('textarea');
-        textarea.dataset.max = '10';
+        textarea.dataset.maxLength = '10';
         document.body.appendChild(textarea);
         new FieldLengthComponent(textarea);
         const counter = textarea.nextElementSibling as HTMLElement;
