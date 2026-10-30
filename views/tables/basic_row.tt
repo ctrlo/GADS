@@ -37,7 +37,10 @@
             sub_field=field.sub_field
             sub_params=field.sub_params
             field_name=field.name
-            field_value=field.value;
+            field_value=field.value
+            dataInstanceName=field.dataInstanceName
+            dataLayoutId=field.dataLayoutId
+            dataCurrentId=field.dataCurrentId;
         CASE 'modal_button';
           INCLUDE tables/basic_cell_modal_button.tt
             class=field.class
@@ -50,9 +53,6 @@
             field_name=field.name
             field_value=field.value
             modalId=field.modalId
-            dataInstanceName=field.dataInstanceName
-            dataLayoutId=field.dataLayoutId
-            dataCurrentId=field.dataCurrentId
             dataTitle=field.dataTitle
             dataID=field.dataID;
         CASE 'header';

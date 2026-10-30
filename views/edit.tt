@@ -1065,8 +1065,6 @@
   <button
     type="button"
     class="btn btn-js-curval-modal btn-add-link"
-    data-bs-toggle="modal"
-    data-bs-target=#curvalModal
   >
     <span class="btn__title">Add</span>
   </button>
@@ -1086,9 +1084,8 @@
     table_columns          = [];
 
     table_buttons = [{
-      type         = "modal_button"
+      button_type  = "button"
       button_class = "btn btn-sm btn-link btn-js-curval-modal"
-      modalId      = "curvalModal"
       label        = "Edit"
       filter       = ""
       sub_field    = "fields/hidden.tt"
@@ -1127,7 +1124,7 @@
             }]
           }
         }
-        modal = {
+        data = {
           dataCurrentId = val.id
           dataLayoutId = col.id
           dataInstanceName = col.layout_parent.identifier
