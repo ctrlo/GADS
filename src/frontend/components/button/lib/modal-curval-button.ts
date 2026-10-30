@@ -25,6 +25,23 @@ export default function createModalCurvalButton(element: JQuery<HTMLElement>) {
     /* At this point the modal may have been initialised already (e.g.
      * if this code is to create the edit button for a curval) or it may
      * not, so use getOrCreateInstance() so that it handles both situations */
+    if($("#"+modal_id).hasClass("fade")) $("#"+modal_id).removeClass("fade");
     const modal = Modal.getOrCreateInstance("#"+modal_id, {});
-    element.on("click", () => modal.show(element.get(0)));
+    const parent_element =element.closest(".modal");
+    element.on("click", () => {
+        if(parent_element) {
+            $("#"+modal_id).on("show.bs.modal", ()=>{
+                parent_element.addClass("modal-blur");
+            });
+            parent_element.on("hide.bs.modal", ()=>false);
+            $("#"+modal_id).on("hidden.bs.modal", ()=>{
+                parent_element.removeClass("modal-blur")
+                    .off("hide.bs.modal")
+                    .on("hide.bs.modal", ()=>{
+                        return confirm("Closing this dialogue will cancel any work. Are you sure you want to do so?");
+                    });
+            });
+        }
+        modal.show(element.get(0));
+    });
 }
