@@ -86,8 +86,6 @@ registerComponent(HelpView);
 registerComponent(PeopleFilterComponent);
 registerComponent(AutosaveComponent);
 registerComponent(FieldLengthComponent);
-// Comflicts with existing select-reveal
-//registerComponent(SelectRevealComponent);
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body);
