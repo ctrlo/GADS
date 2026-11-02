@@ -3,7 +3,32 @@
 @import "definitions/bootstrap_base";
 
 // Bootstrap 5
-@import "~bootstrap/scss/bootstrap";
+@import "~bootstrap/scss/utilities",
+        "~bootstrap/scss/reboot",
+        "~bootstrap/scss/type",
+        "~bootstrap/scss/images",
+        "~bootstrap/scss/containers",
+        "~bootstrap/scss/grid",
+        "~bootstrap/scss/tables",
+        "~bootstrap/scss/forms",
+        "~bootstrap/scss/buttons",
+        "~bootstrap/scss/transitions",
+        "~bootstrap/scss/dropdown",
+        "~bootstrap/scss/nav",
+        "~bootstrap/scss/card",
+        "~bootstrap/scss/breadcrumb",
+        "~bootstrap/scss/pagination",
+        "~bootstrap/scss/alert",
+        "~bootstrap/scss/progress",
+        "~bootstrap/scss/list-group",
+        "~bootstrap/scss/close",
+        "~bootstrap/scss/modal",
+        "~bootstrap/scss/popover",
+        "~bootstrap/scss/spinners",
+        "~bootstrap/scss/offcanvas",
+        "~bootstrap/scss/placeholders",
+        "~bootstrap/scss/helpers",
+        "~bootstrap/scss/utilities/api";
 
 @import "definitions/fonts", "definitions/mixins";
 
