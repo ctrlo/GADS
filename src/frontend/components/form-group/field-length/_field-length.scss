@@ -1,10 +1,10 @@
 .counter {
-    @extend .d-flex;
-    @extend .justify-content-end;
-    @extend .text-muted;
-    @extend .small;
+    display: flex;
+    justify-content: flex-end;
+    color: var(--bs-secondary-color);
+    @include font-size($small-font-size);
 
     &.invalid {
-        @extend .text-danger
+        color: var(--bs-danger-color);
     }
 }

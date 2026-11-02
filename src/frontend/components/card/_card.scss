@@ -86,12 +86,12 @@
     flex-grow: 1;
 
     .card__title {
-        @extend .text-primary;
+        color: rgba(var(--bs-primary), var(--bs-text-opacity));
 
         .card__subtitle {
             font-weight: normal;
             margin-left: $padding-base-horizontal;
-            @extend .text-secondary;
+            color: rgba(var(--bs-secondary), var(--bs-text-opacity));
         }
     }
 }

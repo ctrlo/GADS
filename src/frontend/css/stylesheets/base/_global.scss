@@ -103,10 +103,10 @@ table.table-bordered {
 }
 
 .hft-lines {
+  margin-bottom: ($spacer * 0.5);
 
   &:not(:last-of-type) {
-    @extend .mb-2;
-    @extend .pb-2;
-    @extend .border-bottom
+    padding-bottom: ($spacer * 0.5);
+    border-bottom: 1px solid $gray;
   }
 }

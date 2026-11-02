@@ -419,13 +419,14 @@ button.btn-add {
 
 .dt-start,
 .dt-end {
-    @extend .py-2;
-    @extend .align-content-center;
-    @extend .d-flex;
-    @extend .flex-row;
-    @extend .justify-content-between;
-    @extend .align-items-center;
-    @extend .m-0;
+    padding-left: ($spacer * 0.5);
+    padding-right: ($spacer * 0.5);
+    align-content: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
 }
 
 .dt-layout-start:has(.dt-search) {
@@ -436,12 +437,12 @@ button.btn-add {
     }
 
     .dt-search {
-        @extend .pe-2;
+        padding-right: ($spacer * 0.5);
         width: 100%;
 
         input[type="search"] {
             width: 100%;
-            @extend .m-0;
+            margin: 0;
         }
     }
 }
@@ -458,7 +459,8 @@ button.btn-add {
         }
 
         .btn-search {
-            @extend .mx-2;
+            margin-left: ($spacer * 0.5);
+            margin-right: ($spacer * 0.5);
             opacity: 0;
             transition: 0.2s opacity ease-in;
 
@@ -571,7 +573,7 @@ th {
 
             input[type="search"] {
                 width: 100%;
-                @extend .m-0;
+                margin: 0;
             }
         }
     }
