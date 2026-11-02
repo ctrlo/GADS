@@ -1,6 +1,6 @@
 .icon::before {
     @extend %icon-font;
-    margin-right: 0.5rem;
+    margin-right: ($spacer * 0.5);
     font-size: 1.25rem;
 }
 
@@ -43,7 +43,7 @@
     border-radius: 50%;
     font-size: 0.8rem;
     // These may look like random values, but I wanted a circle.
-    padding: 0.17rem 0.4rem;
+    padding: ($spacer * 0.17) ($spacer * 0.4);
 }
 
 .icon-chevron-right {

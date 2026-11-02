@@ -1,7 +1,7 @@
 .btn-searchable-select.dropdown-toggle {
     @include button-variant($gray-100, $gray-100, $secondary);
-    margin-top: .75rem;
-    margin-bottom: 1rem;
+    margin-top: ($spacer * 0.75);
+    margin-bottom: $spacer;
     min-width: 100%;
     max-width: 100%;
     text-align: center;

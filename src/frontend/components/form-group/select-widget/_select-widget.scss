@@ -6,7 +6,7 @@
   }
 
   .form-text--error {
-    margin-top: 0.5rem;
+    margin-top: ($spacer * 0.5);
   }
 
   .form-control {
@@ -16,7 +16,7 @@
     position: relative;
     align-items: center;
     justify-content: space-between;
-    margin-top: 0.25rem;
+    margin-top: ($spacer * 0.25);
     padding-bottom: 0;
     white-space: normal;
 
@@ -54,7 +54,7 @@
     }
 
     .widget-value__value {
-      padding-right: 0.2rem;
+      padding-right: ($spacer * 0.2);
     }
 
     .none-selected {
@@ -117,7 +117,7 @@
     /* error messages in filtered-value curvals */
     .alert {
       margin-top: 0;
-      padding-bottom: 0.5rem;
+      padding-bottom: ($spacer * 0.5);
     }
 
     .answer {
@@ -128,7 +128,7 @@
   }
 
   & + .btn {
-    margin-top: 0.5rem;
+    margin-top: ($spacer * 0.5);
   }
 }
 

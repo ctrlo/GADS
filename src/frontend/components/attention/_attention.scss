@@ -2,7 +2,7 @@
   @extend %icon-font;
 
   content: "\E810";
-  margin-right: 0.5rem;
+  margin-right: ($spacer * 0.5);
   transform: rotate(180deg);
 }
 

@@ -1,6 +1,6 @@
 .query-builder.query-builder {
   .btn {
-    padding: 0.25rem $padding-small-horizontal;
+    padding: ($spacer * 0.25) $padding-small-horizontal;
     border-radius: $input-border-radius;
     font-size: $font-size-sm;
   }
