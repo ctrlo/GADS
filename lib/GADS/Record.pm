@@ -1362,8 +1362,7 @@ sub _transform_values
         {
             $key = $self->records->aggregate_name($column);
         }
-        my $value = $self->linked_id && $column->link_parent ? $original->{$key} : $original->{$key};
-        $fields->{$column->id} = $self->_create_datum($column, $value);
+        $fields->{$column->id} = $self->_create_datum($column, $original->{$key});
     }
 
     $self->_set_id_count($original->{id_count});
