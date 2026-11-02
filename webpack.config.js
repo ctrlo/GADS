@@ -3,9 +3,9 @@ const { ProvidePlugin, WatchIgnorePlugin } = require('webpack')
 const autoprefixer = require('autoprefixer')
 const sass = require('sass')
 const TerserPlugin = require('terser-webpack-plugin')
-const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 
 const plugins = [
     new ProvidePlugin({
@@ -18,7 +18,6 @@ const plugins = [
     new MiniCssExtractPlugin({
         filename: '[name].css',
     }),
-    new CleanWebpackPlugin(),
     new CopyWebpackPlugin({
         patterns: [
             {
@@ -34,7 +33,6 @@ const plugins = [
     // When watching, this plugin ensures that only the relevant folders are watched, increasing efficiency of the build
     new WatchIgnorePlugin({
         paths: [
-            path.resolve(__dirname, 'node_modules'),
             path.resolve(__dirname, 'public'),
             path.resolve(__dirname, 'cypress'),
             path.resolve(__dirname, 'webpack'),
@@ -45,7 +43,7 @@ const plugins = [
 module.exports = (env) => {
     return {
         mode: env.development ? 'development' : 'production',
-        devtool: env.development ? 'source-map' : false,
+        devtool: env.development ? 'source-map' : undefined,
         entry: {
             site: path.resolve(__dirname, './src/frontend/js/site.js'),
             '../css/general': path.resolve(__dirname, './src/frontend/css/stylesheets/general.scss'),
@@ -110,6 +108,8 @@ module.exports = (env) => {
         optimization: {
             minimize: env.development ? false : true,
             minimizer: [
+                `...`,
+                new CssMinimizerPlugin(),
                 new TerserPlugin({
                     terserOptions: {
                         format: {
@@ -118,8 +118,6 @@ module.exports = (env) => {
                         // As the terser can sometimes shorten class names to contain invalid characters and as the component class uses
                         // the class name within a data attribute to ascertain initialization (`component.js:12), this can cause errors
                         keep_classnames: true,
-                        // Include source map for SCSS files for debugging if the environment is set to debug
-                        sourceMap: env.development
                     },
                     extractComments: false,
                 }),
@@ -127,6 +125,12 @@ module.exports = (env) => {
         },
 
         output: {
+            clean: {
+                keep(asset) {
+                    // For some reason using the path doesn't appear to work
+                    return asset.includes('fengari-web');
+                }
+            },
             filename: '[name].js',
             path: path.resolve(__dirname, 'public/js'),
             chunkFilename: '[name].[chunkhash].js',
@@ -137,8 +141,7 @@ module.exports = (env) => {
         resolve: {
             alias: {
                 components: path.resolve(__dirname, 'src/frontend/components'),
-                jQuery: path.resolve(__dirname, 'node_modules/jquery/dist/jquery.js'),
-                'jquery-ui/ui/widget': 'blueimp-file-upload/js/vendor/jquery.ui.widget.js',
+                jQuery: path.resolve(__dirname, 'node_modules/jquery/dist/jquery.js')
             },
             extensions: ['.tsx', '.ts', '.jsx', '.js'],
             fallback: {
@@ -148,8 +151,6 @@ module.exports = (env) => {
                 path.resolve(__dirname, 'src/frontend/js/lib'),
                 path.resolve(__dirname, 'node_modules'),
             ],
-        },
-
-        target: 'web',
+        }
     }
 };
