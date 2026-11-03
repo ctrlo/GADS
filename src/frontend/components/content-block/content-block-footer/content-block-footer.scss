@@ -2,7 +2,7 @@
   position: sticky;
   z-index: 999;
   bottom: 0;
-  margin: $padding-large-vertical 0 (-$padding-large-vertical) -1.25rem;
+  margin: $padding-large-vertical 0 (-$padding-large-vertical) ($spacer * -1.25);
 }
 
 .content-block__footer-container {

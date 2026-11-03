@@ -10,7 +10,7 @@
     @extend %icon-font;
 
     content: "\E800";
-    margin-right: 0.5rem;
+    margin-right: ($spacer * 0.5);
     color: $white;
   }
 
@@ -24,7 +24,7 @@
     @extend %icon-font;
 
     content: "\E810";
-    margin-left: 0.5rem;
+    margin-left: ($spacer * 0.5);
     color: $white;
   }
 
@@ -133,7 +133,7 @@
 
 .btn-delete.btn-icon-close {
   &::before {
-    margin-right: 0.75rem;
+    margin-right: ($spacer * 0.75);
   }
 }
 
@@ -150,7 +150,7 @@
     @extend %icon-font;
 
     content: "\e82b";
-    margin-right: 0.5rem;
+    margin-right: ($spacer * 0.5);
     color: $white;
   }
 }
@@ -181,7 +181,7 @@
     @extend %icon-font;
 
     content: "\E80a";
-    margin-right: 0.25rem;
+    margin-right: ($spacer * 0.25);
     color: $brand-secundary;
     background: $transparent;
     transition: all 0.2s ease;
@@ -441,8 +441,8 @@
     @extend %icon-font;
 
     content: "\E80a";
-    margin-left: 0.5rem;
-    padding: 0.25rem;
+    margin-left: ($spacer * 0.5);
+    padding: ($spacer * 0.25);
     transition: 0.2s all ease;
     border-radius: 0.25rem;
     color: $brand-secundary;

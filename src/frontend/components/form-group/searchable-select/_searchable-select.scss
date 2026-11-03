@@ -1,7 +1,7 @@
 .btn-searchable-select.dropdown-toggle {
     @include button-variant($gray-100, $gray-100, $secondary);
-    margin-top: .75rem;
-    margin-bottom: 1rem;
+    margin-top: ($spacer * 0.75);
+    margin-bottom: $spacer;
     min-width: 100%;
     max-width: 100%;
     text-align: center;
@@ -31,11 +31,11 @@
     overflow-y: auto;
 
     .searchable-select-search {
-        @extend .sticky-top;
-        @extend .p-3;
-        @extend .bg-light;
-        @extend .border-bottom;
-        border-color: $gray-200;
+        position: sticky;
+        top: 0;
+        padding: ($spacer * 1);
+        background-color: var(--bs-light);
+        border-bottom: 1px solid var(--bs-gray-200);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 }

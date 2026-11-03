@@ -4,12 +4,12 @@
   .form-control {
     @include form-control;
 
-    margin-top: 0.5rem;
+    margin-top: ($spacer * 0.5);
   }
 
   .textarea__label {
     display: flex;
-    padding-right: 0.5rem;
+    padding-right: ($spacer * 0.5);
   }
 
   label {

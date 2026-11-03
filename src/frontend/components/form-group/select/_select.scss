@@ -3,7 +3,7 @@
 
   .select__label {
     display: flex;
-    padding-right: 0.5rem;
+    padding-right: ($spacer * 0.5);
   }
 
   label {
@@ -65,7 +65,7 @@
 }
 
 .select__prefix {
-  margin-right: 1.25rem;
+  margin-right: ($spacer * 1.25);
   margin-bottom: 0;
   color: $brand-secundary;
   text-transform: uppercase;

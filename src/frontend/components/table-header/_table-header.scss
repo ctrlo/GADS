@@ -17,7 +17,7 @@
 .table-header-container {
     position: relative;
     width: 100%;
-    padding: 1rem 0 0 $grid-offset-mobile;
+    padding: $spacer 0 0 $grid-offset-mobile;
 
     &:not(:has(.table-nav-tabs))::before {
             content: "";
@@ -34,7 +34,7 @@
     position: relative;
     flex-flow: row nowrap;
     gap: $padding-base-horizontal;
-    padding-bottom: 1.5rem;
+    padding-bottom: ($spacer * 1.5);
 }
 
 .table-header-bottom {
@@ -60,7 +60,7 @@
     }
 
     .table-header-container {
-        padding: 1rem 0 0 $grid-offset;
+        padding: $spacer 0 0 $grid-offset;
 
         &::before {
             right: -1 * $grid-offset;

@@ -1,6 +1,6 @@
 .data-table .data-table-row--child {
   position: relative;
-  padding-left: 2rem;
+  padding-left: ($spacer * 2);
 
   &::after {
     @extend %icon-font;
@@ -9,7 +9,7 @@
     position: absolute;
     top: 50%;
     left: $padding-base-horizontal;
-    margin-right: 0.5rem;
+    margin-right: ($spacer * 0.5);
     transform: translateY(-50%);
     font-size: 0.9em;
   }
@@ -29,7 +29,7 @@ table.dataTable {
     top: 1.3rem;
     right: $padding-small-horizontal;
     left: auto;
-    margin: 0 0.5rem 0 0;
+    margin: 0 ($spacer * 0.5) 0 0;
     transform: rotate(90deg);
     border: 0;
     background-color: $transparent;
@@ -56,10 +56,10 @@ table.dataTable {
 
   &.dtr-column > tbody > tr > td.dtr-control.data-table-row--child,
   &.dtr-column > tbody > tr > th.dtr-control.data-table-row--child {
-    padding-left: 4rem;
+    padding-left: ($spacer * 4);
 
     &::after {
-      left: 2rem;
+      left: ($spacer * 2);
     }
   }
 

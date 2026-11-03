@@ -8,7 +8,7 @@ span.rag {
     @extend %icon-font;
 
     margin-right: $padding-small-horizontal;
-    padding: 0.313rem;
+    padding: ($spacer * 0.313);
     border-radius: 0.125rem;
     color: $white;
     font-size: 1.25rem;
@@ -75,7 +75,7 @@ span.rag {
 .rag--blank {
   &::before {
     content: "_";
-    padding: 0 0.4375rem;
+    padding: 0 ($spacer * 0.4375);
     background-color: $transparent;
     color: $text-color;
     font-size: 2rem;

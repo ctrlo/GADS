@@ -61,7 +61,7 @@
 /* Reset above margin if within a modal dialogue */
 .content-block .modal-dialog .alert {
   margin-top: 0;
-  margin-bottom: 2rem;
+  margin-bottom: ($spacer * 2);
 }
 
 .content-block__title {
@@ -84,8 +84,8 @@
 }
 
 .content-block--white .content-block__main {
-  margin-top: 1.5rem;
-  padding: 1.5rem 2rem;
+  margin-top: ($spacer * 1.5);
+  padding: ($spacer * 1.5) ($spacer * 2);
   background-color: $white;
   box-shadow: 0 0 7px #0000000D;
 }

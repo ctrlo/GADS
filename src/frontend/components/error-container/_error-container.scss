@@ -4,7 +4,7 @@
     }
 
     .error-message::before {
-        @extend .pe-2;
+        padding-right: ($spacer * 0.5);
         @extend %icon-font;
         content: "\E822";
     }

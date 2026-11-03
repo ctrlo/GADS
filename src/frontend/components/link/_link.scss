@@ -12,7 +12,7 @@
 
 .link--primary {
   display: inline-block;
-  padding: $padding-small-vertical 0.75rem;
+  padding: $padding-small-vertical ($spacer * 0.75);
   color: $brand-primary;
   font-size: $font-size-sm;
   font-weight: $font-weight-semibold;

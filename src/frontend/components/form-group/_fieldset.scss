@@ -9,7 +9,7 @@
     @include form-label;
 
     width: auto;
-    margin-bottom: 0.25rem;
+    margin-bottom: ($spacer * 0.25);
     font-size: 0.875rem; // 14px
   }
 }
@@ -23,11 +23,11 @@
 }
 
 .fieldset__legend--standalone {
-  margin-bottom: 1rem;
+  margin-bottom: $spacer;
 }
 
 .fieldset__legend + .form-group {
-  margin-top: 0.25rem;
+  margin-top: ($spacer * 0.25);
 }
 
 .fieldset--required legend::after {

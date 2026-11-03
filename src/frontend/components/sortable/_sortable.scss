@@ -1,9 +1,9 @@
 .sortable .btn-default {
-  margin-top: 0.5rem;
+  margin-top: ($spacer * 0.5);
 }
 
 .sortable .btn-icon-close {
-  margin-left: 0.75rem;
+  margin-left:  ($spacer * 0.75);
 
   .btn__title {
     @include visually-hidden;
@@ -25,7 +25,7 @@
     @extend %icon-font;
 
     content: '\e829';
-    margin-right: 0.75rem;
+    margin-right: ($spacer * 0.75);
     cursor: grab;
   }
 
