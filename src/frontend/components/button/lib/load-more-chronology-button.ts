@@ -49,9 +49,8 @@ export class LoadMoreChronologyButton {
         const recordId = this.$el.data("record-id");
         // Get the current page number
         const page = this.page;
-        const lastRecordId = $("[data-last-id]").last().data("last-id");
         // Download the chronology data for the next page
-        const url = `/api/chronology/${recordId}?page=${page}&last_record_id=${lastRecordId}`;
+        const url = `/api/chronology/${recordId}?page=${page}`;
         try {
             // Show the spinner while loading
             this.$spinner.show();

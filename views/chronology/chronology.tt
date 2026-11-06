@@ -9,7 +9,7 @@ FOREACH version IN record.chronology;
     action_type = 'created';
     action_by = version.editor.id ? " by " _ version.editor.as_string : '';
 %]
-    <div class="card card-secondary">
+    <div class="card card-secondary"[% IF last_page && loop.last %] data-last-page="1"[% END %]>
         <div class="card-header">
             <h2 class="card__header">
                 <span> [% action_datetime _ " - " _ " record " _ action_type _ action_by | html %] </span>

@@ -40,6 +40,7 @@ use GADS::Datum::Rag;
 use GADS::Datum::Serial;
 use GADS::Datum::String;
 use GADS::Datum::Tree;
+use GADS::Helper::Pager qw/get_page/;
 use GADS::Hooks;
 use GADS::Layout;
 use Log::Report 'linkspace';
@@ -863,8 +864,6 @@ sub clear
 sub _find
 {   my ($self, %find) = @_;
 
-    print "$_ => $find{$_}\n" for grep {defined} keys %find;
-
     # First clear applicable properties
     $self->clear;
 
@@ -872,7 +871,6 @@ sub _find
     error __"You do not have access to this deleted record"
         if $find{deleted} && !$self->layout->user_can("purge") && !$GADS::Schema::IGNORE_PERMISSIONS;
 
-    my $last_page;
     my $last_record_id = $find{last_record_id};
     my $chronology_page = $find{chronology_page};
     my $chronology_rows = $find{chronology_rows};
@@ -1057,17 +1055,12 @@ sub _find
     # limits. It could be that they can't see the actual latest version though,
     # and that the latest version here is an old version. Check now whether
     # they are allowed to see this record at all.
-    if ($find{chronology}) {
-        my $current = $find{current};
-        info __x"Record found: {current_version} {id}", id => $record_ids[-1], current_version => $current ? $current->current_version_id : '<undef>';
         error __"Requested record not found"
             if $find{chronology} && $find{current}->current_version_id != $record_ids[-1];
-    }
 
     $self->clear_is_draft;
 
-    my @chronology_record_ids;
-    @chronology_record_ids = splice @record_ids, ($chronology_page-1) * $chronology_rows, $chronology_rows+1
+    my @chronology_record_ids = get_page($chronology_page, $chronology_rows, @record_ids)
         if $find{chronology};
 
     # Fetch and add multi-values
@@ -1200,15 +1193,23 @@ sub _find
             } if @changed; # There may have been changes, but not ones the user has access to
             $last_record = $record;
         }
+        @chronology = grep { defined } @chronology;
+        my $count = scalar @chronology;
+        my $start = $count > $chronology_rows ? 1 : 0;
+        @chronology = grep { defined } @chronology[$start .. $chronology_rows];
         @chronology = reverse @chronology;
-        @chronology = splice @chronology, ($chronology_page-1)*$chronology_rows, $chronology_rows;
         $self->_set_chronology(\@chronology);
+        $self->_set_last_page($start==0);
     }
 
     $self; # Allow chaining
 }
 
 has chronology => (
+    is => 'rwp',
+);
+
+has last_page => (
     is => 'rwp',
 );
 

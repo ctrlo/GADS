@@ -1520,7 +1520,6 @@ get '/api/chronology/:id' => require_login sub {
     my $user = logged_in_user;
     my $current_id = route_parameters->get('id');
     my $page = query_parameters->get('page');
-    my $last_record_id = query_parameters->get('last_record_id');
 
     my $record = GADS::Record->new(
         user => $user,
@@ -1529,26 +1528,19 @@ get '/api/chronology/:id' => require_login sub {
 
     my %params = (
         chronology_page => $page,
-        chronology_rows => 3,
+        chronology_rows => 10,
     );
-
-    $params{last_record} = $last_record_id if $last_record_id;
 
     $record->find_chronology_id($current_id, %params);
 
     my $layout = $record->layout;
     my $base_url = request->base;
-    my $last_page = $record->can('last_chronology_page') ? $record->last_chronology_page : 1;
-    $last_record_id = $record->can('last_chronology_record') ? $record->last_chronology_record->{record_id} : 0;
-
-    trace "last_record_id $last_record_id";
 
     return template 'chronology/chronology.tt' => {
         record => $record,
         layout_obj => $layout,
         page => $page,
-        last_page => $last_page,
-        last_record_id => $last_record_id,
+        last_page => $record->last_page,
     }, {
         layout => undef # do not render page header, footer etc
     }
