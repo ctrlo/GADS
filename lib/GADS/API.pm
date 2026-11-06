@@ -571,7 +571,7 @@ post '/api/settings/logo' => require_login sub {
     my $filecheck = GADS::Filecheck->instance;
     error __x"Files of mimetype {mimetype} are not allowed", mimetype => $filecheck->get_filetype($file)
         unless $filecheck->is_image($file);
-    
+
     $site->update({ site_logo => $file->content });
 
     content_type 'application/json';
@@ -668,7 +668,7 @@ sub _put_dashboard_widget_edit {
     my $widget = _get_widget_write(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user);
 
     my $body = from_json(request->body);
-    
+
     $widget->title($body->{'title'});
     $widget->static(query_parameters->get('static') ? 1 : 0)
         if $widget->dashboard->is_shared;
@@ -1514,6 +1514,44 @@ post '/api/script_error' => require_login sub {
         url => $body->{url}, description => $body->{description};
 
     _success("Script error logged successfully");
+};
+
+get '/api/chronology/:id' => require_login sub {
+    my $user = logged_in_user;
+    my $current_id = route_parameters->get('id');
+    my $page = query_parameters->get('page');
+    my $last_record_id = query_parameters->get('last_record_id');
+
+    my $record = GADS::Record->new(
+        user => $user,
+        schema => schema,
+    );
+
+    my %params = (
+        chronology_page => $page,
+        chronology_rows => 3,
+    );
+
+    $params{last_record} = $last_record_id if $last_record_id;
+
+    $record->find_chronology_id($current_id, %params);
+
+    my $layout = $record->layout;
+    my $base_url = request->base;
+    my $last_page = $record->can('last_chronology_page') ? $record->last_chronology_page : 1;
+    $last_record_id = $record->can('last_chronology_record') ? $record->last_chronology_record->{record_id} : 0;
+
+    trace "last_record_id $last_record_id";
+
+    return template 'chronology/chronology.tt' => {
+        record => $record,
+        layout_obj => $layout,
+        page => $page,
+        last_page => $last_page,
+        last_record_id => $last_record_id,
+    }, {
+        layout => undef # do not render page header, footer etc
+    }
 };
 
 sub _success

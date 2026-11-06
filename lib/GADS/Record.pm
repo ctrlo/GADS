@@ -753,7 +753,16 @@ sub find_chronology_id
         or error __x"Record ID {id} not found", id => $current_id;
     my $instance_id = $current->instance_id;
     $self->_set_instance_id($current->instance_id);
-    $self->_find(current_id => $current_id, chronology => 1, current => $current);
+    my $page = $options{chronology_page} // 1;
+    my $rows = $options{chronology_rows} // 10;
+    my %params = (
+        current_id      => $current_id,
+        chronology      => 1,
+        current         => $current,
+        chronology_page => $page,
+        chronology_rows => $rows
+    );
+    $self->_find(%params);
 }
 
 sub find_draftuser_id
@@ -854,12 +863,19 @@ sub clear
 sub _find
 {   my ($self, %find) = @_;
 
+    print "$_ => $find{$_}\n" for grep {defined} keys %find;
+
     # First clear applicable properties
     $self->clear;
 
     # If deleted, make sure user has access to purged records
     error __"You do not have access to this deleted record"
         if $find{deleted} && !$self->layout->user_can("purge") && !$GADS::Schema::IGNORE_PERMISSIONS;
+
+    my $last_page;
+    my $last_record_id = $find{last_record_id};
+    my $chronology_page = $find{chronology_page};
+    my $chronology_rows = $find{chronology_rows};
 
     my %params = (
         user                    => $self->user,
@@ -1041,16 +1057,24 @@ sub _find
     # limits. It could be that they can't see the actual latest version though,
     # and that the latest version here is an old version. Check now whether
     # they are allowed to see this record at all.
-    error __"Requested record not found"
-        if $find{chronology} && $find{current}->current_version_id != $record_ids[-1];
+    if ($find{chronology}) {
+        my $current = $find{current};
+        info __x"Record found: {current_version} {id}", id => $record_ids[-1], current_version => $current ? $current->current_version_id : '<undef>';
+        error __"Requested record not found"
+            if $find{chronology} && $find{current}->current_version_id != $record_ids[-1];
+    }
 
     $self->clear_is_draft;
+
+    my @chronology_record_ids;
+    @chronology_record_ids = splice @record_ids, ($chronology_page-1) * $chronology_rows, $chronology_rows+1
+        if $find{chronology};
 
     # Fetch and add multi-values
     my @record_objects;
     if ($find{chronology})
     {
-        foreach my $record_id (@record_ids)
+        foreach my $record_id (@chronology_record_ids)
         {
             my $record_hash = $record->{$record_id};
             push @record_objects, GADS::Record->new(
@@ -1176,6 +1200,8 @@ sub _find
             } if @changed; # There may have been changes, but not ones the user has access to
             $last_record = $record;
         }
+        @chronology = reverse @chronology;
+        @chronology = splice @chronology, ($chronology_page-1)*$chronology_rows, $chronology_rows;
         $self->_set_chronology(\@chronology);
     }
 
@@ -2440,7 +2466,7 @@ sub _field_write
                             # child records. This is used in chronology view to
                             # ensure the correct versions at the time of record
                             # edit are used
-                            version_datetime => $created, 
+                            version_datetime => $created,
                         );
                         push @{$self->_records_to_write_after}, $record
                             if $record->is_edited;
