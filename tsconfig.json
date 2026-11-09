@@ -20,6 +20,7 @@
             "react",
             "react-dom",
             "react-grid-layout",
+            "react-modal",
             "typeahead.js"
         ],
         "paths": {
