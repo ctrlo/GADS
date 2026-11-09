@@ -216,7 +216,8 @@ $record->write;
     $record->find_chronology_id(1, chronology_page=>2, chronology_rows => 3);
     @changes = @{$record->chronology};
     is(@changes, 1, "Page 2 has one change (original data)");
-    $changed_string = shift @changes;
+
+    ok($record->last_page, "Is last page");
 }
 
 done_testing();
