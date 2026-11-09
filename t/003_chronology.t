@@ -169,4 +169,54 @@ $record->clear;
     # Second change not shown as integer not visible
 }
 
+$integer1->set_permissions({$sheet->group->id => [qw(read write_new write_existing)]});
+$integer1->write;
+$layout->clear;
+
+$record->find_current_id(1);
+$record->fields->{$string1->id}->set_value('Second Page - Invisible Change');
+$record->fields->{$integer1->id}->set_value(1024);
+
+$record->write;
+
+{
+    $record->clear;
+    $record->find_chronology_id(1, chronology_page=>1, chronology_rows => 3);
+    my @changed = @{$record->chronology};
+
+    is(@changed, 3, "Limited changes thanks to paging");
+
+    # Last change
+    my @changes = @{(shift @changed)->{changed}};
+    is(@changes, 2, "Correct number of changes");
+    my $changed_string = shift @changes;
+    is($changed_string->{name_short}, 'L1string1', "Showing initial string");
+    my $changed_integer = shift @changes;
+    is($changed_integer->{name_short}, 'L1integer1', "Showing initial integer as change");
+
+    # Second to last
+    @changes = @{(shift @changed)->{changed}};
+    is(@changes, 1, "Correct number of changes");
+    $changed_integer = shift @changes;
+    is($changed_integer->{name_short}, 'L1integer1', "Showing change of integer");
+
+    # Second change
+    @changes = @{(shift @changed)->{changed}};
+    is(@changes, 2, "Correct number of changes");
+    $changed_string = shift @changes;
+    is($changed_string->{name_short}, 'L1string1', "Showing change of string");
+    $changed_integer = shift @changes;
+    is($changed_integer->{name_short}, 'L1integer1', "Showing change of integer in second edit");
+
+    my $null_change = shift @changed;
+    ok(!defined $null_change, "No changes left (page 1)");
+
+    $record->clear;
+
+    $record->find_chronology_id(1, chronology_page=>2, chronology_rows => 3);
+    @changes = @{$record->chronology};
+    is(@changes, 1, "Page 2 has one change (original data)");
+    $changed_string = shift @changes;
+}
+
 done_testing();
