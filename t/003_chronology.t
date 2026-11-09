@@ -54,30 +54,30 @@ $record->clear;
 
 # Check changes as full user
 {
-    $record->find_chronology_id(1);
+    $record->find_chronology_id(1, chronology_page => 1, chronology_rows => 3);
 
     my @changed = @{$record->chronology};
     is(@changed, 3, "Correct number of total versions");
 
     # Initial write
     my @changes = @{(shift @changed)->{changed}};
-    is(@changes, 2, "Correct number of changes");
-    my $changed_string = shift @changes;
-    is($changed_string->{name_short}, 'L1string1', "Showing initial string as change");
+    is(@changes, 1, "Correct number of changes");
     my $changed_integer = shift @changes;
     is($changed_integer->{name_short}, 'L1integer1', "Showing initial integer as change");
 
     # First change
     @changes = @{(shift @changed)->{changed}};
     is(@changes, 2, "Correct number of changes");
-    $changed_string = shift @changes;
+    my $changed_string = shift @changes;
     is($changed_string->{name_short}, 'L1string1', "Showing change of string");
     $changed_integer = shift @changes;
     is($changed_integer->{name_short}, 'L1integer1', "Showing change of integer");
 
     # Second change
     @changes = @{(shift @changed)->{changed}};
-    is(@changes, 1, "Correct number of changes");
+    is(@changes, 2, "Correct number of changes");
+    $changed_string = shift @changes;
+    is($changed_string->{name_short}, 'L1string1', "Showing change of string");
     $changed_integer = shift @changes;
     is($changed_integer->{name_short}, 'L1integer1', "Showing change of integer in second edit");
 }
