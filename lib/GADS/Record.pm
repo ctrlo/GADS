@@ -40,6 +40,7 @@ use GADS::Datum::Rag;
 use GADS::Datum::Serial;
 use GADS::Datum::String;
 use GADS::Datum::Tree;
+use GADS::Helper::Pager qw/get_page/;
 use GADS::Hooks;
 use GADS::Layout;
 use Log::Report 'linkspace';
@@ -753,7 +754,16 @@ sub find_chronology_id
         or error __x"Record ID {id} not found", id => $current_id;
     my $instance_id = $current->instance_id;
     $self->_set_instance_id($current->instance_id);
-    $self->_find(current_id => $current_id, chronology => 1, current => $current);
+    my $page = $options{chronology_page} // 1;
+    my $rows = $options{chronology_rows} // 10;
+    my %params = (
+        current_id      => $current_id,
+        chronology      => 1,
+        current         => $current,
+        chronology_page => $page,
+        chronology_rows => $rows
+    );
+    $self->_find(%params);
 }
 
 sub find_draftuser_id
@@ -860,6 +870,10 @@ sub _find
     # If deleted, make sure user has access to purged records
     error __"You do not have access to this deleted record"
         if $find{deleted} && !$self->layout->user_can("purge") && !$GADS::Schema::IGNORE_PERMISSIONS;
+
+    my $last_record_id = $find{last_record_id};
+    my $chronology_page = $find{chronology_page};
+    my $chronology_rows = $find{chronology_rows};
 
     my %params = (
         user                    => $self->user,
@@ -1041,16 +1055,19 @@ sub _find
     # limits. It could be that they can't see the actual latest version though,
     # and that the latest version here is an old version. Check now whether
     # they are allowed to see this record at all.
-    error __"Requested record not found"
-        if $find{chronology} && $find{current}->current_version_id != $record_ids[-1];
+        error __"Requested record not found"
+            if $find{chronology} && $find{current}->current_version_id != $record_ids[-1];
 
     $self->clear_is_draft;
+
+    my @chronology_record_ids = get_page($chronology_page, $chronology_rows, @record_ids)
+        if $find{chronology};
 
     # Fetch and add multi-values
     my @record_objects;
     if ($find{chronology})
     {
-        foreach my $record_id (@record_ids)
+        foreach my $record_id (@chronology_record_ids)
         {
             my $record_hash = $record->{$record_id};
             push @record_objects, GADS::Record->new(
@@ -1176,13 +1193,23 @@ sub _find
             } if @changed; # There may have been changes, but not ones the user has access to
             $last_record = $record;
         }
+        @chronology = grep { defined } @chronology;
+        my $count = scalar @chronology;
+        my $start = $count > $chronology_rows ? 1 : 0;
+        @chronology = grep { defined } @chronology[$start .. $chronology_rows];
+        @chronology = reverse @chronology;
         $self->_set_chronology(\@chronology);
+        $self->_set_last_page($start==0);
     }
 
     $self; # Allow chaining
 }
 
 has chronology => (
+    is => 'rwp',
+);
+
+has last_page => (
     is => 'rwp',
 );
 
@@ -2440,7 +2467,7 @@ sub _field_write
                             # child records. This is used in chronology view to
                             # ensure the correct versions at the time of record
                             # edit are used
-                            version_datetime => $created, 
+                            version_datetime => $created,
                         );
                         push @{$self->_records_to_write_after}, $record
                             if $record->is_edited;
