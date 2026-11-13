@@ -111,8 +111,6 @@ sub validate
 # Any value is valid for a search, as it can include begins_with etc
 sub validate_search {1};
 
-sub write_special {1};
-
 sub tjoin
 {   my $self = shift;
     +{$self->field => 'value'};
