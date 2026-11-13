@@ -30,6 +30,7 @@ import OrderableSortableComponent from "components/sortable/orderable-sortable";
 import RadioGroupComponent from "components/form-group/radio-group";
 import RecordPopupComponent from "components/record-popup";
 import SelectComponent from "components/form-group/select";
+import MenuComponent from "components/menu";
 import SelectWidgetComponent from "components/form-group/select-widget";
 import SidebarComponent from "components/sidebar";
 import SortableComponent from "components/sortable";
@@ -86,6 +87,7 @@ registerComponent(HelpView);
 registerComponent(PeopleFilterComponent);
 registerComponent(AutosaveComponent);
 registerComponent(FieldLengthComponent);
+registerComponent(MenuComponent);
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body);

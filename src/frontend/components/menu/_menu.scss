@@ -1,0 +1,8 @@
+.dropend {
+    button {
+        &::after {
+            content: ">";
+            padding-left: $spacer * 0.5;
+        }
+    }
+}
