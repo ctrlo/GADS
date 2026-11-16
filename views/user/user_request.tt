@@ -204,7 +204,7 @@
       name  = "created"
     }, {
       type  = "link"
-      label = user_row.created_by. OR "Unknown"
+      label = user_row.created_by OR "Unknown"
       name  = "createdby"
     }, {
       type  = "link"
