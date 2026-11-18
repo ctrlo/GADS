@@ -34,7 +34,7 @@ describe('builder', () => {
         expect(() => { builder.build(); }).toThrow('Ajax source not set');
     });
 
-    it.skip('should build the typeahead - Jest really doesn\'t like JQuery right now', () => {
+    it('should build the typeahead', () => {
         const builder = new TypeaheadBuilder();
         builder.withInput($(document.createElement('input')));
         builder.withCallback(() => { return; });

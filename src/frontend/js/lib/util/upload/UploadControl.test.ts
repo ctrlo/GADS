@@ -61,7 +61,7 @@ describe('UploadControl', () => {
     });
 
     // Erroring and not behaving as expected when progress is called. Skipping for now.
-    it.skip('should use a progress callback', async () => {
+    it('should use a progress callback', async () => {
         expect.assertions(2);
         const localMock = mockXhr!;
         const url = 'http://localhost';
