@@ -60,7 +60,6 @@ describe('UploadControl', () => {
         expect(result).toEqual({ error: 0 });
     });
 
-    // Erroring and not behaving as expected when progress is called. Skipping for now.
     it('should use a progress callback', async () => {
         expect.assertions(2);
         const localMock = mockXhr!;
