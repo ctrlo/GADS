@@ -8,10 +8,7 @@
     type="button"
     class="[% button_class || 'btn btn-delete btn-sm btn-js-delete' %]"
     data-bs-toggle="modal"
-    data-bs-target="#[% modalId | html %]"[% IF dataInstanceName %]
-    data-instance-name="[% dataInstanceName | html %]"[% END %][% IF dataLayoutId %]
-    data-layout-id="[% dataLayoutId | html %]"[% END %][% IF dataCurrentId %]
-    data-current-id="[% dataCurrentId | html %]"[% END %][% IF dataTitle %]
+    data-bs-target="#[% modalId | html %]"[% IF dataTitle %]
     data-title="[% dataTitle | html %]"[% END %][% IF dataID %]
     data-id=[% dataID | html %][% END %]
   >
