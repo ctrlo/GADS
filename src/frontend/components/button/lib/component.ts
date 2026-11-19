@@ -99,6 +99,12 @@ class ButtonComponent extends Component {
                     createRemoveCurvalButton(el);
                 });
         });
+        map.set("btn-js-curval-modal", (el) => {
+            import(/* webpackChunkName: "curval-modal-button" */ "./modal-curval-button")
+                .then(({default: createModalCurvalButton}) => {
+                    createModalCurvalButton(el);
+                });
+        });
         map.set("btn-js-remove-unload", (el) => {
             import(/* webpackChunkName: "remove-unload-button" */ "./remove-unload-button")
                 .then(({default: createRemoveUnloadButton}) => {

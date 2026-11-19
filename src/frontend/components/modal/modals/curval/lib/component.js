@@ -133,7 +133,7 @@ class CurvalModalComponent extends ModalComponent {
             const instance_name = $field.data("curval-instance-name");
             const editButton = $(
                 `<td>
-          <button type="button" class="btn btn-sm btn-link btn-js-curval-modal" data-bs-toggle="modal" data-bs-target="#curvalModal" data-layout-id="${col_id}"
+          <button type="button" class="btn btn-sm btn-link btn-js-curval-modal" data-layout-id="${col_id}"
                 data-instance-name="${instance_name}" ${current_id ? `data-current-id="${current_id}"`:""}>
             <span class="btn__title">Edit</span>
           </button>
@@ -335,7 +335,7 @@ class CurvalModalComponent extends ModalComponent {
             // At this point we either have a full form's values, or nothing at all.
             // If nothing at all we need to add the CSRF token for the POST request.
             if (form_data.getAll("csrf_token").length == 0) {
-                const $csrf = $field.closest("form.form-edit").find("input[name=\"csrf_token\"]");
+                const $csrf = $field.closest("form").find("input[name=\"csrf_token\"]");
                 form_data.append("csrf_token", $csrf.val());
             }
 

@@ -77,9 +77,9 @@
           modalId          = button.modalId || ''
           sub_field        = button.sub_field || ''
           sub_params       = button.sub_params || row.button.sub_params || ''
-          dataCurrentId    = row.modal.dataCurrentId || ''
-          dataLayoutId     = row.modal.dataLayoutId || ''
-          dataInstanceName = row.modal.dataInstanceName || ''
+          dataCurrentId    = row.data.dataCurrentId || ''
+          dataLayoutId     = row.data.dataLayoutId || ''
+          dataInstanceName = row.data.dataInstanceName || ''
           dataTitle        = row.modal.dataTitle || ''
           dataID           = row.modal.dataID || ''
         });
