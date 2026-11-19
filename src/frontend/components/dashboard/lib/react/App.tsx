@@ -146,7 +146,7 @@ export default class App extends Component<AppProps, AppState> {
             return;
         }
         this.setState({ loadingEditHtml: false, editError: "", editHtml: editFormHtml.content! }, ()=>{
-            if (this.formRef.current) initializeRegisteredComponents(this.formRef.current!)
+            if (this.formRef.current) initializeRegisteredComponents(this.formRef.current!);
         });
     };
 
