@@ -270,8 +270,11 @@ has record_as_dashboard => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        my $rset = $self->_rset;
-        $rset->record_display eq 'dashboard' ? 1 : 0;
+        my $record_display = $self->_rset->record_display;
+        (
+            defined($record_display) &&
+            $record_display eq 'dashboard'
+        ) ? 1 : 0;
     },
 );
 
