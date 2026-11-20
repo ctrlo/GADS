@@ -755,13 +755,12 @@ sub find_chronology_id
     my $instance_id = $current->instance_id;
     $self->_set_instance_id($current->instance_id);
     my $page = $options{chronology_page} // 1;
-    my $rows = $options{chronology_rows} // 10;
     my %params = (
         current_id      => $current_id,
         chronology      => 1,
         current         => $current,
         chronology_page => $page,
-        chronology_rows => $rows
+        chronology_rows => $rows,
     );
     $self->_find(%params);
 }
@@ -1055,8 +1054,8 @@ sub _find
     # limits. It could be that they can't see the actual latest version though,
     # and that the latest version here is an old version. Check now whether
     # they are allowed to see this record at all.
-        error __"Requested record not found"
-            if $find{chronology} && $find{current}->current_version_id != $record_ids[-1];
+    error __"Requested record not found"
+        if $find{chronology} && $find{current}->current_version_id != $record_ids[-1];
 
     $self->clear_is_draft;
 

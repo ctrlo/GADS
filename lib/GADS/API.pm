@@ -1519,7 +1519,10 @@ post '/api/script_error' => require_login sub {
 get '/api/chronology/:id' => require_login sub {
     my $user = logged_in_user;
     my $current_id = route_parameters->get('id');
-    my $page = query_parameters->get('page');
+    my $page = query_parameters->get('page') // 1;
+
+    $current_id =~ /^[0-9]+$/ or error __"Invalid ID";
+    $page =~ /^[0-9]+$/ or error __"Invalid page";
 
     my $record = GADS::Record->new(
         user => $user,
