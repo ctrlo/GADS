@@ -755,12 +755,13 @@ sub find_chronology_id
     my $instance_id = $current->instance_id;
     $self->_set_instance_id($current->instance_id);
     my $page = $options{chronology_page} // 1;
+    my $rows = $options{chronology_rows} // 10;
     my %params = (
         current_id      => $current_id,
         chronology      => 1,
         current         => $current,
         chronology_page => $page,
-        chronology_rows => 10,
+        chronology_rows => $rows,
     );
     $self->_find(%params);
 }
