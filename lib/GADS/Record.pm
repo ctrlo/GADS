@@ -40,7 +40,7 @@ use GADS::Datum::Rag;
 use GADS::Datum::Serial;
 use GADS::Datum::String;
 use GADS::Datum::Tree;
-use GADS::Helper::Pager qw/get_page/;
+use GADS::Helper::Pager qw/get_chronology_page/;
 use GADS::Hooks;
 use GADS::Layout;
 use Log::Report 'linkspace';
@@ -760,7 +760,7 @@ sub find_chronology_id
         chronology      => 1,
         current         => $current,
         chronology_page => $page,
-        chronology_rows => $rows,
+        chronology_rows => 10,
     );
     $self->_find(%params);
 }
@@ -1059,7 +1059,7 @@ sub _find
 
     $self->clear_is_draft;
 
-    my @chronology_record_ids = get_page($chronology_page, $chronology_rows, @record_ids)
+    my @chronology_record_ids = get_chronology_page($chronology_page, $chronology_rows, @record_ids)
         if $find{chronology};
 
     # Fetch and add multi-values
